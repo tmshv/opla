@@ -1,0 +1,24 @@
+{
+  "name": "opla",
+  "version": "1.0.0",
+  "description": "https://acidome.ru https://www.gridsystem.dk https://www.usm.com",
+  "main": "index.js",
+  "dependencies": {
+    "next": "^9.5.4",
+    "react-dom": "^16.13.1",
+    "react": "^16.13.1",
+    "typescript": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.8",
+    "@types/react": "^16.9.51"
+  },
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
