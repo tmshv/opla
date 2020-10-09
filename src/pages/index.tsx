@@ -1,8 +1,6 @@
 const Page = () => {
     return (
-        <div style={{
-            width: '100%',
-        }}>
+        <div className={'hero'}>
             <img src={'/image2.jpg'}/>
         </div>
     )
