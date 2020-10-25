@@ -52,19 +52,15 @@ function createBoxes(opla: any) {
         const axisY = grid.axisY[location.y]
         const axisZ = grid.axisZ[location.z]
 
+        // calc cell position per axis
+        // position depends on all previos cells
+        // also shift half of size to make it top left aligned
         let axisOffset = new THREE.Vector3()
         axisOffset.x = sum(grid.axisX.slice(0, location.x)) + axisX / 2
         axisOffset.y = sum(grid.axisY.slice(0, location.y)) + axisY / 2
         axisOffset.z = sum(grid.axisZ.slice(0, location.z)) + axisZ / 2
 
-        console.log('item', item, axisOffset, grid);
-
         var position = new THREE.Vector3();
-        // position.set(
-        //     location.x,
-        //     location.y,
-        //     location.z,
-        // )
         position.add(axisOffset)
         position.multiplyScalar(s)
         position.add(offset)
@@ -109,7 +105,7 @@ function sum(items: number[], start = 0): number {
 function createOplaBlocks() {
     const sizeX = 3
     const sizeY = 5
-    const sizeZ = 5
+    const sizeZ = 8
     const items = createGrid3(sizeX, sizeY, sizeZ, (x, y, z, i) => {
         if (z % 2 == 1) {
             return null
