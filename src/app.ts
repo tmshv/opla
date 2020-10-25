@@ -5,7 +5,6 @@ import * as THREE from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { off } from 'process';
 
 var container, stats;
 var camera, controls, scene, renderer;
