@@ -15,6 +15,11 @@ var highlightBox;
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
 
+const materialLib = new Map([
+    ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
+    ['closed', new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 })],
+])
+
 export function runApp(elem: HTMLElement) {
     container = elem
     init();
@@ -85,7 +90,10 @@ function createBoxes(opla: any) {
         // positionOffset.y += axisY - 1
         // positionOffset.z += axisZ - 1
 
+        let material = materialLib.get(item.props.type)
+
         return {
+            material,
             geometry,
             position,
             rotation,
@@ -163,8 +171,6 @@ function createScene(conf: { opla: any }) {
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
 
     var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
-    let material = new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 });
-    // let material = new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 0.5 })
 
     var color = new THREE.Color();
 
@@ -187,8 +193,12 @@ function createScene(conf: { opla: any }) {
         };
     })
 
-    let objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), material)
-    let pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial);
+    let objects = new THREE.Group()
+    for (let { geometry, material } of boxes) {
+        let mesh = new THREE.Mesh(geometry, material)
+        objects.add(mesh)
+    }
+    let pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial)
 
     return {
         objects,
