@@ -63,53 +63,31 @@ function createBoxes() {
 
         // give the geometry's vertices a random color, to be displayed
         applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
-        result.push(geometry);
+        result.push({
+            position,
+            rotation,
+            scale,
+            geometry,
+        });
     }
+
+    return result
 }
 
-function createScene() {
-    scene = new THREE.Scene();
-
+function createScene(conf: any) {
     pickingScene = new THREE.Scene();
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
 
     var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
     var defaultMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, vertexColors: true, shininess: 0 });
 
-    var geometriesDrawn = [];
-    var geometriesPicking = [];
-
-    var matrix = new THREE.Matrix4();
-    var quaternion = new THREE.Quaternion();
     var color = new THREE.Color();
 
-    for (let i = 0; i < 50; i++) {
-        let geometry = new THREE.BoxBufferGeometry();
-
-        var position = new THREE.Vector3();
-        position.x = Math.random() * 10000 - 5000;
-        position.y = Math.random() * 6000 - 3000;
-        position.z = Math.random() * 8000 - 4000;
-
-        var rotation = new THREE.Euler();
-        rotation.x = Math.random() * 2 * Math.PI;
-        rotation.y = Math.random() * 2 * Math.PI;
-        rotation.z = Math.random() * 2 * Math.PI;
-
-        var scale = new THREE.Vector3();
-        scale.x = Math.random() * 200 + 100;
-        scale.y = Math.random() * 200 + 100;
-        scale.z = Math.random() * 200 + 100;
-
-        quaternion.setFromEuler(rotation);
-        matrix.compose(position, quaternion, scale);
-
-        geometry.applyMatrix4(matrix);
-
-        // give the geometry's vertices a random color, to be displayed
-        applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
-        geometriesDrawn.push(geometry);
-
+    let boxes = createBoxes()
+    let geometriesDrawn = boxes.map(({ geometry }) => geometry)
+    let geometriesPicking = [];
+    boxes.forEach((item, i) => {
+        let { geometry, position, rotation, scale } = item
         geometry = geometry.clone();
 
         // give the geometry's vertices a color corresponding to the "id"
@@ -117,16 +95,19 @@ function createScene() {
         geometriesPicking.push(geometry);
 
         pickingData[i] = {
-            position: position,
-            rotation: rotation,
-            scale: scale
+            position,
+            rotation,
+            scale,
         };
+    })
+
+    let objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), defaultMaterial);
+    let pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial);
+
+    return {
+        objects,
+        pickingObjects,
     }
-
-    var objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), defaultMaterial);
-    scene.add(objects);
-
-    pickingScene.add(new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial));
 }
 
 function init() {
@@ -145,82 +126,9 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
-    var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
-    var defaultMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, vertexColors: true, shininess: 0 });
-
-    function applyVertexColors(geometry, color) {
-
-        var position = geometry.attributes.position;
-        var colors = [];
-
-        for (var i = 0; i < position.count; i++) {
-
-            colors.push(color.r, color.g, color.b);
-
-        }
-
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-    }
-
-    var geometriesDrawn = [];
-    var geometriesPicking = [];
-
-    var matrix = new THREE.Matrix4();
-    var quaternion = new THREE.Quaternion();
-    var color = new THREE.Color();
-
-    for (var i = 0; i < 50; i++) {
-        var geometry = new THREE.BoxBufferGeometry();
-
-        var position = new THREE.Vector3();
-        position.x = Math.random() * 10000 - 5000;
-        position.y = Math.random() * 6000 - 3000;
-        position.z = Math.random() * 8000 - 4000;
-
-        var rotation = new THREE.Euler();
-        rotation.x = Math.random() * 2 * Math.PI;
-        rotation.y = Math.random() * 2 * Math.PI;
-        rotation.z = Math.random() * 2 * Math.PI;
-
-        var scale = new THREE.Vector3();
-        scale.x = Math.random() * 200 + 100;
-        scale.y = Math.random() * 200 + 100;
-        scale.z = Math.random() * 200 + 100;
-
-        quaternion.setFromEuler(rotation);
-        matrix.compose(position, quaternion, scale);
-
-        geometry.applyMatrix4(matrix);
-
-        // give the geometry's vertices a random color, to be displayed
-
-        applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
-
-        geometriesDrawn.push(geometry);
-
-        geometry = geometry.clone();
-
-        // give the geometry's vertices a color corresponding to the "id"
-
-        applyVertexColors(geometry, color.setHex(i));
-
-        geometriesPicking.push(geometry);
-
-        pickingData[i] = {
-
-            position: position,
-            rotation: rotation,
-            scale: scale
-
-        };
-
-    }
-
-    var objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), defaultMaterial);
-    scene.add(objects);
-
-    pickingScene.add(new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial));
+    let { objects, pickingObjects } = createScene({})
+    scene.add(objects)
+    pickingScene.add(pickingObjects)
 
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
