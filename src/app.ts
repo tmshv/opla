@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { off } from 'process';
 
 var container, stats;
 var camera, controls, scene, renderer;
@@ -36,33 +37,30 @@ function createBoxes(opla: any) {
     let quaternion = new THREE.Quaternion();
     let color = new THREE.Color();
 
-    // let result = []
+    const offset = new THREE.Vector3(-500, 0, -500)
 
     const { grid, items } = opla
-    const result = items.map(item => {
+    return items.map(item => {
         const { location } = item
-        let gridScale = 100
         var position = new THREE.Vector3();
-        position.x = location.x * gridScale
-        position.y = location.y * gridScale
-        position.z = location.z * gridScale
-        // position.x = Math.random() * 10000 - 5000;
-        // position.y = Math.random() * 6000 - 3000;
-        // position.z = Math.random() * 8000 - 4000;
+        position.set(
+            location.x,
+            location.y,
+            location.z ,
+        )
+        position.multiplyScalar(100)
+        position.add(offset)
 
         var rotation = new THREE.Euler();
-        // rotation.x = Math.random() * 2 * Math.PI;
-        // rotation.y = Math.random() * 2 * Math.PI;
-        // rotation.z = Math.random() * 2 * Math.PI;
 
-        gridScale = 10
         var scale = new THREE.Vector3();
-        // scale.x = Math.random() * 200 + 100;
-        // scale.y = Math.random() * 200 + 100;
-        // scale.z = Math.random() * 200 + 100;
-        scale.x = grid.axisX[location.x] * gridScale
-        scale.y = grid.axisX[location.y] * gridScale
-        scale.z = grid.axisX[location.z] * gridScale
+        scale.set(
+            grid.axisX[location.x],
+            grid.axisX[location.y],
+            grid.axisX[location.z] ,
+        )
+        scale.multiplyScalar(10)
+
         let geometry = new THREE.BoxBufferGeometry();
 
         quaternion.setFromEuler(rotation);
@@ -72,6 +70,7 @@ function createBoxes(opla: any) {
 
         // give the geometry's vertices a random color, to be displayed
         applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
+
         return {
             geometry,
             position,
@@ -79,42 +78,6 @@ function createBoxes(opla: any) {
             scale,
         }
     })
-
-    for (let i = 0; i < 50; i++) {
-        continue
-        let geometry = new THREE.BoxBufferGeometry();
-
-        var position = new THREE.Vector3();
-        position.x = Math.random() * 10000 - 5000;
-        position.y = Math.random() * 6000 - 3000;
-        position.z = Math.random() * 8000 - 4000;
-
-        var rotation = new THREE.Euler();
-        rotation.x = Math.random() * 2 * Math.PI;
-        rotation.y = Math.random() * 2 * Math.PI;
-        rotation.z = Math.random() * 2 * Math.PI;
-
-        var scale = new THREE.Vector3();
-        scale.x = Math.random() * 200 + 100;
-        scale.y = Math.random() * 200 + 100;
-        scale.z = Math.random() * 200 + 100;
-
-        quaternion.setFromEuler(rotation);
-        matrix.compose(position, quaternion, scale);
-
-        geometry.applyMatrix4(matrix);
-
-        // give the geometry's vertices a random color, to be displayed
-        applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
-        result.push({
-            position,
-            rotation,
-            scale,
-            geometry,
-        });
-    }
-
-    return result
 }
 
 function createOplaBlocks() {
@@ -214,6 +177,9 @@ function init() {
     pickingScene = new THREE.Scene();
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
 
+    var gridHelper = new THREE.GridHelper(1000, 20)
+    scene.add(gridHelper)
+
     scene.add(new THREE.AmbientLight(0x555555));
 
     var light = new THREE.SpotLight(0xffffff, 1.5);
@@ -225,6 +191,11 @@ function init() {
     let { objects, pickingObjects } = createScene({
         opla
     })
+    // objects.position.x = -500
+    // objects.position.z = -500
+    // pickingObjects.position.x = -500
+    // pickingObjects.position.z = -500
+
     scene.add(objects)
     pickingScene.add(pickingObjects)
 
