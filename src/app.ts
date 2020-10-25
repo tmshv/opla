@@ -9,11 +9,12 @@ import { off } from 'process';
 
 var container, stats;
 var camera, controls, scene, renderer;
-var pickingData = [], pickingTexture, pickingScene;
+var pickingTexture, pickingScene;
+let pickingData = []
 var highlightBox;
 
 var mouse = new THREE.Vector2();
-var offset = new THREE.Vector3(10, 10, 10);
+let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
 
 export function runApp(elem: HTMLElement) {
     container = elem
@@ -285,7 +286,7 @@ function pick() {
 
             highlightBox.position.copy(data.position);
             highlightBox.rotation.copy(data.rotation);
-            highlightBox.scale.copy(data.scale).add(offset);
+            highlightBox.scale.copy(data.scale).add(selectedItemScaleOffset);
             highlightBox.visible = true;
 
         }
