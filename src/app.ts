@@ -37,28 +37,42 @@ function createBoxes(opla: any) {
     let quaternion = new THREE.Quaternion();
 
     const offset = new THREE.Vector3(-500, 0, -500)
+    const s = 100
 
     const { grid, items } = opla
+
     return items.map(item => {
         const { location } = item
+        const axisX = grid.axisX[location.x]
+        const axisY = grid.axisY[location.y]
+        const axisZ = grid.axisZ[location.z]
+
+        let axisOffset = new THREE.Vector3()
+        axisOffset.x = sum(grid.axisX.slice(0, location.x)) + axisX / 2
+        axisOffset.y = sum(grid.axisY.slice(0, location.y)) + axisY / 2
+        axisOffset.z = sum(grid.axisZ.slice(0, location.z)) + axisZ / 2
+
+        console.log('item', item, axisOffset, grid);
+
         var position = new THREE.Vector3();
-        position.set(
-            location.x,
-            location.y,
-            location.z ,
-        )
-        position.multiplyScalar(100)
+        // position.set(
+        //     location.x,
+        //     location.y,
+        //     location.z,
+        // )
+        position.add(axisOffset)
+        position.multiplyScalar(s)
         position.add(offset)
 
         var rotation = new THREE.Euler();
 
         var scale = new THREE.Vector3();
         scale.set(
-            grid.axisX[location.x],
-            grid.axisX[location.y],
-            grid.axisX[location.z] ,
+            axisX,
+            axisY,
+            axisZ,
         )
-        scale.multiplyScalar(10)
+        scale.multiplyScalar(s)
 
         let geometry = new THREE.BoxBufferGeometry();
 
@@ -66,6 +80,10 @@ function createBoxes(opla: any) {
         matrix.compose(position, quaternion, scale);
 
         geometry.applyMatrix4(matrix);
+
+        // positionOffset.x += axisX - 1
+        // positionOffset.y += axisY - 1
+        // positionOffset.z += axisZ - 1
 
         return {
             geometry,
@@ -76,12 +94,24 @@ function createBoxes(opla: any) {
     })
 }
 
+function sum(items: number[], start = 0): number {
+    return items.reduce((a, b) => a + b, start)
+}
+
 function createOplaBlocks() {
-    const items = createGrid3(10, 10, 10, (x, y, z, i) => {
-        if (Math.random() < 0.95) {
+    const sizeX = 3
+    const sizeY = 5
+    const sizeZ = 5
+    const items = createGrid3(sizeX, sizeY, sizeZ, (x, y, z, i) => {
+        if (z % 2 == 1) {
             return null
         }
-
+        // if ((y + x) % 2 == 0) {
+        //     return null
+        // }
+        // const yp = (y / 10) * 0.5
+        // const yp = 0.5
+        const type = Math.random() < 0.1 ? 'closed' : 'open'
         return {
             id: i,
             location: {
@@ -90,6 +120,7 @@ function createOplaBlocks() {
                 z,
             },
             props: {
+                type,
                 // width: 10,
                 // height: 10,
                 // depth: 10,
@@ -97,9 +128,9 @@ function createOplaBlocks() {
         }
     })
     const grid = {
-        axisX: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-        axisY: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-        axisZ: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+        axisX: createGrid3(sizeX, 1, 1, x => 1),
+        axisY: createGrid3(sizeY, 1, 1, (x, y, z, i) => 1 + x * i * 0.1),
+        axisZ: createGrid3(sizeZ, 1, 1, x => x % 2 ? 1 : 2),
     }
 
     return {
