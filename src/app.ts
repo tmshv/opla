@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 
 // import Stats from './jsm/libs/stats.module.js';
-// import { TrackballControls } from './jsm/controls/TrackballControls.js';
-// import { BufferGeometryUtils } from './jsm/utils/BufferGeometryUtils.js';
 
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 
 var container, stats;
 var camera, controls, scene, renderer;
@@ -141,14 +140,14 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
-    // controls = new TrackballControls(camera, renderer.domElement);
-    // controls.rotateSpeed = 1.0;
-    // controls.zoomSpeed = 1.2;
-    // controls.panSpeed = 0.8;
-    // controls.noZoom = false;
-    // controls.noPan = false;
-    // controls.staticMoving = true;
-    // controls.dynamicDampingFactor = 0.3;
+    controls = new TrackballControls(camera, renderer.domElement);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+    controls.noZoom = false;
+    controls.noPan = false;
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
 
     // stats = new Stats();
     // container.appendChild(stats.dom);
@@ -227,7 +226,7 @@ function pick() {
 
 function render() {
 
-    // controls.update();
+    controls.update()
 
     pick();
 
