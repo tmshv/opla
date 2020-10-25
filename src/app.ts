@@ -21,9 +21,9 @@ export function runApp(elem: HTMLElement) {
     animate();
 }
 
-function applyVertexColors(geometry, color) {
-    let position = geometry.attributes.position;
-    let colors = [];
+function applyVertexColors(geometry: THREE.BufferGeometry, color: THREE.Color) {
+    let position = geometry.attributes.position
+    let colors: number[] = []
 
     for (let i = 0; i < position.count; i++) {
         colors.push(color.r, color.g, color.b);
