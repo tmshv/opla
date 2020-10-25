@@ -145,6 +145,7 @@ function createScene(conf: { opla: any }) {
     let geometriesDrawn = boxes.map(({ geometry }) => geometry)
     let geometriesPicking = [];
     boxes.forEach((item, i) => {
+        i++
         let { geometry, position, rotation, scale } = item
         geometry = geometry.clone();
 
