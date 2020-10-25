@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 var container, stats;
 var camera, controls, scene, renderer;
@@ -140,14 +141,18 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
-    controls = new TrackballControls(camera, renderer.domElement);
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    controls.noZoom = false;
-    controls.noPan = false;
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
+    // controls = new TrackballControls(camera, renderer.domElement);
+    // controls.rotateSpeed = 1.0;
+    // controls.zoomSpeed = 1.2;
+    // controls.panSpeed = 0.8;
+    // controls.noZoom = false;
+    // controls.noPan = false;
+    // controls.staticMoving = true;
+    // controls.dynamicDampingFactor = 0.3;
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1, 0);
+    controls.update();
 
     // stats = new Stats();
     // container.appendChild(stats.dom);
