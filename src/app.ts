@@ -36,7 +36,6 @@ function applyVertexColors(geometry: THREE.BufferGeometry, color: THREE.Color) {
 function createBoxes(opla: any) {
     let matrix = new THREE.Matrix4();
     let quaternion = new THREE.Quaternion();
-    let color = new THREE.Color();
 
     const offset = new THREE.Vector3(-500, 0, -500)
 
@@ -68,9 +67,6 @@ function createBoxes(opla: any) {
         matrix.compose(position, quaternion, scale);
 
         geometry.applyMatrix4(matrix);
-
-        // give the geometry's vertices a random color, to be displayed
-        applyVertexColors(geometry, color.setHex(Math.random() * 0xffffff));
 
         return {
             geometry,
@@ -136,8 +132,9 @@ function createScene(conf: { opla: any }) {
     pickingScene = new THREE.Scene();
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
 
-    var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
-    var defaultMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, vertexColors: true, shininess: 0 });
+    var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
+    let material = new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 });
+    // let material = new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 0.5 })
 
     var color = new THREE.Color();
 
@@ -160,7 +157,7 @@ function createScene(conf: { opla: any }) {
         };
     })
 
-    let objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), defaultMaterial);
+    let objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesDrawn), material)
     let pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial);
 
     return {
@@ -174,7 +171,7 @@ function init() {
     camera.position.z = 1000;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(0xeeeeff);
 
     pickingScene = new THREE.Scene();
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
