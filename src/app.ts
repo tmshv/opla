@@ -238,10 +238,10 @@ function init() {
 
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
-        new THREE.MeshLambertMaterial({
-            color: 0xff6600,
+        new THREE.MeshBasicMaterial({
+            color: 0xdd3300,
             transparent: true,
-            opacity: 0.5,
+            opacity: 0.25,
         })
     )
 
