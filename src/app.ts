@@ -204,10 +204,12 @@ function createScene(conf: { opla: any }) {
 
 function init() {
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.z = 1000;
+    camera.position.y = 500
+    camera.position.z = 1000
 
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xeeeeff);
+    scene = new THREE.Scene()
+    scene.background = new THREE.Color(0xeeeeff)
+    scene.fog = new THREE.Fog(0xeeeeff, 1250, 2500)
 
     pickingScene = new THREE.Scene();
     pickingTexture = new THREE.WebGLRenderTarget(1, 1);
@@ -236,9 +238,9 @@ function init() {
 
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
-        new THREE.MeshLambertMaterial({ color: 0xffff00 }
-        ));
-    scene.add(highlightBox);
+        new THREE.MeshLambertMaterial({ color: 0xffff00 })
+    )
+    scene.add(highlightBox)
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -256,6 +258,27 @@ function init() {
 
     controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1, 0);
+    controls.minDistance = 800
+    controls.maxDistance = 2000
+    // minZoom: number;
+    // maxZoom: number;
+    // controls.minPolarAngle = Math.PI / 2
+    // minPolarAngle: number;
+    // maxPolarAngle: number;
+    // controls.minAzimuthAngle = Math.PI
+    // maxAzimuthAngle: number;
+    // enableDamping: boolean;
+    // dampingFactor: number;
+    controls.enableZoom = true
+    // zoomSpeed: number;
+    // enableRotate: boolean;
+    // rotateSpeed: number;
+    controls.enablePan = false
+    // panSpeed: number;
+    // screenSpacePanning: boolean;
+    // keyPanSpeed: number;
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 0.3
     controls.update();
 
     // stats = new Stats();
