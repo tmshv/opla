@@ -5,12 +5,13 @@ import * as THREE from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { randomColor, createOplaSystem, OplaSystem } from './opla';
 
 var container, stats;
 var camera, controls, scene, renderer;
 var pickingTexture, pickingScene;
-let pickingData = []
 var highlightBox;
+const pickingData = new Map<number, any>()
 
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
@@ -19,6 +20,12 @@ const materialLib = new Map([
     ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
     ['closed', new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 })],
 ])
+
+function hex(value: number) {
+    const color = new THREE.Color()
+    color.setHex(value)
+    return color
+}
 
 export function runApp(elem: HTMLElement) {
     container = elem
@@ -37,110 +44,101 @@ function applyVertexColors(geometry: THREE.BufferGeometry, color: THREE.Color) {
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 }
 
-function createBoxes(opla: any) {
-    let matrix = new THREE.Matrix4();
-    let quaternion = new THREE.Quaternion();
+type BoxColors = [
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+]
+function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: BoxColors) {
+    const buffer: number[] = []
+    colors.forEach(color => {
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+    })
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
+}
 
+function applyRandomVertexColors(geometry: THREE.BufferGeometry) {
+    const color = new THREE.Color()
+    let position = geometry.attributes.position
+
+    const colors: number[] = []
+    for (let i = 0; i < position.count; i += 4) {
+        color.setHex(Math.floor(Math.random() * 0x1000000))
+        colors.push(color.r, color.g, color.b)
+        colors.push(color.r, color.g, color.b)
+        colors.push(color.r, color.g, color.b)
+        colors.push(color.r, color.g, color.b)
+    }
+
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+}
+
+function createBoxes(opla: OplaSystem) {
     const offset = new THREE.Vector3(-500, 0, -500)
     const s = 100
 
-    const { grid, items } = opla
+    return opla.blocks.map(block => {
+        const [position, scale] = block.createTransformComponents(opla.grid, s, offset)
+        const matrix = block.createMatrix(opla.grid, s, offset)
 
-    return items.map(item => {
-        const { location } = item
-        const axisX = grid.axisX[location.x]
-        const axisY = grid.axisY[location.y]
-        const axisZ = grid.axisZ[location.z]
-
-        // calc cell position per axis
-        // position depends on all previos cells
-        // also shift half of size to make it top left aligned
-        let axisOffset = new THREE.Vector3()
-        axisOffset.x = sum(grid.axisX.slice(0, location.x)) + axisX / 2
-        axisOffset.y = sum(grid.axisY.slice(0, location.y)) + axisY / 2
-        axisOffset.z = sum(grid.axisZ.slice(0, location.z)) + axisZ / 2
-
-        var position = new THREE.Vector3();
-        position.add(axisOffset)
-        position.multiplyScalar(s)
-        position.add(offset)
-
-        var rotation = new THREE.Euler();
-
-        var scale = new THREE.Vector3();
-        scale.set(
-            axisX,
-            axisY,
-            axisZ,
-        )
-        scale.multiplyScalar(s)
-
-        let geometry = new THREE.BoxBufferGeometry();
-
-        quaternion.setFromEuler(rotation);
-        matrix.compose(position, quaternion, scale);
-
-        geometry.applyMatrix4(matrix);
+        // let geometryBox = box(scale.x, scale.y, scale.z)
+        const dashScale = 0.1
+        let lineMaterial = new THREE.LineDashedMaterial({ color: 0x666666, dashSize: 3 * dashScale, gapSize: 1 * dashScale })
+        let geometryBox = box(1, 1, 1)
+        let lineSegments = new THREE.LineSegments(geometryBox, lineMaterial)
+        lineSegments.applyMatrix4(matrix)
+        lineSegments.computeLineDistances()
 
         // positionOffset.x += axisX - 1
         // positionOffset.y += axisY - 1
         // positionOffset.z += axisZ - 1
 
-        let material = materialLib.get(item.props.type)
+        let geometry = new THREE.BoxBufferGeometry()
+        geometry.applyMatrix4(matrix)
+        const material = materialLib.get(block.blockType)
+        const mesh = new THREE.Mesh(geometry, material)
+
+        const pickColors: BoxColors = [
+            hex(randomColor()),
+            hex(randomColor()),
+            hex(randomColor()),
+            hex(randomColor()),
+            hex(randomColor()),
+            hex(randomColor()),
+            // hex(0xffff00),
+            // hex(0x00ffff),
+            // hex(0xff00ff), // top
+            // hex(0xff0000), // bottom
+            // hex(0x00ff00), // opposite of one
+            // hex(0x0000ff), // one
+        ]
+        const pick = new THREE.BoxBufferGeometry()
+        pick.applyMatrix4(matrix)
+        // give the geometry's vertices a color corresponding to the "id"
+        // applyVertexColors(geometry, color.setHex(i));
+        applyVertexColorsToBoxFaces(pick, pickColors)
+        // applyVertexColors(geometry, color.setHex(Math.floor(Math.random() * 0x1000000)))
 
         return {
+            block,
             material,
             geometry,
+            mesh,
+            matrix,
+            pick,
+            pickColors,
             position,
-            rotation,
+            // rotation,
             scale,
+            // g: lineSegments,
         }
     })
-}
-
-function sum(items: number[], start = 0): number {
-    return items.reduce((a, b) => a + b, start)
-}
-
-function createOplaBlocks() {
-    const sizeX = 3
-    const sizeY = 5
-    const sizeZ = 8
-    const items = createGrid3(sizeX, sizeY, sizeZ, (x, y, z, i) => {
-        if (z % 2 == 1) {
-            return null
-        }
-        // if ((y + x) % 2 == 0) {
-        //     return null
-        // }
-        // const yp = (y / 10) * 0.5
-        // const yp = 0.5
-        const type = Math.random() < 0.1 ? 'closed' : 'open'
-        return {
-            id: i,
-            location: {
-                x,
-                y,
-                z,
-            },
-            props: {
-                type,
-                // width: 10,
-                // height: 10,
-                // depth: 10,
-            }
-        }
-    })
-    const grid = {
-        axisX: createGrid3(sizeX, 1, 1, x => 1),
-        axisY: createGrid3(sizeY, 1, 1, (x, y, z, i) => 1 + x * i * 0.1),
-        axisZ: createGrid3(sizeZ, 1, 1, x => x % 2 ? 1 : 2),
-    }
-
-    return {
-        grid,
-        items,
-    }
 }
 
 type GridFactoryFunction3<T> = (x: number, y: number, z: number, i: number) => T | null
@@ -162,39 +160,43 @@ function createGrid3<T>(x: number, y: number, z: number, factory: GridFactoryFun
     return result
 }
 
-function createScene(conf: { opla: any }) {
-    pickingScene = new THREE.Scene();
-    pickingTexture = new THREE.WebGLRenderTarget(1, 1);
-
-    var pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
-
-    var color = new THREE.Color();
-
+function createScene(conf: { opla: OplaSystem }) {
     let boxes = createBoxes(conf.opla)
-    let geometriesDrawn = boxes.map(({ geometry }) => geometry)
-    let geometriesPicking = [];
-    boxes.forEach((item, i) => {
-        i++
-        let { geometry, position, rotation, scale } = item
-        geometry = geometry.clone();
+    // let geometriesDrawn = boxes.map(({ geometry }) => geometry)
+    // let geometriesPicking = [];
+    // boxes.forEach((item, i) => {
+    //     i++
+    //     let { geometry, position, rotation, scale } = item
+    //     geometry = geometry.clone();
 
-        // give the geometry's vertices a color corresponding to the "id"
-        applyVertexColors(geometry, color.setHex(i));
-        geometriesPicking.push(geometry);
+    //     // give the geometry's vertices a color corresponding to the "id"
+    //     // applyVertexColors(geometry, color.setHex(i));
+    //     // applyVertexColors(geometry, color.setHex(Math.floor(Math.random() * 0x1000000)))
+    //     geometriesPicking.push(geometry);
 
-        pickingData[i] = {
-            position,
-            rotation,
-            scale,
-        };
-    })
+    //     pickingData[i] = {
+    //         position,
+    //         rotation,
+    //         scale,
+    //         item,
+    //     };
+    // })
+
 
     let objects = new THREE.Group()
-    for (let { geometry, material } of boxes) {
-        let mesh = new THREE.Mesh(geometry, material)
-        objects.add(mesh)
+    for (let item of boxes) {
+        objects.add(item.mesh)
     }
-    let pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(geometriesPicking), pickingMaterial)
+
+    boxes.forEach(item => {
+        item.pickColors.forEach(color => {
+            pickingData.set(color.getHex(), item)
+        })
+    })
+
+    const picks = boxes.map(item => item.pick)
+    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
+    const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
 
     return {
         objects,
@@ -203,6 +205,11 @@ function createScene(conf: { opla: any }) {
 }
 
 function init() {
+    const opla = createOplaSystem()
+    let { objects, pickingObjects } = createScene({
+        opla
+    })
+
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.y = 500
     camera.position.z = 1000
@@ -210,9 +217,6 @@ function init() {
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0xeeeeff)
     scene.fog = new THREE.Fog(0xeeeeff, 1250, 2500)
-
-    pickingScene = new THREE.Scene();
-    pickingTexture = new THREE.WebGLRenderTarget(1, 1);
 
     var gridHelper = new THREE.GridHelper(1000, 20)
     scene.add(gridHelper)
@@ -223,18 +227,31 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
-    const opla = createOplaBlocks()
-
-    let { objects, pickingObjects } = createScene({
-        opla
-    })
+    scene.add(objects)
     // objects.position.x = -500
     // objects.position.z = -500
     // pickingObjects.position.x = -500
     // pickingObjects.position.z = -500
 
-    scene.add(objects)
+    pickingScene = new THREE.Scene()
+    pickingTexture = new THREE.WebGLRenderTarget(1, 1)
     pickingScene.add(pickingObjects)
+
+    // const color = new THREE.Color()
+    // const mat = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
+    // const geometry = new THREE.BoxBufferGeometry(100, 100, 100)
+    // // applyVertexColors(geometry, color.setHex(0xff00ff))
+    // // applyRandomVertexColors(geometry)
+    // applyVertexColorsToBoxFaces(geometry, [
+    //     hex(0xffff00),
+    //     hex(0x00ffff),
+    //     hex(0xff00ff), // top
+    //     hex(0xff0000), // bottom
+    //     hex(0x00ff00), // opposite of one
+    //     hex(0x0000ff), // one
+    // ])
+    // const objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries([geometry]), mat)
+    // scene.add(objects)
 
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
@@ -273,11 +290,11 @@ function init() {
     // zoomSpeed: number;
     // enableRotate: boolean;
     // rotateSpeed: number;
-    controls.enablePan = false
+    controls.enablePan = true
     // panSpeed: number;
     // screenSpacePanning: boolean;
     // keyPanSpeed: number;
-    controls.autoRotate = true
+    controls.autoRotate = false
     controls.autoRotateSpeed = 0.3
     controls.update();
 
@@ -297,72 +314,104 @@ function onMouseMove(e) {
 }
 
 function animate() {
-
     requestAnimationFrame(animate);
 
     render();
     // stats.update();
-
 }
 
 function pick() {
-
     //render the picking scene off-screen
 
     // set the view offset to represent just a single pixel under the mouse
-
     camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, mouse.x * window.devicePixelRatio | 0, mouse.y * window.devicePixelRatio | 0, 1, 1);
 
     // render the scene
-
-    renderer.setRenderTarget(pickingTexture);
-    renderer.render(pickingScene, camera);
+    renderer.setRenderTarget(pickingTexture)
+    renderer.render(pickingScene, camera)
 
     // clear the view offset so rendering returns to normal
-
-    camera.clearViewOffset();
+    camera.clearViewOffset()
 
     //create buffer for reading single pixel
-
-    var pixelBuffer = new Uint8Array(4);
+    var pixelBuffer = new Uint8Array(4)
 
     //read the pixel
-
-    renderer.readRenderTargetPixels(pickingTexture, 0, 0, 1, 1, pixelBuffer);
+    renderer.readRenderTargetPixels(pickingTexture, 0, 0, 1, 1, pixelBuffer)
 
     //interpret the pixel as an ID
+    const colorId = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2])
+    if (pickingData.has(colorId)) {
+        let data = pickingData.get(colorId)
 
-    var id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2]);
-    var data = pickingData[id];
-
-    if (data) {
-
-        //move our highlightBox so that it surrounds the picked object
-
-        if (data.position && data.rotation && data.scale) {
-
-            highlightBox.position.copy(data.position);
-            highlightBox.rotation.copy(data.rotation);
-            highlightBox.scale.copy(data.scale).add(selectedItemScaleOffset);
-            highlightBox.visible = true;
-
-        }
-
+        highlightBox.visible = true
+        highlightBox.position.copy(data.position)
+        highlightBox.scale.copy(data.scale).add(selectedItemScaleOffset)
     } else {
-
-        highlightBox.visible = false;
-
+        highlightBox.visible = false
     }
-
 }
 
 function render() {
-
     controls.update()
 
     pick();
 
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
+
+    // render object id scene
+    // renderer.render(pickingScene, camera)
+}
+
+function box(width: number, height: number, depth: number) {
+    width = width * 0.5
+    height = height * 0.5
+    depth = depth * 0.5
+
+    var geometry = new THREE.BufferGeometry();
+    var position = [];
+
+    position.push(
+        - width, - height, - depth,
+        - width, height, - depth,
+
+        - width, height, - depth,
+        width, height, - depth,
+
+        width, height, - depth,
+        width, - height, - depth,
+
+        width, - height, - depth,
+        - width, - height, - depth,
+
+        - width, - height, depth,
+        - width, height, depth,
+
+        - width, height, depth,
+        width, height, depth,
+
+        width, height, depth,
+        width, - height, depth,
+
+        width, - height, depth,
+        - width, - height, depth,
+
+        - width, - height, - depth,
+        - width, - height, depth,
+
+        - width, height, - depth,
+        - width, height, depth,
+
+        width, height, - depth,
+        width, height, depth,
+
+        width, - height, - depth,
+        width, - height, depth
+    );
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+
+    return geometry;
 
 }
