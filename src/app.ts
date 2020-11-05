@@ -224,44 +224,9 @@ function createGrid3<T>(x: number, y: number, z: number, factory: GridFactoryFun
     return result
 }
 
-function createScene(conf: { opla: OplaSystem }) {
-    let boxes = createBoxes(conf.opla)
-    // let geometriesDrawn = boxes.map(({ geometry }) => geometry)
-    // let geometriesPicking = [];
-    // boxes.forEach((item, i) => {
-    //     i++
-    //     let { geometry, position, rotation, scale } = item
-    //     geometry = geometry.clone();
-
-    //     // give the geometry's vertices a color corresponding to the "id"
-    //     // applyVertexColors(geometry, color.setHex(i));
-    //     // applyVertexColors(geometry, color.setHex(Math.floor(Math.random() * 0x1000000)))
-    //     geometriesPicking.push(geometry);
-
-    //     pickingData[i] = {
-    //         position,
-    //         rotation,
-    //         scale,
-    //         item,
-    //     };
-    // })
-
-    let objects = new THREE.Group()
-    for (let item of boxes) {
-        objects.add(item.mesh)
-    }
-
-    return {
-        objects,
-        boxes,
-    }
-}
-
 function init() {
     const opla = createOplaSystem()
-    let { objects, boxes } = createScene({
-        opla
-    })
+    let boxes = createBoxes(opla)
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.y = 500
@@ -280,7 +245,12 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
+    let objects = new THREE.Group()
+    for (let item of boxes) {
+        objects.add(item.mesh)
+    }
     scene.add(objects)
+
     // objects.position.x = -500
     // objects.position.z = -500
     // pickingObjects.position.x = -500
@@ -335,7 +305,7 @@ function init() {
     })
 
     const picks = boxes.map(item => item.pick)
-    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
+    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
     const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
     const pickScene = new THREE.Scene()
     pickScene.add(pickingObjects)
