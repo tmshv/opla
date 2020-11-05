@@ -9,9 +9,10 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 
 var container, stats;
-var camera, controls, scene, renderer;
+var camera, scene, renderer;
 var highlightBox;
 let oplaGrid: OplaGrid
+let controls: OrbitControls
 
 let picker: ScenePicker<[string, BlockDef]>
 
@@ -209,8 +210,11 @@ function init() {
     let boxes = createBoxes(opla)
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.y = 500
-    camera.position.z = 1000
+    camera.position.set(
+        799.2459975462338,
+        520.3577626459123,
+        983.7522332589459,
+    )
 
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0xeeeeff)
@@ -332,6 +336,11 @@ function createControls(camera: THREE.Camera, target: HTMLElement) {
 
     const controls = new OrbitControls(camera, target)
     controls.target.set(0, 1, 0)
+    controls.target.set(
+        -157.3899553540499,
+        110.17876538143562,
+        53.34107147450705,
+    )
     controls.minDistance = 800
     controls.maxDistance = 2000
     // minZoom: number;
