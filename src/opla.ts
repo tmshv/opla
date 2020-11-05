@@ -33,6 +33,29 @@ export class OplaGrid {
 
         return new THREE.Vector3(x, y, z)
     }
+
+    public getCellTransform(cell: THREE.Vector3, mult: number, offset: THREE.Vector3) {
+        const cellSize = this.getCellDimensions(cell)
+
+        // calc cell position per axis
+        // position depends on all previos cells
+        // also shift half of size to make it top left aligned
+        let axisOffset = new THREE.Vector3()
+        axisOffset.x = sum(this.axisX.slice(0, cell.x)) + cellSize.x / 2
+        axisOffset.y = sum(this.axisY.slice(0, cell.y)) + cellSize.y / 2
+        axisOffset.z = sum(this.axisZ.slice(0, cell.z)) + cellSize.z / 2
+
+        let position = new THREE.Vector3()
+        position.add(axisOffset)
+        position.multiplyScalar(mult)
+        position.add(offset)
+
+        let scale = cellSize
+            .clone()
+            .multiplyScalar(mult)
+
+        return [position, scale]
+    }
 }
 
 export class OplaBlock {
@@ -47,33 +70,34 @@ export class OplaBlock {
         this.cellLocation = new THREE.Vector3(0, 0, 0)
     }
 
-    createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
-        const loc = this.cellLocation
-        const cellSize = grid.getCellDimensions(loc)
+    // createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
+    //     const loc = this.cellLocation
+    //     const cellSize = grid.getCellDimensions(loc)
 
-        // calc cell position per axis
-        // position depends on all previos cells
-        // also shift half of size to make it top left aligned
-        const axisOffset = new THREE.Vector3(
-            sum(grid.axisX.slice(0, loc.x)) + cellSize.x / 2,
-            sum(grid.axisY.slice(0, loc.y)) + cellSize.y / 2,
-            sum(grid.axisZ.slice(0, loc.z)) + cellSize.z / 2,
-        )
+    //     // calc cell position per axis
+    //     // position depends on all previos cells
+    //     // also shift half of size to make it top left aligned
+    //     const axisOffset = new THREE.Vector3(
+    //         sum(grid.axisX.slice(0, loc.x)) + cellSize.x / 2,
+    //         sum(grid.axisY.slice(0, loc.y)) + cellSize.y / 2,
+    //         sum(grid.axisZ.slice(0, loc.z)) + cellSize.z / 2,
+    //     )
 
-        const position = new THREE.Vector3()
-        position.add(axisOffset)
-        position.multiplyScalar(scaleMultiplier)
-        position.add(positionOffset)
+    //     const position = new THREE.Vector3()
+    //     position.add(axisOffset)
+    //     position.multiplyScalar(scaleMultiplier)
+    //     position.add(positionOffset)
 
-        const scale = cellSize
-            .clone()
-            .multiplyScalar(scaleMultiplier)
+    //     const scale = cellSize
+    //         .clone()
+    //         .multiplyScalar(scaleMultiplier)
 
-        return [position, scale]
-    }
+    //     return [position, scale]
+    // }
 
     createMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
-        const [position, scale] = this.createTransformComponents(grid, scaleMultiplier, positionOffset)
+        // const [position, scale] = this.createTransformComponents(grid, scaleMultiplier, positionOffset)
+        const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
 
         const rotation = new THREE.Euler()
         const quaternion = new THREE.Quaternion()

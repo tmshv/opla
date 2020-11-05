@@ -5,16 +5,29 @@ import * as THREE from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { randomColor, createOplaSystem, OplaSystem } from './opla';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 
 var container, stats;
 var camera, controls, scene, renderer;
 var highlightBox;
+let oplaGrid: OplaGrid
 
-let picker: ScenePicker<[string, any]>
+let picker: ScenePicker<[string, BlockDef]>
 
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
+const directionName = ['1-0', '1-1', 'top', 'bottom', '2-0', '2-1']
+const directionNorm = new Map([
+    ['1-0', new THREE.Vector3(1, 0, 0)],
+    ['1-1', new THREE.Vector3(-1, 0, 0)],
+    ['2-0', new THREE.Vector3(0, 0, 1)],
+    ['2-1', new THREE.Vector3(0, 0, -1)],
+    ['top', new THREE.Vector3(0, 1, 0)],
+    ['bottom', new THREE.Vector3(0, -1, 0)],
+])
+const blockOffset = new THREE.Vector3(-500, 0, -500)
+const blockScale = 100
 
 const materialLib = new Map([
     ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
@@ -143,25 +156,18 @@ function applyRandomVertexColors(geometry: THREE.BufferGeometry) {
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 }
 
-function createBoxes(opla: OplaSystem) {
-    const offset = new THREE.Vector3(-500, 0, -500)
-    const s = 100
-
+type BlockDef = {
+    block: OplaBlock,
+    mesh: THREE.Mesh,
+    pick: THREE.BoxBufferGeometry,
+    pickColors: BoxColors,
+    position: THREE.Vector3,
+    scale: THREE.Vector3,
+}
+function createBoxes(opla: OplaSystem): BlockDef[] {
     return opla.blocks.map(block => {
-        const [position, scale] = block.createTransformComponents(opla.grid, s, offset)
-        const matrix = block.createMatrix(opla.grid, s, offset)
-
-        // let geometryBox = box(scale.x, scale.y, scale.z)
-        const dashScale = 0.1
-        let lineMaterial = new THREE.LineDashedMaterial({ color: 0x666666, dashSize: 3 * dashScale, gapSize: 1 * dashScale })
-        let geometryBox = box(1, 1, 1)
-        let lineSegments = new THREE.LineSegments(geometryBox, lineMaterial)
-        lineSegments.applyMatrix4(matrix)
-        lineSegments.computeLineDistances()
-
-        // positionOffset.x += axisX - 1
-        // positionOffset.y += axisY - 1
-        // positionOffset.z += axisZ - 1
+        const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
+        const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
 
         let geometry = new THREE.BoxBufferGeometry()
         geometry.applyMatrix4(matrix)
@@ -175,26 +181,18 @@ function createBoxes(opla: OplaSystem) {
             hex(randomColor()),
             hex(randomColor()),
             hex(randomColor()),
-            // hex(0xffff00),
-            // hex(0x00ffff),
-            // hex(0xff00ff), // top
-            // hex(0xff0000), // bottom
-            // hex(0x00ff00), // opposite of one
-            // hex(0x0000ff), // one
         ]
         const pick = new THREE.BoxBufferGeometry()
         pick.applyMatrix4(matrix)
         // give the geometry's vertices a color corresponding to the "id"
-        // applyVertexColors(geometry, color.setHex(i));
         applyVertexColorsToBoxFaces(pick, pickColors)
-        // applyVertexColors(geometry, color.setHex(Math.floor(Math.random() * 0x1000000)))
 
         return {
             block,
-            material,
-            geometry,
+            // material,
+            // geometry,
             mesh,
-            matrix,
+            // matrix,
             pick,
             pickColors,
             position,
@@ -207,6 +205,7 @@ function createBoxes(opla: OplaSystem) {
 
 function init() {
     const opla = createOplaSystem()
+    oplaGrid = opla.grid
     let boxes = createBoxes(opla)
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
@@ -237,30 +236,36 @@ function init() {
     // pickingObjects.position.x = -500
     // pickingObjects.position.z = -500
 
-    // pickingScene = new THREE.Scene()
-    // pickingTexture = new THREE.WebGLRenderTarget(1, 1)
-    // pickingScene.add(pickingObjects)
-
-    // const color = new THREE.Color()
-    // const mat = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
-    // const geometry = new THREE.BoxBufferGeometry(100, 100, 100)
-    // // applyVertexColors(geometry, color.setHex(0xff00ff))
-    // // applyRandomVertexColors(geometry)
-    // applyVertexColorsToBoxFaces(geometry, [
-    //     hex(0xffff00),
-    //     hex(0x00ffff),
-    //     hex(0xff00ff), // top
-    //     hex(0xff0000), // bottom
-    //     hex(0x00ff00), // opposite of one
-    //     hex(0x0000ff), // one
-    // ])
-    // const objects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries([geometry]), mat)
-    // scene.add(objects)
-
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
-        new THREE.MeshLambertMaterial({ color: 0xffff00 })
+        new THREE.MeshLambertMaterial({
+            color: 0xff6600,
+            transparent: true,
+            opacity: 0.5,
+        })
     )
+
+    // let geometryBox = box(scale.x, scale.y, scale.z)
+    // const dashScale = 0.1
+    // let lineMaterial = new THREE.LineDashedMaterial({
+    //     color: 0x333333,
+    //     linewidth: 5, // in pixels
+    //     // dashSize: 3 * dashScale,
+    //     // gapSize: 1 * dashScale,
+    // })
+    // // let lineMaterial = new LineMaterial({
+    // //     color: 0x330033,
+    // //     // linewidth: 5, // in pixels
+    // //     // vertexColors: true,
+    // //     //resolution:  // to be set by renderer, eventually
+    // //     // dashed: false,
+    // // })
+    // let geometryBox = box(1, 1, 1)
+    // let lineSegments = new THREE.LineSegments(geometryBox, lineMaterial)
+    // // lineSegments.applyMatrix4(matrix)
+    // lineSegments.computeLineDistances()
+    // highlightBox = lineSegments
+
     scene.add(highlightBox)
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -277,11 +282,10 @@ function init() {
     // controls.staticMoving = true;
     // controls.dynamicDampingFactor = 0.3;
 
-    picker = new ScenePicker<[string, any]>(camera, renderer)
+    picker = new ScenePicker(camera, renderer)
     boxes.forEach(item => {
         item.pickColors.forEach((color, i) => {
-            const dir = ['1-0', '1-1', 'top', 'bottom', '2-0', '2-1'][i]
-            picker.setItem(color.getHex(), [dir, item])
+            picker.setItem(color.getHex(), [directionName[i], item])
         })
     })
 
@@ -354,6 +358,26 @@ function createControls(camera: THREE.Camera, target: HTMLElement) {
     return controls
 }
 
+function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
+    const v = directionNorm
+        .get(dir)
+        .clone()
+    const cell = def.block.cellLocation
+        .clone()
+        .add(v)
+
+    // next cell is out of grid bounds
+    if (cell.x < 0 || cell.y < 0 || cell.z < 0) {
+        return [null, null]
+    }
+
+    return grid.getCellTransform(cell, blockScale, blockOffset)
+}
+
+function currentBlockPosition(def: BlockDef) {
+    return [def.position, def.scale]
+}
+
 function render() {
     controls.update()
 
@@ -361,12 +385,14 @@ function render() {
     if (!selected) {
         highlightBox.visible = false
     } else {
-        const [dir, item] = selected
-        highlightBox.visible = true
-        highlightBox.position.copy(item.position)
-        highlightBox.scale.copy(item.scale).add(selectedItemScaleOffset)
-
-        // console.log(selected)
+        const [dir, def] = selected
+        // const [pos, scale] = nextBlockPosition(oplaGrid, dir, def)
+        const [pos, scale] = currentBlockPosition(def)
+        if (pos) {
+            highlightBox.visible = true
+            highlightBox.position.copy(pos)
+            highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+        }
     }
 
     renderer.setRenderTarget(null);
