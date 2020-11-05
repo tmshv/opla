@@ -9,9 +9,9 @@ import { randomColor, createOplaSystem, OplaSystem } from './opla';
 
 var container, stats;
 var camera, controls, scene, renderer;
-var pickingTexture, pickingScene;
 var highlightBox;
-const pickingData = new Map<number, any>()
+
+let picker: ScenePicker<[string, any]>
 
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
@@ -31,6 +31,70 @@ export function runApp(elem: HTMLElement) {
     container = elem
     init();
     animate();
+}
+
+class ScenePicker<T> {
+    private texture: THREE.WebGLRenderTarget
+    private scene: THREE.Scene
+    private index = new Map<number, T>()
+
+    constructor(
+        private camera: THREE.PerspectiveCamera,
+        private renderer: THREE.WebGLRenderer
+    ) {
+        this.texture = new THREE.WebGLRenderTarget(1, 1)
+    }
+
+    public setScene(scene: THREE.Scene) {
+        this.scene = scene
+
+        return this
+    }
+
+    public setItem(id: number, item: T) {
+        this.index.set(id, item)
+        return this
+    }
+
+    public getItem(id: number): T | null {
+        if (!this.index.has(id)) {
+            return null
+        }
+
+        return this.index.get(id)
+    }
+
+    /**
+     * render the picking scene off-screen
+     * @param x
+     * @param y
+     */
+    public pick(x: number, y: number): T | null {
+        // set the view offset to represent just a single pixel under the coord
+        const coordX = x * window.devicePixelRatio | 0
+        const coordY = mouse.y * window.devicePixelRatio | 0
+        const width = this.renderer.domElement.width
+        const height = this.renderer.domElement.height
+        this.camera.setViewOffset(width, height, coordX, coordY, 1, 1)
+
+        // render the scene
+        this.renderer.setRenderTarget(this.texture)
+        this.renderer.render(this.scene, this.camera)
+
+        // clear the view offset so rendering returns to normal
+        camera.clearViewOffset()
+
+        //create buffer for reading single pixel
+        const pixelBuffer = new Uint8Array(4)
+
+        //read the pixel
+        this.renderer.readRenderTargetPixels(this.texture, 0, 0, 1, 1, pixelBuffer)
+
+        //interpret the pixel as an ID
+        const colorId = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2])
+
+        return this.getItem(colorId)
+    }
 }
 
 function applyVertexColors(geometry: THREE.BufferGeometry, color: THREE.Color) {
@@ -182,31 +246,20 @@ function createScene(conf: { opla: OplaSystem }) {
     //     };
     // })
 
-
     let objects = new THREE.Group()
     for (let item of boxes) {
         objects.add(item.mesh)
     }
 
-    boxes.forEach(item => {
-        item.pickColors.forEach(color => {
-            pickingData.set(color.getHex(), item)
-        })
-    })
-
-    const picks = boxes.map(item => item.pick)
-    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
-    const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
-
     return {
         objects,
-        pickingObjects,
+        boxes,
     }
 }
 
 function init() {
     const opla = createOplaSystem()
-    let { objects, pickingObjects } = createScene({
+    let { objects, boxes } = createScene({
         opla
     })
 
@@ -233,9 +286,9 @@ function init() {
     // pickingObjects.position.x = -500
     // pickingObjects.position.z = -500
 
-    pickingScene = new THREE.Scene()
-    pickingTexture = new THREE.WebGLRenderTarget(1, 1)
-    pickingScene.add(pickingObjects)
+    // pickingScene = new THREE.Scene()
+    // pickingTexture = new THREE.WebGLRenderTarget(1, 1)
+    // pickingScene.add(pickingObjects)
 
     // const color = new THREE.Color()
     // const mat = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
@@ -273,6 +326,21 @@ function init() {
     // controls.staticMoving = true;
     // controls.dynamicDampingFactor = 0.3;
 
+    picker = new ScenePicker<[string, any]>(camera, renderer)
+    boxes.forEach(item => {
+        item.pickColors.forEach((color, i) => {
+            const dir = ['1-0', '1-1', 'top', 'bottom', '2-0', '2-1'][i]
+            picker.setItem(color.getHex(), [dir, item])
+        })
+    })
+
+    const picks = boxes.map(item => item.pick)
+    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true });
+    const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
+    const pickScene = new THREE.Scene()
+    pickScene.add(pickingObjects)
+    picker.setScene(pickScene)
+
     controls = createControls(camera, renderer.domElement)
 
     // stats = new Stats();
@@ -295,38 +363,6 @@ function animate() {
 
     render();
     // stats.update();
-}
-
-function pick() {
-    //render the picking scene off-screen
-
-    // set the view offset to represent just a single pixel under the mouse
-    camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, mouse.x * window.devicePixelRatio | 0, mouse.y * window.devicePixelRatio | 0, 1, 1);
-
-    // render the scene
-    renderer.setRenderTarget(pickingTexture)
-    renderer.render(pickingScene, camera)
-
-    // clear the view offset so rendering returns to normal
-    camera.clearViewOffset()
-
-    //create buffer for reading single pixel
-    var pixelBuffer = new Uint8Array(4)
-
-    //read the pixel
-    renderer.readRenderTargetPixels(pickingTexture, 0, 0, 1, 1, pixelBuffer)
-
-    //interpret the pixel as an ID
-    const colorId = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2])
-    if (pickingData.has(colorId)) {
-        let data = pickingData.get(colorId)
-
-        highlightBox.visible = true
-        highlightBox.position.copy(data.position)
-        highlightBox.scale.copy(data.scale).add(selectedItemScaleOffset)
-    } else {
-        highlightBox.visible = false
-    }
 }
 
 function createControls(camera: THREE.Camera, target: HTMLElement) {
@@ -370,7 +406,17 @@ function createControls(camera: THREE.Camera, target: HTMLElement) {
 function render() {
     controls.update()
 
-    pick();
+    const selected = picker.pick(mouse.x, mouse.y)
+    if (!selected) {
+        highlightBox.visible = false
+    } else {
+        const [dir, item] = selected
+        highlightBox.visible = true
+        highlightBox.position.copy(item.position)
+        highlightBox.scale.copy(item.scale).add(selectedItemScaleOffset)
+
+        // console.log(selected)
+    }
 
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
