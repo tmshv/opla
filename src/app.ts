@@ -205,25 +205,6 @@ function createBoxes(opla: OplaSystem) {
     })
 }
 
-type GridFactoryFunction3<T> = (x: number, y: number, z: number, i: number) => T | null
-function createGrid3<T>(x: number, y: number, z: number, factory: GridFactoryFunction3<T>): T[] {
-    const result: T[] = []
-
-    let count = 0
-    for (let i = 0; i < x; i++) {
-        for (let j = 0; j < y; j++) {
-            for (let k = 0; k < z; k++) {
-                const item = factory(i, j, k, count)
-                if (item) {
-                    result.push(item)
-                }
-                count++
-            }
-        }
-    }
-    return result
-}
-
 function init() {
     const opla = createOplaSystem()
     let boxes = createBoxes(opla)
