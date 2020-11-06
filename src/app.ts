@@ -43,9 +43,13 @@ function hex(value: number) {
 }
 
 export function runApp(elem: HTMLElement) {
+    const opla = createOplaSystem()
     container = elem
-    init();
-    animate();
+
+    init()
+    initOplaSystem(opla)
+
+    animate()
 }
 
 function applyVertexColors(geometry: THREE.BufferGeometry, color: THREE.Color) {
@@ -145,8 +149,7 @@ function initScene() {
 
 }
 
-function initOplaSystem() {
-    const opla = createOplaSystem()
+function initOplaSystem(opla: OplaSystem) {
     oplaGrid = opla.grid
     let boxes = createBoxes(opla)
 
@@ -233,8 +236,6 @@ function init() {
 
     renderer.domElement.addEventListener('mousemove', onMouseMove)
     renderer.domElement.addEventListener('click', onClick)
-
-    initOplaSystem()
 }
 
 function createPicker(boxes: BlockDef[]) {
