@@ -11,11 +11,14 @@ import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller';
 
 var container, stats;
-var camera, renderer;
+var camera;
+let renderer: THREE.WebGLRenderer
 let scene: THREE.Scene
 var highlightBox;
 let sys: OplaSystem
 let controls: OrbitControls
+
+let tool = 'select'
 
 let picker: ScenePicker<[string, BlockDef]>
 
@@ -50,10 +53,26 @@ export function runApp(ctrl: AppController, elem: HTMLElement) {
 
     init()
     initOplaSystem(ctrl.opla)
+    setupController(ctrl)
 
     animate()
 
     return ctrl
+}
+
+function setupController(ctrl: AppController) {
+    // const click = fromEvent(renderer.domElement, 'click')
+    // click.pipe(map(x => {
+    //     console.log(x);
+
+    //     return x
+    // }))
+
+    const x = ctrl.subjects.tool.subscribe(newTool => {
+        tool = newTool
+
+        // renderer.domElement.addEventListener('click', onClick)
+    })
 }
 
 type BoxColors = [
@@ -266,13 +285,30 @@ function onClick(e: MouseEvent) {
     const x = e.clientX
     const y = e.clientY
 
+    removeBlockAtCoord(x, y)
+}
+
+function addBlockAtCell(x: number, y: number) {
+    // const selected = picker.pick(x, y)
+    // if (!selected) {
+    //     return
+    // }
+
+    // const [dir, def] = selected
+    // console.log(e.type, def.block)
+
+    // sys.removeBlock(def.block.id)
+    // cleanScene()
+    // initOplaSystem(sys)
+}
+
+function removeBlockAtCoord(x: number, y: number) {
     const selected = picker.pick(x, y)
     if (!selected) {
         return
     }
 
     const [dir, def] = selected
-    console.log(e.type, def.block)
 
     sys.removeBlock(def.block.id)
     cleanScene()
@@ -349,20 +385,44 @@ function currentBlockPosition(def: BlockDef) {
     return [def.position, def.scale]
 }
 
+function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
+    const [dir, def] = selected
+    const [pos, scale] = currentBlockPosition(def)
+    if (pos) {
+        highlightBox.visible = true
+        highlightBox.position.copy(pos)
+        highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+    }
+}
+
+function handleHightlightBoxOnAdd(selected: [string, BlockDef]) {
+    const [dir, def] = selected
+    const [pos, scale] = nextBlockPosition(sys.grid, dir, def)
+    if (pos) {
+        highlightBox.visible = true
+        highlightBox.position.copy(pos)
+        highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+    }
+}
+
 function render() {
     controls.update()
+
+    // console.log(camera.position)
+    // console.log(controls.target)
 
     const selected = picker.pick(mouse.x, mouse.y)
     if (!selected) {
         highlightBox.visible = false
     } else {
-        const [dir, def] = selected
-        // const [pos, scale] = nextBlockPosition(oplaGrid, dir, def)
-        const [pos, scale] = currentBlockPosition(def)
-        if (pos) {
-            highlightBox.visible = true
-            highlightBox.position.copy(pos)
-            highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+        if (tool === 'add') {
+            handleHightlightBoxOnAdd(selected)
+        }
+        if (tool === 'remove') {
+            handleHightlightBoxOnSelect(selected)
+        }
+        if (tool === 'select') {
+            handleHightlightBoxOnSelect(selected)
         }
     }
 
