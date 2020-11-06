@@ -86,7 +86,7 @@ class ScenePicker<T> {
     public pick(x: number, y: number): T | null {
         // set the view offset to represent just a single pixel under the coord
         const coordX = x * window.devicePixelRatio | 0
-        const coordY = mouse.y * window.devicePixelRatio | 0
+        const coordY = y * window.devicePixelRatio | 0
         const width = this.renderer.domElement.width
         const height = this.renderer.domElement.height
         this.camera.setViewOffset(width, height, coordX, coordY, 1, 1)
