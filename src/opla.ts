@@ -112,6 +112,12 @@ export class OplaBlock {
 export class OplaSystem {
     public grid: OplaGrid
     public blocks: OplaBlock[]
+
+    public removeBlock(id: number) {
+        this.blocks = this.blocks.filter(block => block.id !== id)
+
+        return this
+    }
 }
 
 function sum(items: number[], start = 0): number {

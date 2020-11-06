@@ -8,6 +8,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 import { ScenePicker } from './lib/pick'
+import { AppController } from './app/controller';
 
 var container, stats;
 var camera, renderer;
@@ -43,14 +44,16 @@ function hex(value: number) {
     return color
 }
 
-export function runApp(elem: HTMLElement) {
-    const opla = createOplaSystem()
+export function runApp(ctrl: AppController, elem: HTMLElement) {
+    // const opla = createOplaSystem()
     container = elem
 
     init()
-    initOplaSystem(opla)
+    initOplaSystem(ctrl.opla)
 
     animate()
+
+    return ctrl
 }
 
 type BoxColors = [
