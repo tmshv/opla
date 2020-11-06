@@ -10,9 +10,10 @@ import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from '
 import { ScenePicker } from './lib/pick'
 
 var container, stats;
-var camera, scene, renderer;
+var camera, renderer;
+let scene: THREE.Scene
 var highlightBox;
-let oplaGrid: OplaGrid
+let sys: OplaSystem
 let controls: OrbitControls
 
 let picker: ScenePicker<[string, BlockDef]>
@@ -149,11 +150,18 @@ function initScene() {
 
 }
 
+function cleanScene() {
+    const objects = scene.getObjectByName('opla-group')
+    scene.remove(objects)
+}
+
 function initOplaSystem(opla: OplaSystem) {
-    oplaGrid = opla.grid
+    sys = opla
     let boxes = createBoxes(opla)
 
     let objects = new THREE.Group()
+    objects.name = 'opla-group'
+
     for (let item of boxes) {
         objects.add(item.mesh)
     }
@@ -246,12 +254,15 @@ function createPicker(boxes: BlockDef[]) {
         })
     })
 
-    const picks = boxes.map(item => item.pick)
-    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
-    const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
     const scene = new THREE.Scene()
-    scene.add(pickingObjects)
     picker.setScene(scene)
+
+    const picks = boxes.map(item => item.pick)
+    if (picks.length > 0) {
+        const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
+        const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
+        scene.add(pickingObjects)
+    }
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -270,6 +281,10 @@ function onClick(e: MouseEvent) {
 
     const [dir, def] = selected
     console.log(e.type, def.block)
+
+    sys.removeBlock(def.block.id)
+    cleanScene()
+    initOplaSystem(sys)
 }
 
 function animate() {
