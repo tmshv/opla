@@ -141,11 +141,25 @@ function createBoxes(opla: OplaSystem): BlockDef[] {
     })
 }
 
-function init() {
+function initScene() {
+
+}
+
+function initOplaSystem() {
     const opla = createOplaSystem()
     oplaGrid = opla.grid
     let boxes = createBoxes(opla)
 
+    let objects = new THREE.Group()
+    for (let item of boxes) {
+        objects.add(item.mesh)
+    }
+    scene.add(objects)
+
+    createPicker(boxes)
+}
+
+function init() {
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.set(
         799.2459975462338,
@@ -165,17 +179,6 @@ function init() {
     var light = new THREE.SpotLight(0xffffff, 1.5);
     light.position.set(0, 500, 2000);
     scene.add(light);
-
-    let objects = new THREE.Group()
-    for (let item of boxes) {
-        objects.add(item.mesh)
-    }
-    scene.add(objects)
-
-    // objects.position.x = -500
-    // objects.position.z = -500
-    // pickingObjects.position.x = -500
-    // pickingObjects.position.z = -500
 
     highlightBox = new THREE.Mesh(
         new THREE.BoxBufferGeometry(),
@@ -223,6 +226,18 @@ function init() {
     // controls.staticMoving = true;
     // controls.dynamicDampingFactor = 0.3;
 
+    controls = createControls(camera, renderer.domElement)
+
+    // stats = new Stats();
+    // container.appendChild(stats.dom);
+
+    renderer.domElement.addEventListener('mousemove', onMouseMove)
+    renderer.domElement.addEventListener('click', onClick)
+
+    initOplaSystem()
+}
+
+function createPicker(boxes: BlockDef[]) {
     picker = new ScenePicker(camera, renderer)
     boxes.forEach(item => {
         item.pickColors.forEach((color, i) => {
@@ -233,17 +248,9 @@ function init() {
     const picks = boxes.map(item => item.pick)
     const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
     const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
-    const pickScene = new THREE.Scene()
-    pickScene.add(pickingObjects)
-    picker.setScene(pickScene)
-
-    controls = createControls(camera, renderer.domElement)
-
-    // stats = new Stats();
-    // container.appendChild(stats.dom);
-
-    renderer.domElement.addEventListener('mousemove', onMouseMove)
-    renderer.domElement.addEventListener('click', onClick)
+    const scene = new THREE.Scene()
+    scene.add(pickingObjects)
+    picker.setScene(scene)
 }
 
 function onMouseMove(e: MouseEvent) {
