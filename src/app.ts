@@ -96,7 +96,7 @@ class ScenePicker<T> {
         this.renderer.render(this.scene, this.camera)
 
         // clear the view offset so rendering returns to normal
-        camera.clearViewOffset()
+        this.camera.clearViewOffset()
 
         //create buffer for reading single pixel
         const pixelBuffer = new Uint8Array(4)
