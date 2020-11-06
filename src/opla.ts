@@ -21,6 +21,8 @@ class IdGenerator {
     }
 }
 
+const idGenerator = new IdGenerator(0)
+
 export class OplaGrid {
     public axisX: number[]
     public axisY: number[]
@@ -118,6 +120,16 @@ export class OplaSystem {
 
         return this
     }
+
+    public addBlock(block: OplaBlock) {
+        this.blocks.push(block)
+
+        return this
+    }
+
+    public createBlock() {
+        return new OplaBlock(idGenerator.create())
+    }
 }
 
 function sum(items: number[], start = 0): number {
@@ -125,9 +137,7 @@ function sum(items: number[], start = 0): number {
 }
 
 export function createOplaSystem() {
-    const id = new IdGenerator(0)
 
-    const sizeX = 3
     const sizeY = 5
     const sizeZ = 8
     const blocks = createGrid3(sizeX, sizeY, sizeZ, (x, y, z, i) => {

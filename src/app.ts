@@ -285,21 +285,75 @@ function onClick(e: MouseEvent) {
     const x = e.clientX
     const y = e.clientY
 
-    removeBlockAtCoord(x, y)
+    if (tool == 'select') {
+        onSelectBlockAtCoord(x, y)
+    }
+    if (tool == 'add') {
+        addBlockAtCell(x, y)
+    }
+    if (tool == 'remove') {
+        removeBlockAtCoord(x, y)
+    }
 }
 
 function addBlockAtCell(x: number, y: number) {
-    // const selected = picker.pick(x, y)
-    // if (!selected) {
-    //     return
-    // }
+    const selected = picker.pick(x, y)
+    if (!selected) {
+        return
+    }
+    const [dir, def] = selected
+    const cell = nextBlockCell(sys.grid, dir, def)
+    if (!cell) {
+        return
+    }
 
-    // const [dir, def] = selected
-    // console.log(e.type, def.block)
+    const block = sys.createBlock()
+    block.cellLocation.copy(cell)
+    block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
-    // sys.removeBlock(def.block.id)
-    // cleanScene()
-    // initOplaSystem(sys)
+    sys.addBlock(block)
+    cleanScene()
+    initOplaSystem(sys)
+}
+
+function onSelectBlockAtCoord(x: number, y: number) {
+    const selected = picker.pick(x, y)
+    if (!selected) {
+        return
+    }
+
+    const [dir, def] = selected
+    console.log(def)
+
+    // test
+
+    const cell = def.block.cellLocation
+
+    if (dir === 'top') {
+        sys.grid.axisY[cell.y] += Math.random()
+    }
+    if (dir === 'bottom') {
+        sys.grid.axisY[cell.y] -= Math.random()
+    }
+
+    if (dir === '1-0') {
+        sys.grid.axisX[cell.x] += Math.random()
+    }
+    if (dir === '1-1') {
+        sys.grid.axisX[cell.x] -= Math.random()
+    }
+
+    if (dir === '2-0') {
+        sys.grid.axisZ[cell.z] += Math.random()
+    }
+    if (dir === '2-1') {
+        sys.grid.axisZ[cell.z] -= Math.random()
+    }
+    // sys.grid.axisX[cell.x] = 1 + Math.random()
+    // sys.grid.axisX[cell.x] = 1 + Math.random()
+
+    cleanScene()
+    initOplaSystem(sys)
 }
 
 function removeBlockAtCoord(x: number, y: number) {
@@ -365,7 +419,7 @@ function createControls(camera: THREE.Camera, target: HTMLElement) {
     return controls
 }
 
-function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
+function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef) {
     const v = directionNorm
         .get(dir)
         .clone()
@@ -375,6 +429,15 @@ function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
 
     // next cell is out of grid bounds
     if (cell.x < 0 || cell.y < 0 || cell.z < 0) {
+        return null
+    }
+
+    return cell
+}
+
+function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
+    const cell = nextBlockCell(grid, dir, def)
+    if (!cell) {
         return [null, null]
     }
 
