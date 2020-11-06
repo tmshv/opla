@@ -305,16 +305,26 @@ function init() {
     // stats = new Stats();
     // container.appendChild(stats.dom);
 
-    renderer.domElement.addEventListener('mousemove', onMouseMove);
+    renderer.domElement.addEventListener('mousemove', onMouseMove)
+    renderer.domElement.addEventListener('click', onClick)
 }
 
-//
-
-function onMouseMove(e) {
-
+function onMouseMove(e: MouseEvent) {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+}
 
+function onClick(e: MouseEvent) {
+    const x = e.clientX
+    const y = e.clientY
+
+    const selected = picker.pick(x, y)
+    if (!selected) {
+        return
+    }
+
+    const [dir, def] = selected
+    console.log(e.type, def.block)
 }
 
 function animate() {
