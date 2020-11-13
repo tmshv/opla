@@ -18,6 +18,10 @@ export class ScenePicker<T> {
         return this
     }
 
+    public getScene(): THREE.Scene {
+        return this.scene
+    }
+
     public setItem(id: number, item: T) {
         this.index.set(id, item)
         return this
