@@ -491,9 +491,7 @@ function render() {
 
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
-
-    // render object id scene
-    // renderer.render(pickingScene, camera)
+    // renderer.render(picker.getScene(), camera)
 }
 
 function box(width: number, height: number, depth: number) {
