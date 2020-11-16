@@ -155,30 +155,19 @@ function sum(items: number[], start = 0): number {
 }
 
 export function createOplaSystem() {
+    const sizeX = 10
+    const sizeY = 10
+    const sizeZ = 10
 
-    const sizeY = 5
-    const sizeZ = 8
-    const blocks = createGrid3(sizeX, sizeY, sizeZ, (x, y, z, i) => {
-        if (z % 2 == 1) {
-            return null
-        }
-        // if ((y + x) % 2 == 0) {
-        //     return null
-        // }
-        // const yp = (y / 10) * 0.5
-        // const yp = 0.5
-        const type = Math.random() < 0.1 ? 'closed' : 'open'
+    const block = new OplaBlock(idGenerator.create())
+    block.blockType = 'closed'
+    block.cellLocation.set(5, 0, 5)
+    const blocks = [block]
 
-        const block = new OplaBlock(id.create())
-        block.blockType = type
-        block.cellLocation.set(x, y, z)
-
-        return block
-    })
     const grid = new OplaGrid()
     grid.axisX = createGrid3(sizeX, 1, 1, x => 1)
-    grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1 + x * i * 0.1)
-    grid.axisZ = createGrid3(sizeZ, 1, 1, x => x % 2 ? 1 : 2)
+    grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
+    grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
 
     const system = new OplaSystem()
     system.grid = grid
