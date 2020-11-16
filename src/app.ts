@@ -21,7 +21,7 @@ let scene: THREE.Scene
 let sys: OplaSystem
 let controls: OrbitControls
 
-let highlightCursor: OplaCursor
+let hoverCursor: OplaCursor
 let currentCursor: OplaCursor
 let controller: AppController
 
@@ -240,12 +240,12 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
-    highlightCursor = new OplaCursor({
+    hoverCursor = new OplaCursor({
         color: 0xdd3300,
         opacity: 0.25,
         scaleOffset: selectedItemScaleOffset,
     })
-    highlightCursor.hide()
+    hoverCursor.hide()
     currentCursor = new OplaCursor({
         color: 0xdd00dd,
         opacity: 0.5,
@@ -275,10 +275,10 @@ function init() {
     // highlightBox = lineSegments
 
 
-    scene.add(highlightCursor.getMesh())
+    scene.add(hoverCursor.getMesh())
     scene.add(currentCursor.getMesh())
 
-    const cc = highlightCursor.getMesh()
+    const cc = hoverCursor.getMesh()
 
     selectedBoxAxisX = createLabel('x')
     cc.add(selectedBoxAxisX)
@@ -512,8 +512,8 @@ function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
     const [dir, def] = selected
     const [pos, scale] = currentBlockPosition(def)
     if (pos) {
-        highlightCursor.setup(def.block.cellLocation, pos, scale)
-        highlightCursor.show()
+        hoverCursor.setup(def.block.cellLocation, pos, scale)
+        hoverCursor.show()
 
         const v = 1
         selectedBoxAxisX.position.set(v, 0, 0)
@@ -529,8 +529,8 @@ function handleHightlightBoxOnAdd(selected: [string, BlockDef]) {
     const [dir, def] = selected
     const [pos, scale] = nextBlockPosition(sys.grid, dir, def)
     if (pos) {
-        highlightCursor.setup(def.block.cellLocation, pos, scale)
-        highlightCursor.show()
+        hoverCursor.setup(def.block.cellLocation, pos, scale)
+        hoverCursor.show()
     }
 }
 
@@ -542,7 +542,7 @@ function render() {
 
     const selected = picker.pick(mouse.x, mouse.y)
     if (!selected) {
-        highlightCursor.hide()
+        hoverCursor.hide()
     } else {
         if (tool === 'add') {
             handleHightlightBoxOnAdd(selected)
@@ -555,8 +555,8 @@ function render() {
         }
 
         // do not show hover cursor if it under visible selected cursor
-        if (currentCursor.isVisible() && highlightCursor.getCell().equals(currentCursor.getCell())) {
-            highlightCursor.hide()
+        if (currentCursor.isVisible() && hoverCursor.getCell().equals(currentCursor.getCell())) {
+            hoverCursor.hide()
         }
     }
 
