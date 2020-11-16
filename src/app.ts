@@ -251,6 +251,10 @@ function initOplaSystem(opla: OplaSystem) {
     scene.add(objects)
 
     createPicker(boxes)
+
+    const cell = currentCursor.getCell()
+    const [pos, scale] = controller.opla.grid.getCellTransform(cell, blockScale, blockOffset)
+    currentCursor.setup(cell, pos, scale)
 }
 
 function createLabel(label: string) {
