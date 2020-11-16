@@ -245,11 +245,13 @@ function init() {
         opacity: 0.25,
         scaleOffset: selectedItemScaleOffset,
     })
+    highlightCursor.hide()
     currentCursor = new OplaCursor({
         color: 0xdd00dd,
         opacity: 0.5,
         scaleOffset: selectedItemScaleOffset,
     })
+    currentCursor.hide()
 
     // let geometryBox = box(scale.x, scale.y, scale.z)
     // const dashScale = 0.1
@@ -552,7 +554,8 @@ function render() {
             handleHightlightBoxOnSelect(selected)
         }
 
-        if (highlightCursor.getCell().equals(currentCursor.getCell())) {
+        // do not show hover cursor if it under visible selected cursor
+        if (currentCursor.isVisible() && highlightCursor.getCell().equals(currentCursor.getCell())) {
             highlightCursor.hide()
         }
     }
