@@ -3,7 +3,6 @@ import * as THREE from 'three';
 // import Stats from './jsm/libs/stats.module.js';
 
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
@@ -11,6 +10,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
 import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller';
+import { loadAssets } from './lib/assets';
 
 type OplaCursorOptions = {
     color: number
@@ -355,27 +355,26 @@ function init() {
     renderer.domElement.addEventListener('mousemove', onMouseMove)
     renderer.domElement.addEventListener('click', onClick)
 
-    // loadAssets()
+    loadOplaAssets()
 }
 
-function loadAssets() {
-    const loader = new GLTFLoader()
-    loader.setPath('/assets/')
-    loader.load('edge.glb', function (gltf) {
-        // console.log(gltf)
-        gltf.scene.traverse(function (child) {
-            if (child.type === 'Mesh') {
-                console.log('glft item', child)
-                child.scale.multiplyScalar(10)
+async function loadOplaAssets() {
+    const files = await loadAssets(['node.glb', 'edge.glb'])
 
-                scene.add(child)
-
-                camera.lookAt(child)
+    for (let gltf of files) {
+        gltf.scene.traverse(child => {
+            if (child.type !== 'Mesh') {
+                return
             }
-        })
 
-        render()
-    });
+            console.log('glft item', child)
+            child.scale.multiplyScalar(10)
+
+            scene.add(child)
+        })
+    }
+
+    render()
 }
 
 function createPicker(boxes: BlockDef[]) {
