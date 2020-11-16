@@ -28,12 +28,14 @@ export class OplaGrid {
     public axisY: number[]
     public axisZ: number[]
 
-    public getCellDimensions(cell: THREE.Vector3) {
-        const x = this.axisX[cell.x]
-        const y = this.axisY[cell.y]
-        const z = this.axisZ[cell.z]
+    public getCellDimensions(cell: THREE.Vector3, v = new THREE.Vector3()) {
+        v.set(
+            this.axisX[cell.x],
+            this.axisY[cell.y],
+            this.axisZ[cell.z],
+        )
 
-        return new THREE.Vector3(x, y, z)
+        return v
     }
 
     public setCellDimension(cell: THREE.Vector3, dim: THREE.Vector3) {
