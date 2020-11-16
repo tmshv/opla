@@ -37,9 +37,9 @@ export class OplaGrid {
     }
 
     public setCellDimension(cell: THREE.Vector3, dim: THREE.Vector3) {
-        this.axisY[cell.x] = dim.x
+        this.axisX[cell.x] = dim.x
         this.axisY[cell.y] = dim.y
-        this.axisY[cell.z] = dim.z
+        this.axisZ[cell.z] = dim.z
 
         return this
     }
