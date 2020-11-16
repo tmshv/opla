@@ -120,6 +120,15 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
 }
 
+function createBlockMesh(block: OplaBlock) {
+    const material = materialLib.get(block.blockType)
+    const matrix = block.createMatrix(controller.opla.grid, blockScale, blockOffset)
+    const geometry = new THREE.BoxBufferGeometry()
+    geometry.applyMatrix4(matrix)
+
+    return new THREE.Mesh(geometry, material)
+}
+
 type BlockDef = {
     block: OplaBlock,
     mesh: THREE.Mesh,
@@ -132,11 +141,7 @@ function createBoxes(opla: OplaSystem): BlockDef[] {
     return opla.blocks.map(block => {
         const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
         const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
-
-        let geometry = new THREE.BoxBufferGeometry()
-        geometry.applyMatrix4(matrix)
-        const material = materialLib.get(block.blockType)
-        const mesh = new THREE.Mesh(geometry, material)
+        const mesh = createBlockMesh(block)
 
         const pickColors: BoxColors = [
             hex(randomColor()),
