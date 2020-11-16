@@ -120,22 +120,6 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
 }
 
-function applyRandomVertexColors(geometry: THREE.BufferGeometry) {
-    const color = new THREE.Color()
-    let position = geometry.attributes.position
-
-    const colors: number[] = []
-    for (let i = 0; i < position.count; i += 4) {
-        color.setHex(Math.floor(Math.random() * 0x1000000))
-        colors.push(color.r, color.g, color.b)
-        colors.push(color.r, color.g, color.b)
-        colors.push(color.r, color.g, color.b)
-        colors.push(color.r, color.g, color.b)
-    }
-
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-}
-
 type BlockDef = {
     block: OplaBlock,
     mesh: THREE.Mesh,
