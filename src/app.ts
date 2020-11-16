@@ -11,54 +11,7 @@ import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from '
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller';
 import { loadAssets } from './lib/assets';
-
-type OplaCursorOptions = {
-    color: number
-    opacity: number
-}
-
-class OplaCursor {
-    private cell: THREE.Vector3
-    private mesh: THREE.Mesh
-
-    constructor({ color, opacity }: OplaCursorOptions) {
-        this.cell = new THREE.Vector3()
-        this.mesh = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(),
-            new THREE.MeshBasicMaterial({
-                color,
-                opacity,
-                transparent: true,
-            })
-        )
-    }
-
-    public isVisible() {
-        return this.mesh.visible
-    }
-
-    public show() {
-        this.mesh.visible = true
-    }
-
-    public hide() {
-        this.mesh.visible = false
-    }
-
-    public setup(cell: THREE.Vector3, position: THREE.Vector3, scale: THREE.Vector3) {
-        this.cell.copy(cell)
-        this.mesh.position.copy(position)
-        this.mesh.scale.copy(scale).add(selectedItemScaleOffset)
-    }
-
-    public getMesh() {
-        return this.mesh
-    }
-
-    public getCell() {
-        return this.cell
-    }
-}
+import { OplaCursor } from './lib/cursor';
 
 var container, stats;
 var camera;
@@ -287,8 +240,16 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
-    highlightCursor = new OplaCursor({ color: 0xdd3300, opacity: 0.25 })
-    currentCursor = new OplaCursor({ color: 0xdd00dd, opacity: 0.5 })
+    highlightCursor = new OplaCursor({
+        color: 0xdd3300,
+        opacity: 0.25,
+        scaleOffset: selectedItemScaleOffset,
+    })
+    currentCursor = new OplaCursor({
+        color: 0xdd00dd,
+        opacity: 0.5,
+        scaleOffset: selectedItemScaleOffset,
+    })
 
     // let geometryBox = box(scale.x, scale.y, scale.z)
     // const dashScale = 0.1
