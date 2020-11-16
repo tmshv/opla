@@ -36,6 +36,22 @@ export class OplaGrid {
         return new THREE.Vector3(x, y, z)
     }
 
+    public setCellDimension(cell: THREE.Vector3, dim: THREE.Vector3) {
+        this.axisY[cell.x] = dim.x
+        this.axisY[cell.y] = dim.y
+        this.axisY[cell.z] = dim.z
+
+        return this
+    }
+
+    public isCellDimensionEqual(cell: THREE.Vector3, dim: THREE.Vector3) {
+        const x = this.axisX[cell.x]
+        const y = this.axisY[cell.y]
+        const z = this.axisZ[cell.z]
+
+        return dim.x === x && dim.y === y && dim.z === z
+    }
+
     public getCellTransform(cell: THREE.Vector3, mult: number, offset: THREE.Vector3) {
         const cellSize = this.getCellDimensions(cell)
 

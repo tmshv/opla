@@ -3,20 +3,78 @@ import * as THREE from 'three';
 // import Stats from './jsm/libs/stats.module.js';
 
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller';
 
+type OplaCursorOptions = {
+    color: number
+    opacity: number
+}
+
+class OplaCursor {
+    private cell: THREE.Vector3
+    private mesh: THREE.Mesh
+
+    constructor({ color, opacity }: OplaCursorOptions) {
+        this.cell = new THREE.Vector3()
+        this.mesh = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(),
+            new THREE.MeshBasicMaterial({
+                color,
+                opacity,
+                transparent: true,
+            })
+        )
+    }
+
+    public isVisible() {
+        return this.mesh.visible
+    }
+
+    public show() {
+        this.mesh.visible = true
+    }
+
+    public hide() {
+        this.mesh.visible = false
+    }
+
+    public setup(cell: THREE.Vector3, position: THREE.Vector3, scale: THREE.Vector3) {
+        this.cell.copy(cell)
+        this.mesh.position.copy(position)
+        this.mesh.scale.copy(scale).add(selectedItemScaleOffset)
+    }
+
+    public getMesh() {
+        return this.mesh
+    }
+
+    public getCell() {
+        return this.cell
+    }
+}
+
 var container, stats;
 var camera;
 let renderer: THREE.WebGLRenderer
+let domRenderer
 let scene: THREE.Scene
-var highlightBox;
 let sys: OplaSystem
 let controls: OrbitControls
+
+let highlightCursor: OplaCursor
+let currentCursor: OplaCursor
+let controller: AppController
+
+let selectedBoxAxisX: CSS2DObject
+let selectedBoxAxisY: CSS2DObject
+let selectedBoxAxisZ: CSS2DObject
 
 let tool = 'select'
 
@@ -48,6 +106,7 @@ function hex(value: number) {
 }
 
 export function runApp(ctrl: AppController, elem: HTMLElement) {
+    controller = ctrl
     // const opla = createOplaSystem()
     container = elem
 
@@ -61,12 +120,25 @@ export function runApp(ctrl: AppController, elem: HTMLElement) {
 }
 
 function setupController(ctrl: AppController) {
-    // const click = fromEvent(renderer.domElement, 'click')
-    // click.pipe(map(x => {
-    //     console.log(x);
+    ctrl.subjects.cellDimension.subscribe(dim => {
+        if (!currentCursor.isVisible()) {
+            return
+        }
 
-    //     return x
-    // }))
+        const cell = currentCursor.getCell()
+        const grid = ctrl.opla.grid
+
+        if (grid.isCellDimensionEqual(cell, dim)) {
+            return
+        }
+
+        console.log('set axis', cell, grid.getCellDimensions(cell), dim)
+
+        grid.setCellDimension(cell, dim)
+
+        cleanScene()
+        initOplaSystem(ctrl.opla)
+    })
 
     const x = ctrl.subjects.tool.subscribe(newTool => {
         tool = newTool
@@ -181,6 +253,15 @@ function initOplaSystem(opla: OplaSystem) {
     createPicker(boxes)
 }
 
+function createLabel(label: string) {
+    const elem = document.createElement('div')
+    elem.className = 'label'
+    elem.textContent = label
+    elem.style.marginTop = '-1em'
+
+    return new CSS2DObject(elem)
+}
+
 function init() {
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
     camera.position.set(
@@ -202,14 +283,8 @@ function init() {
     light.position.set(0, 500, 2000);
     scene.add(light);
 
-    highlightBox = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(),
-        new THREE.MeshBasicMaterial({
-            color: 0xdd3300,
-            transparent: true,
-            opacity: 0.25,
-        })
-    )
+    highlightCursor = new OplaCursor({ color: 0xdd3300, opacity: 0.25 })
+    currentCursor = new OplaCursor({ color: 0xdd00dd, opacity: 0.5 })
 
     // let geometryBox = box(scale.x, scale.y, scale.z)
     // const dashScale = 0.1
@@ -232,12 +307,32 @@ function init() {
     // lineSegments.computeLineDistances()
     // highlightBox = lineSegments
 
-    scene.add(highlightBox)
+
+    scene.add(highlightCursor.getMesh())
+    scene.add(currentCursor.getMesh())
+
+    const cc = highlightCursor.getMesh()
+
+    selectedBoxAxisX = createLabel('x')
+    cc.add(selectedBoxAxisX)
+
+    selectedBoxAxisY = createLabel('y')
+    cc.add(selectedBoxAxisY)
+
+    selectedBoxAxisZ = createLabel('z')
+    cc.add(selectedBoxAxisZ)
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
+
+    domRenderer = new CSS2DRenderer()
+    domRenderer.setSize(window.innerWidth, window.innerHeight)
+    domRenderer.domElement.style.position = 'absolute'
+    domRenderer.domElement.style.top = '0px'
+    domRenderer.domElement.style.pointerEvents = 'none'
+    document.body.appendChild(domRenderer.domElement)
 
     // controls = new TrackballControls(camera, renderer.domElement);
     // controls.rotateSpeed = 1.0;
@@ -255,6 +350,28 @@ function init() {
 
     renderer.domElement.addEventListener('mousemove', onMouseMove)
     renderer.domElement.addEventListener('click', onClick)
+
+    // loadAssets()
+}
+
+function loadAssets() {
+    const loader = new GLTFLoader()
+    loader.setPath('/assets/')
+    loader.load('edge.glb', function (gltf) {
+        // console.log(gltf)
+        gltf.scene.traverse(function (child) {
+            if (child.type === 'Mesh') {
+                console.log('glft item', child)
+                child.scale.multiplyScalar(10)
+
+                scene.add(child)
+
+                camera.lookAt(child)
+            }
+        })
+
+        render()
+    });
 }
 
 function createPicker(boxes: BlockDef[]) {
@@ -319,41 +436,18 @@ function addBlockAtCell(x: number, y: number) {
 function onSelectBlockAtCoord(x: number, y: number) {
     const selected = picker.pick(x, y)
     if (!selected) {
+        currentCursor.hide()
         return
     }
 
     const [dir, def] = selected
-    console.log(def)
-
-    // test
-
     const cell = def.block.cellLocation
 
-    if (dir === 'top') {
-        sys.grid.axisY[cell.y] += Math.random()
-    }
-    if (dir === 'bottom') {
-        sys.grid.axisY[cell.y] -= Math.random()
-    }
+    currentCursor.setup(cell, def.position, def.scale)
+    currentCursor.show()
 
-    if (dir === '1-0') {
-        sys.grid.axisX[cell.x] += Math.random()
-    }
-    if (dir === '1-1') {
-        sys.grid.axisX[cell.x] -= Math.random()
-    }
-
-    if (dir === '2-0') {
-        sys.grid.axisZ[cell.z] += Math.random()
-    }
-    if (dir === '2-1') {
-        sys.grid.axisZ[cell.z] -= Math.random()
-    }
-    // sys.grid.axisX[cell.x] = 1 + Math.random()
-    // sys.grid.axisX[cell.x] = 1 + Math.random()
-
-    cleanScene()
-    initOplaSystem(sys)
+    const dim = sys.grid.getCellDimensions(cell)
+    controller.setCellDimension(dim.x, dim.y, dim.z)
 }
 
 function removeBlockAtCoord(x: number, y: number) {
@@ -452,9 +546,16 @@ function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
     const [dir, def] = selected
     const [pos, scale] = currentBlockPosition(def)
     if (pos) {
-        highlightBox.visible = true
-        highlightBox.position.copy(pos)
-        highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+        highlightCursor.setup(def.block.cellLocation, pos, scale)
+        highlightCursor.show()
+
+        const v = 1
+        selectedBoxAxisX.position.set(v, 0, 0)
+        selectedBoxAxisY.position.set(0, v, 0)
+        selectedBoxAxisZ.position.set(0, 0, v)
+
+        // earthLabel.position.set(0, EARTH_RADIUS, 0);
+        // earthLabel.rotateY(Math.PI / 2)
     }
 }
 
@@ -462,9 +563,8 @@ function handleHightlightBoxOnAdd(selected: [string, BlockDef]) {
     const [dir, def] = selected
     const [pos, scale] = nextBlockPosition(sys.grid, dir, def)
     if (pos) {
-        highlightBox.visible = true
-        highlightBox.position.copy(pos)
-        highlightBox.scale.copy(scale).add(selectedItemScaleOffset)
+        highlightCursor.setup(def.block.cellLocation, pos, scale)
+        highlightCursor.show()
     }
 }
 
@@ -476,7 +576,7 @@ function render() {
 
     const selected = picker.pick(mouse.x, mouse.y)
     if (!selected) {
-        highlightBox.visible = false
+        highlightCursor.hide()
     } else {
         if (tool === 'add') {
             handleHightlightBoxOnAdd(selected)
@@ -487,10 +587,15 @@ function render() {
         if (tool === 'select') {
             handleHightlightBoxOnSelect(selected)
         }
+
+        if (highlightCursor.getCell().equals(currentCursor.getCell())) {
+            highlightCursor.hide()
+        }
     }
 
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
+    domRenderer.render(scene, camera);
     // renderer.render(picker.getScene(), camera)
 }
 

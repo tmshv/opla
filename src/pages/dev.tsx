@@ -3,7 +3,7 @@ import { AppController } from "@/app/controller"
 import { createOplaSystem } from "@/opla"
 import { Button } from "@/ui/Button"
 import { NextPage } from "next"
-import { forwardRef, MutableRefObject, useCallback, useEffect, useRef } from "react"
+import { forwardRef, memo, MutableRefObject, useCallback, useEffect, useRef, useState } from "react"
 
 function make() {
     const opla = createOplaSystem()
@@ -11,26 +11,48 @@ function make() {
     return new AppController(opla)
 }
 
-type AxisSizeSelectorOnClick = (value: number) => void
+const sizes = new Map([
+    ['1', 1],
+    ['2', 1.1],
+    ['3', 1.2],
+    ['4', 1.3],
+    ['5', 1.4],
+    ['6', 1.6],
+])
+
+const sizesN = new Map([
+    [1, '1'],
+    [1.1, '2'],
+    [1.2, '3'],
+    [1.3, '4'],
+    [1.4, '5'],
+    [1.6, '6'],
+])
+
+type AxisSizeSelectorOnClick = (value: string) => void
 type AxisSizeSelectorProps = {
+    options: string[]
+    value: string
     onClick: AxisSizeSelectorOnClick
 }
 
 const AxisSizeSelector = forwardRef<HTMLDivElement, AxisSizeSelectorProps>((props, ref) => {
     const onClick = (e) => {
-        const v = parseInt(e.target.name)
+        const v = e.target.name
 
         props.onClick(v)
     }
 
     return (
         <div ref={ref as any}>
-            <Button name={'1'} onClick={onClick}>1</Button>
-            <Button name={'2'} onClick={onClick}>2</Button>
-            <Button name={'3'} onClick={onClick}>3</Button>
-            <Button name={'4'} onClick={onClick}>4</Button>
-            <Button name={'5'} onClick={onClick}>5</Button>
-            <Button name={'6'} onClick={onClick}>6</Button>
+            {props.options.map(x => (
+                <Button
+                    key={x}
+                    name={x}
+                    onClick={onClick}
+                    theme={props.value === x ? 'checked' : 'default'}
+                >{x}</Button>
+            ))}
         </div>
     )
 })
@@ -46,6 +68,77 @@ function useOpla(ref: MutableRefObject<HTMLDivElement>, options: any) {
     return ctrl.current
 }
 
+function useCellSize(ctrl: AppController) {
+    const [size, setSize] = useState(['1', '1', '1'])
+
+    useEffect(() => {
+        ctrl.subjects.cellDimension.subscribe(cell => {
+            const ax = sizesN.get(cell.x)
+            const ay = sizesN.get(cell.y)
+            const az = sizesN.get(cell.z)
+
+            console.log('upd useCellSize', ax, ay, az)
+            setSize([ax, ay, az])
+        })
+    }, [ctrl])
+
+    return size
+}
+
+const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
+    const [ax, ay, az] = useCellSize(props.ctrl)
+
+    const onClickSelect = useCallback(event => {
+        props.ctrl.setTool('select', {})
+    }, [])
+    const onClickAdd = useCallback(event => {
+        props.ctrl.setTool('add', {})
+    }, [])
+    const onClickRemove = useCallback(event => {
+        props.ctrl.setTool('remove', {})
+    }, [])
+
+    const onClickX = useCallback<AxisSizeSelectorOnClick>(name => {
+        const size = sizes.get(name)
+        props.ctrl.setCellDimensionX(size)
+    }, [])
+    const onClickY = useCallback<AxisSizeSelectorOnClick>(name => {
+        const size = sizes.get(name)
+        props.ctrl.setCellDimensionY(size)
+    }, [])
+    const onClickZ = useCallback<AxisSizeSelectorOnClick>(name => {
+        const size = sizes.get(name)
+        props.ctrl.setCellDimensionZ(size)
+    }, [])
+
+    return (
+        <div className="max-w-sm px-2 py-2 bg-white rounded-none overflow-hidden shadow-lg">
+            <Button onClick={onClickSelect}>select</Button>
+            <Button onClick={onClickAdd}>add</Button>
+            <Button onClick={onClickRemove}>remove</Button>
+
+            <AxisSizeSelector
+                onClick={onClickX}
+                // ref={refAxisX}
+                value={ax}
+                options={['1', '2', '3', '4', '5', '6']}
+            />
+            <AxisSizeSelector
+                onClick={onClickY}
+                // ref={refAxisY}
+                value={ay}
+                options={['1', '2', '3', '4', '5', '6']}
+            />
+            <AxisSizeSelector
+                onClick={onClickZ}
+                // ref={refAxisZ}
+                value={az}
+                options={['1', '2', '3', '4', '5', '6']}
+            />
+        </div>
+    )
+})
+
 const Page: NextPage = () => {
     const ref = useRef<HTMLDivElement>()
     const refAxisX = useRef<HTMLDivElement>()
@@ -56,26 +149,6 @@ const Page: NextPage = () => {
         refAxisY,
         refAxisZ,
     })
-
-    const onClickSelect = useCallback(event => {
-        ctrl.setTool('select', {})
-    }, [])
-    const onClickAdd = useCallback(event => {
-        ctrl.setTool('add', {})
-    }, [])
-    const onClickRemove = useCallback(event => {
-        ctrl.setTool('remove', {})
-    }, [])
-
-    const onClickX = useCallback<AxisSizeSelectorOnClick>(size => {
-        console.log('x', size)
-    }, [])
-    const onClickY = useCallback<AxisSizeSelectorOnClick>(size => {
-        console.log('y', size)
-    }, [])
-    const onClickZ = useCallback<AxisSizeSelectorOnClick>(size => {
-        console.log('z', size)
-    }, [])
 
     return (
         <div>
@@ -88,24 +161,9 @@ const Page: NextPage = () => {
                     bottom: 0,
                 }}
             >
-                <div className="max-w-sm px-2 py-2 bg-white rounded-none overflow-hidden shadow-lg">
-                    <Button onClick={onClickSelect}>select</Button>
-                    <Button onClick={onClickAdd}>add</Button>
-                    <Button onClick={onClickRemove}>remove</Button>
-
-                    <AxisSizeSelector
-                        onClick={onClickX}
-                        ref={refAxisX}
-                    />
-                    <AxisSizeSelector
-                        onClick={onClickY}
-                        ref={refAxisY}
-                    />
-                    <AxisSizeSelector
-                        onClick={onClickZ}
-                        ref={refAxisZ}
-                    />
-                </div>
+                <AppControls
+                    ctrl={ctrl}
+                />
             </div>
         </div>
     )
