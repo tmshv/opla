@@ -158,16 +158,11 @@ function createBoxes(opla: OplaSystem): BlockDef[] {
 
         return {
             block,
-            // material,
-            // geometry,
             mesh,
-            // matrix,
             pick,
             pickColors,
             position,
-            // rotation,
             scale,
-            // g: lineSegments,
         }
     })
 }
