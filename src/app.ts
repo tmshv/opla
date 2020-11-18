@@ -72,8 +72,6 @@ export async function runApp(ctrl: AppController, elem: HTMLElement) {
         'edge_400mm.glb',
         'edge_600mm.glb',
         'edge_800mm.glb',
-
-        'debug_edge_200mm.glb',
     ])
     ctrl.setAssets(lib)
 
