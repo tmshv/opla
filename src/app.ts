@@ -133,6 +133,10 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
 }
 
+function scaleToAsset(name: string, value: number) {
+    return `${name}_${value}mm`
+}
+
 function createBlockMesh(block: OplaBlock) {
     // const matrix = block.createScaleMatrix(controller.opla.grid, blockScale, blockOffset)
     // const material = materialLib.get(block.blockType)
@@ -158,7 +162,7 @@ function createBlockMesh(block: OplaBlock) {
 
     // y edges (vertical)
 
-    let asset = 'edge_200mm'
+    let asset = scaleToAsset('edge', scale.y)
     let n = controller.createAsset(asset)
     n.position.set(-sx, 0, -sz)
     g.add(n)
@@ -175,9 +179,10 @@ function createBlockMesh(block: OplaBlock) {
     n.position.set(sx, 0, sz)
     g.add(n)
 
-    // x edges
+    // z edges
 
-    asset = 'edge_200mm'
+    // asset = 'edge_200mm'
+    asset = scaleToAsset('edge', scale.z)
     n = controller.createAsset(asset)
     n.rotateX(Math.PI / 2)
     n.position.set(sx, -sy, 0)
@@ -198,9 +203,10 @@ function createBlockMesh(block: OplaBlock) {
     n.position.set(-sx, -sy, 0)
     g.add(n)
 
-    // z edges
+    // x edges
 
-    asset = 'edge_200mm'
+    // asset = 'edge_200mm'
+    asset = scaleToAsset('edge', scale.x)
     n = controller.createAsset(asset)
     n.rotateZ(Math.PI / 2)
     n.position.set(0, -sy, -sz)
