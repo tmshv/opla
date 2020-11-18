@@ -13,6 +13,7 @@ import { AppController } from './app/controller';
 import { loadAssets } from './lib/assets';
 import { OplaCursor } from './lib/cursor';
 import { createControls } from './lib/three';
+import { createBoxVertices } from './lib/geom';
 
 var container, stats;
 var camera;
@@ -45,8 +46,9 @@ const directionNorm = new Map([
     ['top', new THREE.Vector3(0, 1, 0)],
     ['bottom', new THREE.Vector3(0, -1, 0)],
 ])
-const blockOffset = new THREE.Vector3(-500, 0, -500)
-const blockScale = 100
+// const blockOffset = new THREE.Vector3(-500, 0, -500)
+const blockOffset = new THREE.Vector3(0, 0, 0)
+const blockScale = 200
 
 const materialLib = new Map([
     ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
@@ -59,10 +61,21 @@ function hex(value: number) {
     return color
 }
 
-export function runApp(ctrl: AppController, elem: HTMLElement) {
+export async function runApp(ctrl: AppController, elem: HTMLElement) {
     controller = ctrl
     // const opla = createOplaSystem()
     container = elem
+
+    const lib = await loadOplaAssets([
+        'node_25mm.glb',
+        'edge_200mm.glb',
+        'edge_400mm.glb',
+        'edge_600mm.glb',
+        'edge_800mm.glb',
+
+        'debug_edge_200mm.glb',
+    ])
+    ctrl.setAssets(lib)
 
     init()
     initOplaSystem(ctrl.opla)
@@ -121,17 +134,100 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
 }
 
 function createBlockMesh(block: OplaBlock) {
-    const material = materialLib.get(block.blockType)
-    const matrix = block.createMatrix(controller.opla.grid, blockScale, blockOffset)
-    const geometry = new THREE.BoxBufferGeometry()
-    geometry.applyMatrix4(matrix)
+    // const matrix = block.createScaleMatrix(controller.opla.grid, blockScale, blockOffset)
+    // const material = materialLib.get(block.blockType)
+    // const geometry = new THREE.BoxBufferGeometry()
+    // geometry.applyMatrix4(matrix)
 
-    return new THREE.Mesh(geometry, material)
+    const [position, scale] = controller.opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
+    const s = scale.clone().multiplyScalar(0.5)
+    const sx = s.x
+    const sy = s.y
+    const sz = s.z
+
+    const g = new THREE.Group()
+    g.position.copy(position)
+
+    // nodes
+
+    createBoxVertices(s).forEach(position => {
+        let n = controller.createAsset('node_25mm')
+        n.position.copy(position)
+        g.add(n)
+    })
+
+    // y edges (vertical)
+
+    let asset = 'edge_200mm'
+    let n = controller.createAsset(asset)
+    n.position.set(-sx, 0, -sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.position.set(-sx, 0, sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.position.set(sx, 0, -sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.position.set(sx, 0, sz)
+    g.add(n)
+
+    // x edges
+
+    asset = 'edge_200mm'
+    n = controller.createAsset(asset)
+    n.rotateX(Math.PI / 2)
+    n.position.set(sx, -sy, 0)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateX(Math.PI / 2)
+    n.position.set(sx, sy, 0)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateX(Math.PI / 2)
+    n.position.set(-sx, sy, 0)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateX(Math.PI / 2)
+    n.position.set(-sx, -sy, 0)
+    g.add(n)
+
+    // z edges
+
+    asset = 'edge_200mm'
+    n = controller.createAsset(asset)
+    n.rotateZ(Math.PI / 2)
+    n.position.set(0, -sy, -sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateZ(Math.PI / 2)
+    n.position.set(0, sy, sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateZ(Math.PI / 2)
+    n.position.set(0, -sy, sz)
+    g.add(n)
+
+    n = controller.createAsset(asset)
+    n.rotateZ(Math.PI / 2)
+    n.position.set(0, sy, -sz)
+    g.add(n)
+
+    return g
 }
 
 type BlockDef = {
     block: OplaBlock,
-    mesh: THREE.Mesh,
+    // mesh: THREE.Mesh,
+    mesh: THREE.Group,
     pick: THREE.BoxBufferGeometry,
     pickColors: BoxColors,
     position: THREE.Vector3,
@@ -139,10 +235,10 @@ type BlockDef = {
 }
 function createBoxes(opla: OplaSystem): BlockDef[] {
     return opla.blocks.map(block => {
-        const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
-        const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
         const mesh = createBlockMesh(block)
 
+        const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
+        const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
         const pickColors: BoxColors = [
             hex(randomColor()),
             hex(randomColor()),
@@ -153,8 +249,7 @@ function createBoxes(opla: OplaSystem): BlockDef[] {
         ]
         const pick = new THREE.BoxBufferGeometry()
         pick.applyMatrix4(matrix)
-        // give the geometry's vertices a color corresponding to the "id"
-        applyVertexColorsToBoxFaces(pick, pickColors)
+        applyVertexColorsToBoxFaces(pick, pickColors) // give the geometry's vertices a color corresponding to the "id"
 
         return {
             block,
@@ -214,7 +309,7 @@ function init() {
 
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0xeeeeff)
-    scene.fog = new THREE.Fog(0xeeeeff, 1250, 2500)
+    // scene.fog = new THREE.Fog(0xeeeeff, 1250, 2500)
 
     var gridHelper = new THREE.GridHelper(1000, 20)
     scene.add(gridHelper)
@@ -302,27 +397,24 @@ function init() {
 
     renderer.domElement.addEventListener('mousemove', onMouseMove)
     renderer.domElement.addEventListener('click', onClick)
-
-    loadOplaAssets()
 }
 
-async function loadOplaAssets() {
-    const files = await loadAssets(['node.glb', 'edge.glb'])
+async function loadOplaAssets(files: string[]) {
+    const items = await loadAssets(files)
+    const lib = new Map<string, THREE.Object3D>()
 
-    for (let gltf of files) {
+    for (let gltf of items) {
         gltf.scene.traverse(child => {
             if (child.type !== 'Mesh') {
                 return
             }
 
-            console.log('glft item', child)
-            child.scale.multiplyScalar(10)
-
-            scene.add(child)
+            child.scale.multiplyScalar(1000)
+            lib.set(child.name, child)
         })
     }
 
-    render()
+    return lib
 }
 
 function createPicker(boxes: BlockDef[]) {
@@ -377,7 +469,8 @@ function addBlockAtCell(x: number, y: number) {
 
     const block = sys.createBlock()
     block.cellLocation.copy(cell)
-    block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
+    block.blockType = 'closed'
+    // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
     sys.addBlock(block)
     cleanScene()

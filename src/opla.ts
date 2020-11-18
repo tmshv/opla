@@ -115,6 +115,18 @@ export class OplaBlock {
     //     return [position, scale]
     // }
 
+    createScaleMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
+        const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
+
+        const rotation = new THREE.Euler()
+        const quaternion = new THREE.Quaternion()
+        quaternion.setFromEuler(rotation)
+
+        const matrix = new THREE.Matrix4()
+        matrix.compose(new THREE.Vector3(), quaternion, scale)
+        return matrix
+    }
+
     createMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
         // const [position, scale] = this.createTransformComponents(grid, scaleMultiplier, positionOffset)
         const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
@@ -161,7 +173,7 @@ export function createOplaSystem() {
 
     const block = new OplaBlock(idGenerator.create())
     block.blockType = 'closed'
-    block.cellLocation.set(5, 0, 5)
+    block.cellLocation.set(0, 0, 0)
     const blocks = [block]
 
     const grid = new OplaGrid()

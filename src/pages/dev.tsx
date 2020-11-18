@@ -12,22 +12,36 @@ function make() {
 }
 
 const sizes = new Map([
-    ['1', 1],
-    ['2', 1.1],
-    ['3', 1.2],
-    ['4', 1.3],
-    ['5', 1.4],
-    ['6', 1.6],
+    ['200', 1],
+    ['400', 2],
+    ['600', 3],
+    ['800', 4],
 ])
 
 const sizesN = new Map([
-    [1, '1'],
-    [1.1, '2'],
-    [1.2, '3'],
-    [1.3, '4'],
-    [1.4, '5'],
-    [1.6, '6'],
+    [1, '200'],
+    [2, '400'],
+    [3, '600'],
+    [4, '800'],
 ])
+
+// const sizes = new Map([
+//     ['1', 1],
+//     ['2', 1.1],
+//     ['3', 1.2],
+//     ['4', 1.3],
+//     ['5', 1.4],
+//     ['6', 1.6],
+// ])
+
+// const sizesN = new Map([
+//     [1, '1'],
+//     [1.1, '2'],
+//     [1.2, '3'],
+//     [1.3, '4'],
+//     [1.4, '5'],
+//     [1.6, '6'],
+// ])
 
 type AxisSizeSelectorOnClick = (value: string) => void
 type AxisSizeSelectorProps = {
@@ -61,8 +75,9 @@ function useOpla(ref: MutableRefObject<HTMLDivElement>, options: any) {
     const ctrl = useRef(make())
 
     useEffect(() => {
-        ctrl.current = runApp(ctrl.current, ref.current)
-
+        (async () => {
+            ctrl.current = await runApp(ctrl.current, ref.current)
+        })()
     }, [ref.current, ctrl])
 
     return ctrl.current
@@ -111,6 +126,8 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
         props.ctrl.setCellDimensionZ(size)
     }, [])
 
+    const ss = ['200', '400', '600', '800']
+
     return (
         <div className="max-w-sm px-2 py-2 bg-white rounded-none overflow-hidden shadow-lg">
             <Button onClick={onClickSelect}>select</Button>
@@ -121,19 +138,19 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
                 onClick={onClickX}
                 // ref={refAxisX}
                 value={ax}
-                options={['1', '2', '3', '4', '5', '6']}
+                options={ss}
             />
             <AxisSizeSelector
                 onClick={onClickY}
                 // ref={refAxisY}
                 value={ay}
-                options={['1', '2', '3', '4', '5', '6']}
+                options={ss}
             />
             <AxisSizeSelector
                 onClick={onClickZ}
                 // ref={refAxisZ}
                 value={az}
-                options={['1', '2', '3', '4', '5', '6']}
+                options={ss}
             />
         </div>
     )

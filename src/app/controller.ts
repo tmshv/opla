@@ -2,8 +2,12 @@ import * as THREE from 'three'
 import { Subject } from 'rxjs'
 import { OplaSystem } from "@/opla"
 
+type AssetsLib = Map<string, THREE.Object3D>
+
 export class AppController {
+    private ready: boolean
     private tool: string
+    private lib: AssetsLib
 
     private cellDimension: THREE.Vector3
 
@@ -23,11 +27,38 @@ export class AppController {
     constructor(
         private model: OplaSystem
     ) {
+        this.ready = false
+        this.lib = new Map()
         this.cellDimension = new THREE.Vector3()
         this.subjects = {
             tool: new Subject(),
             cellDimension: new Subject(),
         }
+    }
+
+    public isReady() {
+        return this.ready
+    }
+
+    public setReady() {
+        this.ready = true
+    }
+
+    public setAssets(lib: AssetsLib) {
+        this.lib = lib
+
+        return this
+    }
+
+    public createAsset(name: string) {
+        const asset = this.lib.get(name)
+        console.log('creating asset', name, asset);
+
+        if (!asset) {
+            return null
+        }
+
+        return asset.clone()
     }
 
     public setCellDimensionX(value: number) {
