@@ -42,6 +42,10 @@ export class OplaCursor {
         this.mesh.scale.copy(scale).add(this.scaleOffset)
     }
 
+    public setPositionFrom(position: THREE.Vector3) {
+        this.mesh.position.copy(position)
+    }
+
     public getMesh() {
         return this.mesh
     }

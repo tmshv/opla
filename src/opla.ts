@@ -78,16 +78,24 @@ export class OplaGrid {
     }
 }
 
+type BlockSize = [number, number, number]
+
 export class OplaBlock {
     public id: number
     public colorId: number
     public blockType: string
     public cellLocation: THREE.Vector3
 
-    constructor(id: number) {
+    public location: THREE.Vector3
+    public size: THREE.Vector3
+
+    constructor(id: number, size: BlockSize) {
         this.id = id
         this.colorId = randomColor()
         this.cellLocation = new THREE.Vector3(0, 0, 0)
+        this.location = new THREE.Vector3(0, 0, 0)
+        this.size = new THREE.Vector3(...size)
+        // this.size.fromArray(size)
     }
 
     // createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
@@ -129,7 +137,9 @@ export class OplaBlock {
 
     createMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
         // const [position, scale] = this.createTransformComponents(grid, scaleMultiplier, positionOffset)
-        const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
+        // const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
+        const position = this.location
+        const scale = this.size
 
         const rotation = new THREE.Euler()
         const quaternion = new THREE.Quaternion()
@@ -157,8 +167,8 @@ export class OplaSystem {
         return this
     }
 
-    public createBlock() {
-        return new OplaBlock(idGenerator.create())
+    public createBlock(size: BlockSize) {
+        return new OplaBlock(idGenerator.create(), size)
     }
 }
 
@@ -166,14 +176,42 @@ function sum(items: number[], start = 0): number {
     return items.reduce((a, b) => a + b, start)
 }
 
+function choise<T>(values: T[]): T {
+    const i = Math.floor(Math.random() * values.length)
+
+    return values[i]
+}
+
+function randomSize(): BlockSize {
+    const values = [200, 400]
+
+    return [
+        400,
+        400,
+        choise(values),
+        // choise(values),
+        // choise(values),
+    ]
+}
+
 export function createOplaSystem() {
     const sizeX = 10
     const sizeY = 10
     const sizeZ = 10
 
-    const block = new OplaBlock(idGenerator.create())
+    // const blocks = []
+    // for (let i = 0; i < 10; i++) {
+    //     const block = new OplaBlock(idGenerator.create(), randomSize())
+    //     block.blockType = 'closed'
+    //     block.cellLocation.set(0, 0, 0)
+    //     block.location.set(0, 0, 0)
+
+    //     blocks.push(block)
+    // }
+    const block = new OplaBlock(idGenerator.create(), [200, 400, 200])
     block.blockType = 'closed'
     block.cellLocation.set(0, 0, 0)
+    block.location.set(0, 0, 0)
     const blocks = [block]
 
     const grid = new OplaGrid()

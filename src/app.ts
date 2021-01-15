@@ -7,13 +7,16 @@ import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
+import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
 import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla';
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller';
 import { loadAssets } from './lib/assets';
 import { OplaCursor } from './lib/cursor';
 import { createControls } from './lib/three';
-import { createBoxVertices } from './lib/geom';
+import { createBoxVertices, createOplaModel } from './lib/geom';
+import { Mesh } from 'three';
 
 var container, stats;
 var camera;
@@ -22,6 +25,9 @@ let domRenderer
 let scene: THREE.Scene
 let sys: OplaSystem
 let controls: OrbitControls
+let control: TransformControls
+
+let controlIsActive = false
 
 let hoverCursor: OplaCursor
 let currentCursor: OplaCursor
@@ -34,6 +40,8 @@ let selectedBoxAxisZ: CSS2DObject
 let tool = 'select'
 
 let picker: ScenePicker<[string, BlockDef]>
+
+let currentBlock: BlockDef
 
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
@@ -49,16 +57,68 @@ const directionNorm = new Map([
 // const blockOffset = new THREE.Vector3(-500, 0, -500)
 const blockOffset = new THREE.Vector3(0, 0, 0)
 const blockScale = 200
+const GRID_SIZE = 200
 
 const materialLib = new Map([
     ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
     ['closed', new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 })],
 ])
 
+// const hdrUrls = ['px.hdr', 'nx.hdr', 'py.hdr', 'ny.hdr', 'pz.hdr', 'nz.hdr']
+// let hdrCubeMap: HDRCubeTextureLoader = new HDRCubeTextureLoader()
+//     .setPath('./textures/cube/pisaHDR/')
+//     .setDataType(THREE.UnsignedByteType)
+//     .load(hdrUrls, function () {
+
+//         hdrCubeRenderTarget = pmremGenerator.fromCubemap(hdrCubeMap);
+
+//         hdrCubeMap.magFilter = THREE.LinearFilter;
+//         hdrCubeMap.needsUpdate = true;
+
+//     });
+
 function hex(value: number) {
     const color = new THREE.Color()
     color.setHex(value)
     return color
+}
+
+export function initTC(camera: THREE.Camera, target: HTMLElement) {
+    const control = new TransformControls(camera, target)
+    control.setMode('translate')
+    control.setTranslationSnap(GRID_SIZE)
+    control.setSpace('world')
+    control.addEventListener('change', onTranformControlsChange)
+    control.addEventListener('dragging-changed', event => {
+        controls.enabled = !event.value
+    })
+
+    control.addEventListener('mouseDown', event => {
+        console.log('control down');
+
+        controlIsActive = true
+    })
+    control.addEventListener('mouseUp', event => {
+        console.log('control up');
+
+        controlIsActive = false
+    })
+
+    return control
+}
+
+function onTranformControlsChange(event) {
+    if (!currentBlock) {
+        return
+    }
+
+    const block = currentBlock
+    const position = block.pick.position
+    currentCursor.setPositionFrom(position)
+    block.position.copy(position)
+    block.model.position.copy(position)
+
+    render()
 }
 
 export async function runApp(ctrl: AppController, elem: HTMLElement) {
@@ -131,99 +191,11 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
 }
 
-function scaleToAsset(name: string, value: number) {
-    return `${name}_${value}mm`
-}
-
 function createBlockMesh(block: OplaBlock) {
-    // const matrix = block.createScaleMatrix(controller.opla.grid, blockScale, blockOffset)
-    // const material = materialLib.get(block.blockType)
-    // const geometry = new THREE.BoxBufferGeometry()
-    // geometry.applyMatrix4(matrix)
+    // let [position, scale] = controller.opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
 
-    const [position, scale] = controller.opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
-    const s = scale.clone().multiplyScalar(0.5)
-    const sx = s.x
-    const sy = s.y
-    const sz = s.z
-
-    const g = new THREE.Group()
-    g.position.copy(position)
-
-    // nodes
-
-    createBoxVertices(s).forEach(position => {
-        let n = controller.createAsset('node_25mm')
-        n.position.copy(position)
-        g.add(n)
-    })
-
-    // y edges (vertical)
-
-    let asset = scaleToAsset('edge', scale.y)
-    let n = controller.createAsset(asset)
-    n.position.set(-sx, 0, -sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.position.set(-sx, 0, sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.position.set(sx, 0, -sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.position.set(sx, 0, sz)
-    g.add(n)
-
-    // z edges
-
-    // asset = 'edge_200mm'
-    asset = scaleToAsset('edge', scale.z)
-    n = controller.createAsset(asset)
-    n.rotateX(Math.PI / 2)
-    n.position.set(sx, -sy, 0)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateX(Math.PI / 2)
-    n.position.set(sx, sy, 0)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateX(Math.PI / 2)
-    n.position.set(-sx, sy, 0)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateX(Math.PI / 2)
-    n.position.set(-sx, -sy, 0)
-    g.add(n)
-
-    // x edges
-
-    // asset = 'edge_200mm'
-    asset = scaleToAsset('edge', scale.x)
-    n = controller.createAsset(asset)
-    n.rotateZ(Math.PI / 2)
-    n.position.set(0, -sy, -sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateZ(Math.PI / 2)
-    n.position.set(0, sy, sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateZ(Math.PI / 2)
-    n.position.set(0, -sy, sz)
-    g.add(n)
-
-    n = controller.createAsset(asset)
-    n.rotateZ(Math.PI / 2)
-    n.position.set(0, sy, -sz)
-    g.add(n)
+    const g = createOplaModel(block.size, controller)
+    g.position.copy(block.location)
 
     return g
 }
@@ -231,43 +203,48 @@ function createBlockMesh(block: OplaBlock) {
 type BlockDef = {
     block: OplaBlock,
     // mesh: THREE.Mesh,
-    mesh: THREE.Group,
-    pick: THREE.BoxBufferGeometry,
+    model: THREE.Group,
+    pick: THREE.Object3D,
     pickColors: BoxColors,
     position: THREE.Vector3,
     scale: THREE.Vector3,
 }
-function createBoxes(opla: OplaSystem): BlockDef[] {
-    return opla.blocks.map(block => {
-        const mesh = createBlockMesh(block)
 
-        const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
-        const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
-        const pickColors: BoxColors = [
-            hex(randomColor()),
-            hex(randomColor()),
-            hex(randomColor()),
-            hex(randomColor()),
-            hex(randomColor()),
-            hex(randomColor()),
-        ]
-        const pick = new THREE.BoxBufferGeometry()
-        pick.applyMatrix4(matrix)
-        applyVertexColorsToBoxFaces(pick, pickColors) // give the geometry's vertices a color corresponding to the "id"
+function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
+    const model = createBlockMesh(block)
 
-        return {
-            block,
-            mesh,
-            pick,
-            pickColors,
-            position,
-            scale,
-        }
-    })
-}
+    // const [position, scale] = opla.grid.getCellTransform(block.cellLocation, blockScale, blockOffset)
 
-function initScene() {
+    let position = block.location.clone()
+    let scale = block.size.clone()
+    const matrix = block.createMatrix(opla.grid, blockScale, blockOffset)
+    const pickColors: BoxColors = [
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+    ]
+    const pickBox = new THREE.BoxBufferGeometry()
+    // pickBox.applyMatrix4(matrix)
+    applyVertexColorsToBoxFaces(pickBox, pickColors) // give the geometry's vertices a color corresponding to the "id"
 
+    const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
+    const pick = new THREE.Mesh(pickBox, pickingMaterial)
+    pick.position.copy(position)
+    pick.scale.copy(scale)
+
+    // model.add(pick)
+
+    return {
+        block,
+        model,
+        pick,
+        pickColors,
+        position,
+        scale,
+    }
 }
 
 function cleanScene() {
@@ -277,13 +254,13 @@ function cleanScene() {
 
 function initOplaSystem(opla: OplaSystem) {
     sys = opla
-    let boxes = createBoxes(opla)
+    let boxes = opla.blocks.map(block => createBlockDef(opla, block))
 
     let objects = new THREE.Group()
     objects.name = 'opla-group'
 
     for (let item of boxes) {
-        objects.add(item.mesh)
+        objects.add(item.model)
     }
     scene.add(objects)
 
@@ -315,7 +292,7 @@ function init() {
     scene.background = new THREE.Color(0xeeeeff)
     // scene.fog = new THREE.Fog(0xeeeeff, 1250, 2500)
 
-    var gridHelper = new THREE.GridHelper(1000, 20)
+    var gridHelper = new THREE.GridHelper(2000, 20)
     scene.add(gridHelper)
 
     scene.add(new THREE.AmbientLight(0x555555));
@@ -360,18 +337,18 @@ function init() {
 
 
     scene.add(hoverCursor.getMesh())
-    scene.add(currentCursor.getMesh())
+    // scene.add(currentCursor.getMesh())
 
     const cc = hoverCursor.getMesh()
 
     selectedBoxAxisX = createLabel('x')
-    cc.add(selectedBoxAxisX)
+    // cc.add(selectedBoxAxisX)
 
     selectedBoxAxisY = createLabel('y')
-    cc.add(selectedBoxAxisY)
+    // cc.add(selectedBoxAxisY)
 
     selectedBoxAxisZ = createLabel('z')
-    cc.add(selectedBoxAxisZ)
+    // cc.add(selectedBoxAxisZ)
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -395,6 +372,9 @@ function init() {
     // controls.dynamicDampingFactor = 0.3;
 
     controls = createControls(camera, renderer.domElement)
+    control = initTC(camera, renderer.domElement)
+
+    scene.add(control)
 
     // stats = new Stats();
     // container.appendChild(stats.dom);
@@ -422,22 +402,25 @@ async function loadOplaAssets(files: string[]) {
 }
 
 function createPicker(boxes: BlockDef[]) {
+    const scene = new THREE.Scene()
     picker = new ScenePicker(camera, renderer)
     boxes.forEach(item => {
         item.pickColors.forEach((color, i) => {
             picker.setItem(color.getHex(), [directionName[i], item])
         })
+
+        scene.add(item.pick)
     })
 
-    const scene = new THREE.Scene()
+    // scene.add(control)
     picker.setScene(scene)
 
-    const picks = boxes.map(item => item.pick)
-    if (picks.length > 0) {
-        const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
-        const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
-        scene.add(pickingObjects)
-    }
+    // const picks = boxes.map(item => item.pick)
+    // if (picks.length > 0) {
+    //     const pickingMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, flatShading: true })
+    //     const pickingObjects = new THREE.Mesh(BufferGeometryUtils.mergeBufferGeometries(picks), pickingMaterial)
+    //     scene.add(pickingObjects)
+    // }
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -446,6 +429,12 @@ function onMouseMove(e: MouseEvent) {
 }
 
 function onClick(e: MouseEvent) {
+    console.log('global onclick')
+
+    if (controlIsActive) {
+        return
+    }
+
     const x = e.clientX
     const y = e.clientY
 
@@ -465,14 +454,14 @@ function addBlockAtCell(x: number, y: number) {
     if (!selected) {
         return
     }
-    const [dir, def] = selected
-    const cell = nextBlockCell(sys.grid, dir, def)
-    if (!cell) {
-        return
-    }
+    // const [dir, def] = selected
+    // const cell = nextBlockCell(sys.grid, dir, def)
+    // if (!cell) {
+    //     return
+    // }
 
-    const block = sys.createBlock()
-    block.cellLocation.copy(cell)
+    const block = sys.createBlock([200, 200, 200])
+    // block.cellLocation.copy(cell)
     block.blockType = 'closed'
     // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
@@ -484,15 +473,24 @@ function addBlockAtCell(x: number, y: number) {
 function onSelectBlockAtCoord(x: number, y: number) {
     const selected = picker.pick(x, y)
     if (!selected) {
+        // currentBlock = null
         currentCursor.hide()
+        // control.enabled = false
+        // control.visible = false
         return
     }
+
+    currentBlock = selected[1]
 
     const [dir, def] = selected
     const cell = def.block.cellLocation
 
     currentCursor.setup(cell, def.position, def.scale)
     currentCursor.show()
+
+    control.attach(selected[1].pick)
+    control.enabled = true
+    control.visible = true
 
     const dim = sys.grid.getCellDimensions(cell)
     controller.setCellDimension(dim.x, dim.y, dim.z)
