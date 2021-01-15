@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 import { Subject } from 'rxjs'
 import { OplaSystem } from "@/opla"
+import { IAssetLibrary } from './types'
 
 type AssetsLib = Map<string, THREE.Object3D>
 
-export class AppController {
+export class AppController implements IAssetLibrary {
     private ready: boolean
     private tool: string
     private lib: AssetsLib
@@ -59,6 +60,10 @@ export class AppController {
         }
 
         return asset.clone()
+    }
+
+    public getAssetNameBySize(name: string, value: number) {
+        return `${name}_${value}mm`
     }
 
     public setCellDimensionX(value: number) {
