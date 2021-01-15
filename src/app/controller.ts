@@ -53,8 +53,6 @@ export class AppController implements IAssetLibrary {
 
     public createAsset(name: string) {
         const asset = this.lib.get(name)
-        console.log('creating asset', name, asset);
-
         if (!asset) {
             return null
         }
