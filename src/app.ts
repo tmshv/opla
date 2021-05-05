@@ -17,6 +17,25 @@ import { OplaCursor } from './lib/cursor'
 import { createControls } from './lib/three'
 import { createBoxVertices, createOplaModel } from './lib/geom'
 
+type BoxColors = [
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+    THREE.Color,
+]
+
+type BlockDef = {
+    block: OplaBlock,
+    // mesh: THREE.Mesh,
+    model: THREE.Object3D,
+    pick: THREE.Object3D,
+    pickColors: BoxColors,
+    position: THREE.Vector3,
+    scale: THREE.Vector3,
+}
+
 var container, stats;
 var camera;
 let renderer: THREE.WebGLRenderer
@@ -83,59 +102,6 @@ function hex(value: number) {
     return color
 }
 
-export function initTC(camera: THREE.Camera, target: HTMLElement) {
-    const control = new TransformControls(camera, target)
-    control.setMode('translate')
-    // control.setTranslationSnap(GRID_SIZE)
-    // control.setSpace('world')
-    control.setSpace('local')
-    // control.addEventListener('change', onTranformControlsChange)
-    control.addEventListener('objectChange', onTranformControlsChange)
-    // control.addEventListener('objectChange', (event) => {
-    //     console.log('tc objectchange', event);
-    // })
-    control.addEventListener('dragging-changed', event => {
-        controls.enabled = !event.value
-    })
-
-    control.addEventListener('mouseDown', event => {
-        console.log('control down');
-
-        controlIsActive = true
-    })
-    control.addEventListener('mouseUp', event => {
-        console.log('control up');
-
-        controlIsActive = false
-    })
-
-    return control
-}
-
-function onTranformControlsChange(event) {
-    if (!currentBlock) {
-        return
-    }
-
-    const b = currentBlock
-    // const position = b.pick.position
-    b.block.setPos(b.pick.position, GRID_SIZE)
-    const position = b.block.location
-    b.pick.position.copy(position)
-        // .clone()
-
-    // position.x = Math.floor(position.x / GRID_SIZE) * GRID_SIZE
-    // position.y = Math.floor(position.y / GRID_SIZE) * GRID_SIZE
-    // position.z = Math.floor(position.z / GRID_SIZE) * GRID_SIZE
-
-    // currentCursor.setPositionFrom(position)
-    // hoverCursor.setPositionFrom(position)
-    // block.position.copy(position)
-    b.model.position.copy(position)
-
-    render()
-}
-
 export async function runApp(ctrl: AppController, elem: HTMLElement) {
     controller = ctrl
     // const opla = createOplaSystem()
@@ -157,175 +123,6 @@ export async function runApp(ctrl: AppController, elem: HTMLElement) {
     animate()
 
     return ctrl
-}
-
-function setupController(ctrl: AppController) {
-    const x = ctrl.subjects.tool.subscribe(newTool => {
-        tool = newTool
-
-        // renderer.domElement.addEventListener('click', onClick)
-    })
-}
-
-type BoxColors = [
-    THREE.Color,
-    THREE.Color,
-    THREE.Color,
-    THREE.Color,
-    THREE.Color,
-    THREE.Color,
-]
-function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: BoxColors) {
-    const buffer: number[] = []
-    colors.forEach(color => {
-        buffer.push(color.r, color.g, color.b)
-        buffer.push(color.r, color.g, color.b)
-        buffer.push(color.r, color.g, color.b)
-        buffer.push(color.r, color.g, color.b)
-    })
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
-}
-
-type BlockDef = {
-    block: OplaBlock,
-    // mesh: THREE.Mesh,
-    model: THREE.Object3D,
-    pick: THREE.Object3D,
-    pickColors: BoxColors,
-    position: THREE.Vector3,
-    scale: THREE.Vector3,
-}
-
-function createBlockMesh(block: OplaBlock) {
-    // const mesh = createBlockForPicker(block)
-    const mesh = createDummyBlock(block)
-    return mesh
-    // const group = new THREE.Object3D()
-    // group.add(mesh)
-    // mesh.scale.set(
-    //     block.size.x * 200,
-    //     block.size.y * 200,
-    //     block.size.z * 200,
-    // )
-    // return group
-    // return createDummyBlock(block)
-
-    const g = createOplaModel(block.size, controller)
-    g.position.copy(block.location)
-
-    return g
-}
-
-// function createDummyBlock(block: OplaBlock) {
-//     const box = new THREE.BoxBufferGeometry()
-//     const material = new THREE.MeshLambertMaterial({
-//         color: 0xffffff,
-//         // flatShading: true,
-//     });
-//     const mesh = new THREE.Mesh(box, material)
-//     mesh.position.copy(block.location)
-//     mesh.scale.copy(block.size)
-
-//     return mesh
-// }
-
-function createDummyBlock(block: OplaBlock) {
-    let position = block.location.clone()
-    let scale = block.size
-        .clone()
-    // .multiplyScalar(200)
-
-    const s = 1
-    const box = new THREE.BoxBufferGeometry(scale.x, scale.y, scale.z, s, s, s)
-
-    // const pickingMaterial = new THREE.MeshBasicMaterial({
-    const mat = new THREE.MeshLambertMaterial({
-        // vertexColors: true,
-        // flatShading: true,
-        polygonOffset: true,
-        polygonOffsetFactor: 1, // positive value pushes polygon further away
-        polygonOffsetUnits: 1
-    })
-    const mesh = new THREE.Mesh(box, mat)
-    mesh.position.copy(position)
-    // pick.scale.copy(scale)
-
-    // wireframe
-    var geo = new THREE.EdgesGeometry(mesh.geometry); // or WireframeGeometry
-    // var geo = new THREE.WireframeGeometry(pick.geometry); // or WireframeGeometry
-    var wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 })
-    var wireframe = new THREE.LineSegments(geo, wireframeMaterial)
-    mesh.add(wireframe)
-
-    return mesh
-}
-
-function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Object3D, BoxColors] {
-    const colors: BoxColors = [
-        hex(randomColor()),
-        hex(randomColor()),
-        hex(randomColor()),
-        hex(randomColor()),
-        hex(randomColor()),
-        hex(randomColor()),
-    ]
-    const box = new THREE.BoxBufferGeometry()
-    applyVertexColorsToBoxFaces(box, colors) // give the geometry's vertices a color corresponding to the "id"
-
-    const pickingMaterial = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-        flatShading: true,
-    })
-    const pick = new THREE.Mesh(box, pickingMaterial)
-    pick.position.copy(position)
-    pick.scale.copy(scale)
-
-    return [pick, colors]
-}
-
-function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
-    const position = block.location.clone()
-    const scale = block.size.clone()
-    const model = createBlockMesh(block)
-    const [pick, pickColors] = createPickBox(position, scale)
-
-    return {
-        block,
-        model,
-        pick,
-        pickColors,
-        position,
-        scale,
-    }
-}
-
-function cleanScene() {
-    const objects = scene.getObjectByName('opla-group')
-    scene.remove(objects)
-}
-
-function initOplaSystem(opla: OplaSystem) {
-    sys = opla
-    let boxes = opla.blocks.map(block => createBlockDef(opla, block))
-
-    let objects = new THREE.Group()
-    objects.name = 'opla-group'
-
-    for (let item of boxes) {
-        objects.add(item.model)
-    }
-    scene.add(objects)
-
-    createPicker(boxes)
-}
-
-function createLabel(label: string) {
-    const elem = document.createElement('div')
-    elem.className = 'label'
-    elem.textContent = label
-    elem.style.marginTop = '-1em'
-
-    return new CSS2DObject(elem)
 }
 
 function init() {
@@ -441,6 +238,206 @@ function init() {
 
     renderer.domElement.addEventListener('mousemove', onMouseMove)
     renderer.domElement.addEventListener('click', onClick)
+}
+
+function initOplaSystem(opla: OplaSystem) {
+    sys = opla
+    let boxes = opla.blocks.map(block => createBlockDef(opla, block))
+
+    let objects = new THREE.Group()
+    objects.name = 'opla-group'
+
+    for (let item of boxes) {
+        objects.add(item.model)
+    }
+    scene.add(objects)
+
+    createPicker(boxes)
+}
+
+export function initTC(camera: THREE.Camera, target: HTMLElement) {
+    const control = new TransformControls(camera, target)
+    control.setMode('translate')
+    // control.setTranslationSnap(GRID_SIZE)
+    // control.setSpace('world')
+    control.setSpace('local')
+    // control.addEventListener('change', onTranformControlsChange)
+    control.addEventListener('objectChange', onTranformControlsChange)
+    // control.addEventListener('objectChange', (event) => {
+    //     console.log('tc objectchange', event);
+    // })
+    control.addEventListener('dragging-changed', event => {
+        controls.enabled = !event.value
+    })
+
+    control.addEventListener('mouseDown', event => {
+        console.log('control down');
+
+        controlIsActive = true
+    })
+    control.addEventListener('mouseUp', event => {
+        console.log('control up');
+
+        controlIsActive = false
+    })
+
+    return control
+}
+
+function onTranformControlsChange(event) {
+    if (!currentBlock) {
+        return
+    }
+
+    const b = currentBlock
+    // const position = b.pick.position
+    b.block.setPos(b.pick.position, GRID_SIZE)
+    const position = b.block.location
+    b.pick.position.copy(position)
+        // .clone()
+
+    // currentCursor.setPositionFrom(position)
+    // hoverCursor.setPositionFrom(position)
+    // block.position.copy(position)
+    b.model.position.copy(position)
+
+    render()
+}
+
+function setupController(ctrl: AppController) {
+    const x = ctrl.subjects.tool.subscribe(newTool => {
+        tool = newTool
+
+        // renderer.domElement.addEventListener('click', onClick)
+    })
+}
+
+function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: BoxColors) {
+    const buffer: number[] = []
+    colors.forEach(color => {
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+        buffer.push(color.r, color.g, color.b)
+    })
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
+}
+
+function createBlockMesh(block: OplaBlock) {
+    // const mesh = createBlockForPicker(block)
+    const mesh = createDummyBlock(block)
+    return mesh
+    // const group = new THREE.Object3D()
+    // group.add(mesh)
+    // mesh.scale.set(
+    //     block.size.x * 200,
+    //     block.size.y * 200,
+    //     block.size.z * 200,
+    // )
+    // return group
+    // return createDummyBlock(block)
+
+    const g = createOplaModel(block.size, controller)
+    g.position.copy(block.location)
+
+    return g
+}
+
+// function createDummyBlock(block: OplaBlock) {
+//     const box = new THREE.BoxBufferGeometry()
+//     const material = new THREE.MeshLambertMaterial({
+//         color: 0xffffff,
+//         // flatShading: true,
+//     });
+//     const mesh = new THREE.Mesh(box, material)
+//     mesh.position.copy(block.location)
+//     mesh.scale.copy(block.size)
+
+//     return mesh
+// }
+
+function createDummyBlock(block: OplaBlock) {
+    let position = block.location.clone()
+    let scale = block.size
+        .clone()
+    // .multiplyScalar(200)
+
+    const s = 1
+    const box = new THREE.BoxBufferGeometry(scale.x, scale.y, scale.z, s, s, s)
+
+    // const pickingMaterial = new THREE.MeshBasicMaterial({
+    const mat = new THREE.MeshLambertMaterial({
+        // vertexColors: true,
+        // flatShading: true,
+        polygonOffset: true,
+        polygonOffsetFactor: 1, // positive value pushes polygon further away
+        polygonOffsetUnits: 1
+    })
+    const mesh = new THREE.Mesh(box, mat)
+    mesh.position.copy(position)
+    // pick.scale.copy(scale)
+
+    // wireframe
+    var geo = new THREE.EdgesGeometry(mesh.geometry); // or WireframeGeometry
+    // var geo = new THREE.WireframeGeometry(pick.geometry); // or WireframeGeometry
+    var wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 })
+    var wireframe = new THREE.LineSegments(geo, wireframeMaterial)
+    mesh.add(wireframe)
+
+    return mesh
+}
+
+function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Object3D, BoxColors] {
+    const colors: BoxColors = [
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+        hex(randomColor()),
+    ]
+    const box = new THREE.BoxBufferGeometry()
+    applyVertexColorsToBoxFaces(box, colors) // give the geometry's vertices a color corresponding to the "id"
+
+    const pickingMaterial = new THREE.MeshBasicMaterial({
+        vertexColors: true,
+        flatShading: true,
+    })
+    const pick = new THREE.Mesh(box, pickingMaterial)
+    pick.position.copy(position)
+    pick.scale.copy(scale)
+
+    return [pick, colors]
+}
+
+function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
+    const position = block.location.clone()
+    const scale = block.size.clone()
+    const model = createBlockMesh(block)
+    const [pick, pickColors] = createPickBox(position, scale)
+
+    return {
+        block,
+        model,
+        pick,
+        pickColors,
+        position,
+        scale,
+    }
+}
+
+function cleanScene() {
+    const objects = scene.getObjectByName('opla-group')
+    scene.remove(objects)
+}
+
+function createLabel(label: string) {
+    const elem = document.createElement('div')
+    elem.className = 'label'
+    elem.textContent = label
+    elem.style.marginTop = '-1em'
+
+    return new CSS2DObject(elem)
 }
 
 async function loadOplaAssets(files: string[]) {
