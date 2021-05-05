@@ -84,18 +84,39 @@ export class OplaBlock {
     public id: number
     public colorId: number
     public blockType: string
-    public cellLocation: THREE.Vector3
 
+    // Block location
     public location: THREE.Vector3
+
+    // XYZ dimension module of the block
     public size: THREE.Vector3
 
     constructor(id: number, size: BlockSize) {
         this.id = id
         this.colorId = randomColor()
-        this.cellLocation = new THREE.Vector3(0, 0, 0)
         this.location = new THREE.Vector3(0, 0, 0)
         this.size = new THREE.Vector3(...size)
         // this.size.fromArray(size)
+    }
+
+    setPos(pos: THREE.Vector3, gridSize: number) {
+        const sx = this.size.x / gridSize
+        const sy = this.size.y / gridSize
+        const sz = this.size.z / gridSize
+
+        let x = Math.floor(pos.x / gridSize) * gridSize
+        let y = Math.floor(pos.y / gridSize) * gridSize
+        let z = Math.floor(pos.z / gridSize) * gridSize
+
+        const H = gridSize / 2
+        x += sx % 2 === 1 ? 0 : H
+        y += sy % 2 === 1 ? 0 : H
+        z += sz % 2 === 1 ? 0 : H
+
+        // this.location.copy(pos)
+        this.location.x = x
+        this.location.y = y
+        this.location.z = z
     }
 
     // createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
@@ -123,17 +144,17 @@ export class OplaBlock {
     //     return [position, scale]
     // }
 
-    createScaleMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
-        const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
+    // createScaleMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
+    //     const [position, scale] = grid.getCellTransform(this.cellLocation, scaleMultiplier, positionOffset)
 
-        const rotation = new THREE.Euler()
-        const quaternion = new THREE.Quaternion()
-        quaternion.setFromEuler(rotation)
+    //     const rotation = new THREE.Euler()
+    //     const quaternion = new THREE.Quaternion()
+    //     quaternion.setFromEuler(rotation)
 
-        const matrix = new THREE.Matrix4()
-        matrix.compose(new THREE.Vector3(), quaternion, scale)
-        return matrix
-    }
+    //     const matrix = new THREE.Matrix4()
+    //     matrix.compose(new THREE.Vector3(), quaternion, scale)
+    //     return matrix
+    // }
 
     createMatrix(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
         // const [position, scale] = this.createTransformComponents(grid, scaleMultiplier, positionOffset)
@@ -199,20 +220,39 @@ export function createOplaSystem() {
     const sizeY = 10
     const sizeZ = 10
 
-    // const blocks = []
-    // for (let i = 0; i < 10; i++) {
-    //     const block = new OplaBlock(idGenerator.create(), randomSize())
-    //     block.blockType = 'closed'
-    //     block.cellLocation.set(0, 0, 0)
-    //     block.location.set(0, 0, 0)
+    const GRID = 200
+    const H = GRID / 2
 
-    //     blocks.push(block)
-    // }
-    const block = new OplaBlock(idGenerator.create(), [200, 400, 200])
-    block.blockType = 'closed'
-    block.cellLocation.set(0, 0, 0)
-    block.location.set(0, 0, 0)
-    const blocks = [block]
+    const blocks = []
+    for (let i = 0; i < 4; i++) {
+        let sizeX = 1 + i
+        let sizeY = 1
+        let sizeZ = 1
+
+        let x = sizeX % 2 == 1 ? 0 : H
+        let y = sizeY % 2 == 1 ? 0 : H
+        let z = sizeZ % 2 == 1 ? 0 : H
+
+        z += GRID * i
+        const pos = new THREE.Vector3(0, 0, z)
+
+        // sizeX = choise([1, 2])
+        // sizeY = choise([400])
+        // sizeZ = choise([400, 800])
+        const sizes = [sizeX, sizeY, sizeZ].map(i => i * GRID) as BlockSize
+        // const sizes = [sizeX, sizeY, sizeZ] as BlockSize
+        const block = new OplaBlock(idGenerator.create(), sizes)
+        block.blockType = 'closed'
+        // block.setPos(new THREE.Vector3(x, y, z), GRID)
+        block.setPos(pos, GRID)
+
+        blocks.push(block)
+    }
+    // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
+    // block.blockType = 'closed'
+    // block.cellLocation.set(0, 0, 0)
+    // block.location.set(0, 200, 0)
+    // const blocks = [block]
 
     const grid = new OplaGrid()
     grid.axisX = createGrid3(sizeX, 1, 1, x => 1)

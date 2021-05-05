@@ -169,7 +169,12 @@ const Page: NextPage = () => {
 
     return (
         <div>
-            <div ref={ref} />
+            <div
+                style={{
+                    backgroundColor: '#dcdce1',
+                }}
+                ref={ref}
+            />
 
             <div
                 style={{

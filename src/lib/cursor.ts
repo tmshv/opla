@@ -7,13 +7,11 @@ export type OplaCursorOptions = {
 }
 
 export class OplaCursor {
-    private cell: THREE.Vector3
     private mesh: THREE.Mesh
     private scaleOffset: THREE.Vector3
 
     constructor({ color, opacity, ...options }: OplaCursorOptions) {
         this.scaleOffset = options.scaleOffset
-        this.cell = new THREE.Vector3()
         this.mesh = new THREE.Mesh(
             new THREE.BoxBufferGeometry(),
             new THREE.MeshBasicMaterial({
@@ -36,8 +34,7 @@ export class OplaCursor {
         this.mesh.visible = false
     }
 
-    public setup(cell: THREE.Vector3, position: THREE.Vector3, scale: THREE.Vector3) {
-        this.cell.copy(cell)
+    public setup(position: THREE.Vector3, scale: THREE.Vector3) {
         this.mesh.position.copy(position)
         this.mesh.scale.copy(scale).add(this.scaleOffset)
     }
@@ -48,9 +45,5 @@ export class OplaCursor {
 
     public getMesh() {
         return this.mesh
-    }
-
-    public getCell() {
-        return this.cell
     }
 }
