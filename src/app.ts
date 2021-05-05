@@ -140,7 +140,7 @@ function init() {
     var gridHelper = new THREE.GridHelper(2000, 10)
     const gg = new THREE.Group()
     gg.add(gridHelper)
-    // gg.position.set(-GRID_SIZE/2, -GRID_SIZE/2, -GRID_SIZE/2)
+    gg.position.set(-GRID_SIZE/2, -GRID_SIZE/2, -GRID_SIZE/2)
     scene.add(gg)
 
     scene.add(new THREE.AmbientLight(0x555555));
