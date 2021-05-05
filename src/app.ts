@@ -32,8 +32,6 @@ type BlockDef = {
     model: THREE.Object3D,
     pick: THREE.Object3D,
     pickColors: BoxColors,
-    position: THREE.Vector3,
-    scale: THREE.Vector3,
 }
 
 var container, stats;
@@ -360,7 +358,7 @@ function createDummyBlock(block: OplaBlock) {
     let position = block.location.clone()
     let scale = block.size
         .clone()
-    // .multiplyScalar(200)
+        .multiplyScalar(GRID_SIZE)
 
     const s = 1
     const box = new THREE.BoxBufferGeometry(scale.x, scale.y, scale.z, s, s, s)
@@ -412,7 +410,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
 
 function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
     const position = block.location.clone()
-    const scale = block.size.clone()
+    const scale = block.size.clone().multiplyScalar(GRID_SIZE)
     const model = createBlockMesh(block)
     const [pick, pickColors] = createPickBox(position, scale)
 
@@ -421,8 +419,6 @@ function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
         model,
         pick,
         pickColors,
-        position,
-        scale,
     }
 }
 
@@ -612,7 +608,11 @@ function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
 function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
     const [dir, def] = selected
 
-    hoverCursor.setup(def.model.position, def.scale)
+    const scale = def.block.size
+        .clone()
+        .multiplyScalar(GRID_SIZE)
+
+    hoverCursor.setup(def.model.position, scale)
     hoverCursor.show()
 }
 

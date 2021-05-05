@@ -100,9 +100,12 @@ export class OplaBlock {
     }
 
     setPos(pos: THREE.Vector3, gridSize: number) {
-        const sx = this.size.x / gridSize
-        const sy = this.size.y / gridSize
-        const sz = this.size.z / gridSize
+        // const sx = this.size.x / gridSize
+        // const sy = this.size.y / gridSize
+        // const sz = this.size.z / gridSize
+        const sx = this.size.x
+        const sy = this.size.y
+        const sz = this.size.z
 
         let x = Math.floor(pos.x / gridSize) * gridSize
         let y = Math.floor(pos.y / gridSize) * gridSize
@@ -221,7 +224,6 @@ export function createOplaSystem() {
     const sizeZ = 10
 
     const GRID = 200
-    const H = GRID / 2
 
     const blocks = []
     for (let i = 0; i < 4; i++) {
@@ -229,23 +231,19 @@ export function createOplaSystem() {
         let sizeY = 1
         let sizeZ = 1
 
-        let x = sizeX % 2 == 1 ? 0 : H
-        let y = sizeY % 2 == 1 ? 0 : H
-        let z = sizeZ % 2 == 1 ? 0 : H
-
-        z += GRID * i
-        const pos = new THREE.Vector3(0, 0, z)
+        const x = 0
+        const y = 0
+        const z = GRID * i
+        const pos = new THREE.Vector3(x, y, z)
 
         // sizeX = choise([1, 2])
         // sizeY = choise([400])
         // sizeZ = choise([400, 800])
-        const sizes = [sizeX, sizeY, sizeZ].map(i => i * GRID) as BlockSize
-        // const sizes = [sizeX, sizeY, sizeZ] as BlockSize
+        // const sizes = [sizeX, sizeY, sizeZ].map(i => i * GRID) as BlockSize
+        const sizes = [sizeX, sizeY, sizeZ] as BlockSize
         const block = new OplaBlock(idGenerator.create(), sizes)
         block.blockType = 'closed'
-        // block.setPos(new THREE.Vector3(x, y, z), GRID)
         block.setPos(pos, GRID)
-
         blocks.push(block)
     }
     // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
