@@ -99,27 +99,21 @@ export class OplaBlock {
         // this.size.fromArray(size)
     }
 
-    setPos(pos: THREE.Vector3, gridSize: number) {
-        // const sx = this.size.x / gridSize
-        // const sy = this.size.y / gridSize
-        // const sz = this.size.z / gridSize
+    getCellPosition(pos: THREE.Vector3, gridSize: number) {
         const sx = this.size.x
         const sy = this.size.y
         const sz = this.size.z
 
-        let x = Math.floor(pos.x / gridSize) * gridSize
-        let y = Math.floor(pos.y / gridSize) * gridSize
-        let z = Math.floor(pos.z / gridSize) * gridSize
+        let x = Math.round(pos.x / gridSize) * gridSize
+        let y = Math.round(pos.y / gridSize) * gridSize
+        let z = Math.round(pos.z / gridSize) * gridSize
 
         const H = gridSize / 2
         x += sx % 2 === 1 ? 0 : H
         y += sy % 2 === 1 ? 0 : H
         z += sz % 2 === 1 ? 0 : H
 
-        // this.location.copy(pos)
-        this.location.x = x
-        this.location.y = y
-        this.location.z = z
+        return new THREE.Vector3(x, y, z)
     }
 
     // createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
@@ -226,8 +220,9 @@ export function createOplaSystem() {
     const GRID = 200
 
     const blocks = []
-    for (let i = 0; i < 4; i++) {
-        let sizeX = 1 + i
+    for (let i = 0; i < 10; i++) {
+        // let sizeX = 1 + i
+        let sizeX = choise([1, 2, 3, 4])
         let sizeY = 1
         let sizeZ = 1
 
@@ -236,14 +231,11 @@ export function createOplaSystem() {
         const z = GRID * i
         const pos = new THREE.Vector3(x, y, z)
 
-        // sizeX = choise([1, 2])
-        // sizeY = choise([400])
-        // sizeZ = choise([400, 800])
-        // const sizes = [sizeX, sizeY, sizeZ].map(i => i * GRID) as BlockSize
         const sizes = [sizeX, sizeY, sizeZ] as BlockSize
         const block = new OplaBlock(idGenerator.create(), sizes)
         block.blockType = 'closed'
-        block.setPos(pos, GRID)
+        const cell = block.getCellPosition(pos, GRID)
+        block.location.copy(cell)
         blocks.push(block)
     }
     // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])

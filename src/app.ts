@@ -59,6 +59,7 @@ let tool = 'select'
 let picker: ScenePicker<[string, BlockDef]>
 
 let currentBlock: BlockDef
+let defs: BlockDef[]
 
 var mouse = new THREE.Vector2();
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
@@ -138,7 +139,7 @@ function init() {
     var gridHelper = new THREE.GridHelper(2000, 10)
     const gg = new THREE.Group()
     gg.add(gridHelper)
-    gg.position.set(-GRID_SIZE/2, -GRID_SIZE/2, -GRID_SIZE/2)
+    gg.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
     scene.add(gg)
 
     scene.add(new THREE.AmbientLight(0x555555));
@@ -241,6 +242,7 @@ function init() {
 function initOplaSystem(opla: OplaSystem) {
     sys = opla
     let boxes = opla.blocks.map(block => createBlockDef(opla, block))
+    defs = boxes
 
     let objects = new THREE.Group()
     objects.name = 'opla-group'
@@ -288,18 +290,49 @@ function onTranformControlsChange(event) {
     }
 
     const b = currentBlock
+    const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
+    b.pick.position.copy(cell)
+
+    if (isBlockIntersects(currentBlock, defs)) {
+        currentBlock.pick.position.copy(currentBlock.block.location)
+        return
+    }
+
+    b.block.location.copy(cell)
+
     // const position = b.pick.position
-    b.block.setPos(b.pick.position, GRID_SIZE)
-    const position = b.block.location
-    b.pick.position.copy(position)
-        // .clone()
+    // b.block.setPos(b.pick.position, GRID_SIZE)
+    // const position = b.block.location
+    // b.pick.position.copy(position)
+    // .clone()
 
     // currentCursor.setPositionFrom(position)
     // hoverCursor.setPositionFrom(position)
     // block.position.copy(position)
-    b.model.position.copy(position)
+    b.model.position.copy(cell)
 
     render()
+}
+
+function isBlockIntersects(block: BlockDef, blocks: BlockDef[]): boolean {
+    block.pick.updateMatrixWorld()
+    const bbox = new THREE.Box3()
+    bbox.setFromObject(block.pick)
+
+    for (let other of blocks) {
+        if (block === other) {
+            continue
+        }
+
+        const o = new THREE.Box3()
+        o.setFromObject(other.pick)
+
+        if (bbox.intersectsBox(o)) {
+            return true
+        }
+    }
+
+    return false
 }
 
 function setupController(ctrl: AppController) {
@@ -410,8 +443,12 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
 
 function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
     const position = block.location.clone()
-    const scale = block.size.clone().multiplyScalar(GRID_SIZE)
     const model = createBlockMesh(block)
+
+    const scale = block.size
+        .clone()
+        .multiplyScalar(GRID_SIZE)
+        .multiplyScalar(0.99)
     const [pick, pickColors] = createPickBox(position, scale)
 
     return {
