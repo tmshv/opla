@@ -110,12 +110,19 @@ export class OplaBlock {
     }
 
     getCellPosition(pos: THREE.Vector3, gridSize: number) {
-        let x = Math.round(pos.x / gridSize) * gridSize
-        let y = Math.round(pos.y / gridSize) * gridSize
-        let z = Math.round(pos.z / gridSize) * gridSize
+        // let x = Math.round(pos.x / gridSize) * gridSize
+        // let y = Math.round(pos.y / gridSize) * gridSize
+        // let z = Math.round(pos.z / gridSize) * gridSize
+        // x = pos.x
+        // y = pos.y
+        // z = pos.z
+
+        const cell = pos.clone()
+        cell.x = Math.round(cell.x / gridSize) * gridSize
+        cell.y = Math.round(cell.y / gridSize) * gridSize
+        cell.z = Math.round(cell.z / gridSize) * gridSize
 
         const shift = this.getCellShift(gridSize)
-        const cell = new THREE.Vector3(x, y, z)
         cell.add(shift)
 
         return cell
@@ -205,18 +212,6 @@ function choise<T>(values: T[]): T {
     return values[i]
 }
 
-function randomSize(): BlockSize {
-    const values = [200, 400]
-
-    return [
-        400,
-        400,
-        choise(values),
-        // choise(values),
-        // choise(values),
-    ]
-}
-
 export function createOplaSystem() {
     const sizeX = 10
     const sizeY = 10
@@ -225,11 +220,12 @@ export function createOplaSystem() {
     const GRID = 200
 
     const blocks = []
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         // let sizeX = 1 + i
         let sizeX = choise([1, 2, 3, 4])
         let sizeY = 1
-        let sizeZ = 1
+        // let sizeZ = 1
+        let sizeZ = choise([1, 2, 3, 4])
 
         const x = 0
         const y = 0
