@@ -99,21 +99,26 @@ export class OplaBlock {
         // this.size.fromArray(size)
     }
 
-    getCellPosition(pos: THREE.Vector3, gridSize: number) {
-        const sx = this.size.x
-        const sy = this.size.y
-        const sz = this.size.z
+    getCellShift(gridSize: number) {
+        const H = gridSize / 2
 
+        return new THREE.Vector3(
+            this.size.x % 2 === 1 ? 0 : H,
+            this.size.y % 2 === 1 ? 0 : H,
+            this.size.z % 2 === 1 ? 0 : H,
+        )
+    }
+
+    getCellPosition(pos: THREE.Vector3, gridSize: number) {
         let x = Math.round(pos.x / gridSize) * gridSize
         let y = Math.round(pos.y / gridSize) * gridSize
         let z = Math.round(pos.z / gridSize) * gridSize
 
-        const H = gridSize / 2
-        x += sx % 2 === 1 ? 0 : H
-        y += sy % 2 === 1 ? 0 : H
-        z += sz % 2 === 1 ? 0 : H
+        const shift = this.getCellShift(gridSize)
+        const cell = new THREE.Vector3(x, y, z)
+        cell.add(shift)
 
-        return new THREE.Vector3(x, y, z)
+        return cell
     }
 
     // createTransformComponents(grid: OplaGrid, scaleMultiplier: number, positionOffset: THREE.Vector3) {
