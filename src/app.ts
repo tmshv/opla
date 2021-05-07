@@ -432,7 +432,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
 
     const pickingMaterial = new THREE.MeshBasicMaterial({
         vertexColors: true,
-        flatShading: true,
+        // flatShading: true,
     })
     const pick = new THREE.Mesh(box, pickingMaterial)
     pick.position.copy(position)
