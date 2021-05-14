@@ -49,6 +49,7 @@ let controlIsActive = false
 let hoverCursor: OplaCursor
 let currentCursor: OplaCursor
 let controller: AppController
+let lastSelected: BlockDef
 
 let selectedBoxAxisX: CSS2DObject
 let selectedBoxAxisY: CSS2DObject
@@ -62,6 +63,7 @@ let currentBlock: BlockDef
 let defs: BlockDef[]
 
 var mouse = new THREE.Vector2();
+let pointerMoved = false
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
 const directionName = ['1-0', '1-1', 'top', 'bottom', '2-0', '2-1']
 const directionNorm = new Map([
@@ -235,8 +237,9 @@ function init() {
     // stats = new Stats();
     // container.appendChild(stats.dom);
 
-    renderer.domElement.addEventListener('mousemove', onMouseMove)
-    renderer.domElement.addEventListener('click', onClick)
+    renderer.domElement.addEventListener('pointermove', onPointerMove)
+    renderer.domElement.addEventListener('pointerdown', onPointerDown)
+    renderer.domElement.addEventListener('pointerup', onPointerUp)
 }
 
 function initOplaSystem(opla: OplaSystem) {
@@ -505,13 +508,28 @@ function createPicker(boxes: BlockDef[]) {
     picker.setScene(scene)
 }
 
-function onMouseMove(e: MouseEvent) {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+function onPointerMove(e: MouseEvent) {
+    mouse.x = e.clientX
+    mouse.y = e.clientY
+    pointerMoved = true
+}
+
+function onPointerDown(e: MouseEvent) {
+    pointerMoved = false
+}
+
+function onPointerUp(e: MouseEvent) {
+    if (!pointerMoved) {
+        onClick(e)
+    }
 }
 
 function onClick(e: MouseEvent) {
     console.log('global onclick')
+
+    if (currentBlock) {
+        // currentBlock = selected[1]
+    }
 
     if (controlIsActive) {
         return
@@ -553,11 +571,10 @@ function addBlockAtCell(x: number, y: number) {
 
 function onSelectBlockAtCoord(x: number, y: number) {
     if (!hoverCursor.isVisible()) {
-
-        // control.attach(selected[1].pick)
         control.detach()
         control.enabled = false
         control.visible = false
+        currentBlock = null
 
         return
     }
@@ -571,25 +588,25 @@ function onSelectBlockAtCoord(x: number, y: number) {
         return
     }
 
-    currentBlock = selected[1]
-
     // allSelected[i].material.emissive.set(0xffffff);
     // const model = currentBlock.model as any
     // model.material.emissive.set(0xffffff)
-    const model = currentBlock.model as THREE.Group
+    // const model = currentBlock.model as THREE.Group
     // model.children.forEach((m: THREE.Mesh) => {
     //     // console.log(m.material)
     //     const material = m.material as THREE.Material
     //     material.emissive.set(0x666666)
     // })
 
-    const [dir, def] = selected
+    // const [dir, def] = selected
+
     // const cell = def.block.cellLocation
 
     // currentCursor.setup(cell, def.position, def.scale)
     // currentCursor.show()
 
-    control.attach(selected[1].pick)
+    currentBlock = selected[1]
+    control.attach(currentBlock.pick)
     control.enabled = true
     control.visible = true
 
