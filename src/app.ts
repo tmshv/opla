@@ -17,6 +17,9 @@ import { OplaCursor } from './lib/cursor'
 import { createControls } from './lib/three'
 import { createBoxVertices, createOplaModel } from './lib/geom'
 
+const BLOCK_COLOR = 0xffffff
+const BLOCK_COLOR_SELECTED = 0xff00ff
+
 type BoxColors = [
     THREE.Color,
     THREE.Color,
@@ -32,6 +35,8 @@ type BlockDef = {
     model: THREE.Object3D,
     pick: THREE.Object3D,
     pickColors: BoxColors,
+    highOn(): void,
+    highOff(): void,
 }
 
 var container, stats;
@@ -46,8 +51,8 @@ let mainLight: THREE.DirectionalLight
 
 let controlIsActive = false
 
-let hoverCursor: OplaCursor
-let currentCursor: OplaCursor
+// let hoverCursor: OplaCursor
+// let currentCursor: OplaCursor
 let controller: AppController
 let lastHover: BlockDef
 
@@ -155,19 +160,19 @@ function init() {
     scene.add(light)
     mainLight = light
 
-    hoverCursor = new OplaCursor({
-        color: 0xdd6600,
-        opacity: 0.33,
-        // opacity: 0.9,
-        scaleOffset: selectedItemScaleOffset,
-    })
-    hoverCursor.hide()
-    currentCursor = new OplaCursor({
-        color: 0xdd00dd,
-        opacity: 0.5,
-        scaleOffset: selectedItemScaleOffset,
-    })
-    currentCursor.hide()
+    // hoverCursor = new OplaCursor({
+    //     color: 0xdd6600,
+    //     opacity: 0.33,
+    //     // opacity: 0.9,
+    //     scaleOffset: selectedItemScaleOffset,
+    // })
+    // hoverCursor.hide()
+    // currentCursor = new OplaCursor({
+    //     color: 0xdd00dd,
+    //     opacity: 0.5,
+    //     scaleOffset: selectedItemScaleOffset,
+    // })
+    // currentCursor.hide()
 
     // let geometryBox = box(scale.x, scale.y, scale.z)
     // const dashScale = 0.1
@@ -191,10 +196,10 @@ function init() {
     // highlightBox = lineSegments
 
 
-    scene.add(hoverCursor.getMesh())
+    // scene.add(hoverCursor.getMesh())
     // scene.add(currentCursor.getMesh())
 
-    const cc = hoverCursor.getMesh()
+    // const cc = hoverCursor.getMesh()
 
     selectedBoxAxisX = createLabel('x')
     // cc.add(selectedBoxAxisX)
@@ -376,17 +381,14 @@ function createDummyBlock(block: OplaBlock) {
     const s = 1
     const box = new THREE.BoxBufferGeometry(scale.x, scale.y, scale.z, s, s, s)
 
-    // const pickingMaterial = new THREE.MeshBasicMaterial({
-    const mat = new THREE.MeshLambertMaterial({
-        // vertexColors: true,
-        // flatShading: true,
+    const material = new THREE.MeshLambertMaterial({
+        color: BLOCK_COLOR,
         polygonOffset: true,
         polygonOffsetFactor: 1, // positive value pushes polygon further away
         polygonOffsetUnits: 1
     })
-    const mesh = new THREE.Mesh(box, mat)
+    const mesh = new THREE.Mesh(box, material)
     mesh.position.copy(position)
-    // pick.scale.copy(scale)
 
     // wireframe
     var geo = new THREE.EdgesGeometry(mesh.geometry); // or WireframeGeometry
@@ -436,6 +438,16 @@ function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
         model,
         pick,
         pickColors,
+        highOn: function () {
+            const mesh = this.model as THREE.Mesh
+            const mat = mesh.material as THREE.MeshLambertMaterial
+            mat.emissive.set(0x333333)
+        },
+        highOff: function () {
+            const mesh = this.model as THREE.Mesh
+            const mat = mesh.material as THREE.MeshLambertMaterial
+            mat.emissive.set(0)
+        },
     }
 }
 
@@ -516,7 +528,7 @@ function onClick(e: MouseEvent) {
     const y = e.clientY
 
     if (tool == 'select') {
-        onSelectBlockAtCoord(x, y)
+        handleClickSelect(x, y)
     }
     if (tool == 'add') {
         addBlockAtCell(x, y)
@@ -546,24 +558,35 @@ function addBlockAtCell(x: number, y: number) {
     initOplaSystem(sys)
 }
 
-function onSelectBlockAtCoord(x: number, y: number) {
-    if (!hoverCursor.isVisible()) {
-        control.detach()
-        control.enabled = false
-        control.visible = false
-        currentBlock = null
-
-        return
-    }
-
+function handleClickSelect(x: number, y: number) {
     const selected = picker.pick(x, y)
     if (!selected) {
-        // currentBlock = null
-        currentCursor.hide()
-        // control.enabled = false
-        // control.visible = false
+        if (currentBlock) {
+            currentBlock.highOff()
+        }
+        currentBlock = null
+        // currentCursor.hide()
+        control.enabled = false
+        control.visible = false
         return
     }
+
+    if (selected[1] === currentBlock) {
+        return
+    }
+
+    if (currentBlock) {
+        currentBlock.highOff()
+    }
+
+    // if (!hoverCursor.isVisible()) {
+    //     control.detach()
+    //     control.enabled = false
+    //     control.visible = false
+    //     currentBlock = null
+
+    //     return
+    // }
 
     // allSelected[i].material.emissive.set(0xffffff);
     // const model = currentBlock.model as any
@@ -583,6 +606,7 @@ function onSelectBlockAtCoord(x: number, y: number) {
     // currentCursor.show()
 
     currentBlock = selected[1]
+    currentBlock.highOn()
     control.attach(currentBlock.pick)
     control.enabled = true
     control.visible = true
@@ -643,8 +667,8 @@ function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
         .clone()
         .multiplyScalar(GRID_SIZE)
 
-    hoverCursor.setup(def.model.position, scale)
-    hoverCursor.show()
+    // hoverCursor.setup(def.model.position, scale)
+    // hoverCursor.show()
 }
 
 function checkHover() {
@@ -654,7 +678,7 @@ function checkHover() {
             handleSelectExit(lastHover)
         }
         lastHover = null
-        hoverCursor.hide()
+        // hoverCursor.hide()
         return
     }
 
@@ -678,14 +702,18 @@ function checkHover() {
 }
 
 function handleSelectEnter(def: BlockDef) {
+    return
     const mesh = def.model as THREE.Mesh
     const mat = mesh.material as THREE.MeshLambertMaterial
+    mat.emissive.set(0x333333)
     // mat.color.setHex(BLOCK_COLOR_SELECTED)
 }
 
 function handleSelectExit(def: BlockDef) {
+    return
     const mesh = def.model as THREE.Mesh
     const mat = mesh.material as THREE.MeshLambertMaterial
+    mat.emissive.set(0)
     // mat.color.setHex(BLOCK_COLOR)
 }
 
