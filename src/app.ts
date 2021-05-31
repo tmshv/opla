@@ -49,7 +49,7 @@ let controlIsActive = false
 let hoverCursor: OplaCursor
 let currentCursor: OplaCursor
 let controller: AppController
-let lastSelected: BlockDef
+let lastHover: BlockDef
 
 let selectedBoxAxisX: CSS2DObject
 let selectedBoxAxisY: CSS2DObject
@@ -670,6 +670,48 @@ function handleHightlightBoxOnSelect(selected: [string, BlockDef]) {
     hoverCursor.show()
 }
 
+function checkHover() {
+    const hover = picker.pick(mouse.x, mouse.y)
+    if (!hover) {
+        if (lastHover) {
+            handleSelectExit(lastHover)
+        }
+        lastHover = null
+        hoverCursor.hide()
+        return
+    }
+
+    if (tool === 'add') {
+        handleHightlightBoxOnAdd(hover)
+    }
+    if (tool === 'remove') {
+        handleHightlightBoxOnSelect(hover)
+    }
+    if (tool === 'select') {
+        // if (!currentBlock) {
+        if (lastHover) {
+            handleSelectExit(lastHover)
+        }
+        handleSelectEnter(hover[1])
+        handleHightlightBoxOnSelect(hover)
+        // }
+    }
+
+    lastHover = hover[1]
+}
+
+function handleSelectEnter(def: BlockDef) {
+    const mesh = def.model as THREE.Mesh
+    const mat = mesh.material as THREE.MeshLambertMaterial
+    // mat.color.setHex(BLOCK_COLOR_SELECTED)
+}
+
+function handleSelectExit(def: BlockDef) {
+    const mesh = def.model as THREE.Mesh
+    const mat = mesh.material as THREE.MeshLambertMaterial
+    // mat.color.setHex(BLOCK_COLOR)
+}
+
 function handleHightlightBoxOnAdd(selected: [string, BlockDef]) {
     // const [dir, def] = selected
     // const [pos, scale] = nextBlockPosition(sys.grid, dir, def)
@@ -685,20 +727,7 @@ function render() {
     mainLight.position.copy(camera.position)
     // mainLight.target.position.copy(camera.target)
 
-    const selected = picker.pick(mouse.x, mouse.y)
-    if (!selected) {
-        hoverCursor.hide()
-    } else {
-        if (tool === 'add') {
-            handleHightlightBoxOnAdd(selected)
-        }
-        if (tool === 'remove') {
-            handleHightlightBoxOnSelect(selected)
-        }
-        if (tool === 'select') {
-            handleHightlightBoxOnSelect(selected)
-        }
-    }
+    checkHover()
 
     renderer.setRenderTarget(null)
     renderer.render(scene, camera)
