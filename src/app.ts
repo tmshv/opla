@@ -358,37 +358,14 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
 }
 
 function createBlockMesh(block: OplaBlock) {
-    // const mesh = createBlockForPicker(block)
     const mesh = createDummyBlock(block)
     return mesh
-    // const group = new THREE.Object3D()
-    // group.add(mesh)
-    // mesh.scale.set(
-    //     block.size.x * 200,
-    //     block.size.y * 200,
-    //     block.size.z * 200,
-    // )
-    // return group
-    // return createDummyBlock(block)
 
     const g = createOplaModel(block.size, controller)
     g.position.copy(block.location)
 
     return g
 }
-
-// function createDummyBlock(block: OplaBlock) {
-//     const box = new THREE.BoxBufferGeometry()
-//     const material = new THREE.MeshLambertMaterial({
-//         color: 0xffffff,
-//         // flatShading: true,
-//     });
-//     const mesh = new THREE.Mesh(box, material)
-//     mesh.position.copy(block.location)
-//     mesh.scale.copy(block.size)
-
-//     return mesh
-// }
 
 function createDummyBlock(block: OplaBlock) {
     let position = block.location.clone()
