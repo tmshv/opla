@@ -299,10 +299,14 @@ function onTranformControlsChange(event) {
 
     const b = currentBlock
     const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
-    b.pick.position.copy(cell)
+    if (isInvalidCell(cell)) {
+        b.pick.position.copy(currentBlock.block.location)
+        return
+    }
 
+    b.pick.position.copy(cell)
     if (isBlockIntersects(currentBlock, defs)) {
-        currentBlock.pick.position.copy(currentBlock.block.location)
+        b.pick.position.copy(currentBlock.block.location)
         return
     }
 
@@ -320,6 +324,10 @@ function onTranformControlsChange(event) {
     b.model.position.copy(cell)
 
     render()
+}
+
+function isInvalidCell(cell: THREE.Vector3): boolean {
+    return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
 
 function isBlockIntersects(block: BlockDef, blocks: BlockDef[]): boolean {
