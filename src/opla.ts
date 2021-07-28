@@ -99,6 +99,7 @@ export class OplaBlock {
         // this.size.fromArray(size)
     }
 
+	// even size blocks have a half of grid shift
     getCellShift(gridSize: number) {
         const H = gridSize / 2
 
