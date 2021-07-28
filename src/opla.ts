@@ -118,9 +118,9 @@ export class OplaBlock {
         // z = pos.z
 
         const cell = pos.clone()
-        cell.x = Math.round(cell.x / gridSize) * gridSize
-        cell.y = Math.round(cell.y / gridSize) * gridSize
-        cell.z = Math.round(cell.z / gridSize) * gridSize
+        cell.x = Math.floor(cell.x / gridSize) * gridSize
+        cell.y = Math.floor(cell.y / gridSize) * gridSize
+        cell.z = Math.floor(cell.z / gridSize) * gridSize
 
         const shift = this.getCellShift(gridSize)
         cell.add(shift)
