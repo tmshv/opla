@@ -1,26 +1,33 @@
 {
-  "name": "opla",
-  "version": "1.0.0",
-  "description": "https://acidome.ru https://www.gridsystem.dk https://www.usm.com",
-  "main": "index.js",
-  "dependencies": {
-    "next": "^9.5.4",
-    "react-dom": "^17.0.1",
-    "react": "^17.0.1",
-    "three": "^0.121.1",
-    "typescript": "^4.0.3"
-  },
-  "devDependencies": {
-    "next-transpile-modules": "^4.1.0",
-    "@types/node": "^14.11.8",
-    "@types/react": "^16.9.51"
-  },
-  "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "name": "opla",
+    "version": "1.0.0",
+    "description": "https://acidome.ru https://www.gridsystem.dk https://www.usm.com",
+    "main": "index.js",
+    "dependencies": {
+        "@react-three/drei": "^4.0.2",
+        "@react-three/fiber": "^6.0.6",
+        "autoprefixer": "^10.2.1",
+        "next": "^10.1.3",
+        "postcss": "^8.2.4",
+        "react": "^17.0.1",
+        "react-dom": "^17.0.1",
+        "rxjs": "^6.6.3",
+        "tailwindcss": "^2.1.1",
+        "three": "^0.130.0",
+        "typescript": "^4.0.3"
+    },
+    "devDependencies": {
+        "@types/node": "^14.11.8",
+        "@types/react": "^16.9.51",
+        "@types/three": "^0.126.2",
+        "next-transpile-modules": "^6.3.0"
+    },
+    "scripts": {
+        "dev": "next",
+        "build": "next build",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
 }
