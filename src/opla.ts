@@ -186,6 +186,10 @@ export class OplaSystem {
     public grid: OplaGrid
     public blocks: OplaBlock[]
 
+    constructor() {
+        this.blocks = []
+    }
+
     public removeBlock(id: number) {
         this.blocks = this.blocks.filter(block => block.id !== id)
 
