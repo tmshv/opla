@@ -222,9 +222,16 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
     const sizeY = 10
     const sizeZ = 10
 
+    const grid = new OplaGrid()
+    grid.axisX = createGrid3(sizeX, 1, 1, x => 1)
+    grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
+    grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
+
+    const system = new OplaSystem()
+    system.grid = grid
+
     const GRID = 200
 
-    const blocks = []
     for (let i = 0; i < amountOfBlocks; i++) {
         let sizeX = 1
         let sizeY = 1
@@ -239,26 +246,18 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
         const pos = new THREE.Vector3(x, y, z)
 
         const sizes = [sizeX, sizeY, sizeZ] as BlockSize
-        const block = new OplaBlock(idGenerator.create(), sizes)
+        const block = system.createBlock(sizes)
         block.blockType = 'closed'
         const cell = block.getCellPosition(pos, GRID)
         block.location.copy(cell)
-        blocks.push(block)
+        // blocks.push(block)
+        system.addBlock(block);
     }
     // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
     // block.blockType = 'closed'
     // block.cellLocation.set(0, 0, 0)
     // block.location.set(0, 200, 0)
     // const blocks = [block]
-
-    const grid = new OplaGrid()
-    grid.axisX = createGrid3(sizeX, 1, 1, x => 1)
-    grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
-    grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
-
-    const system = new OplaSystem()
-    system.grid = grid
-    system.blocks = blocks
 
     return system
 }
