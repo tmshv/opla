@@ -558,7 +558,7 @@ function addBlockAtCell(x: number, y: number) {
     //     return
     // }
 
-    const block = sys.createBlock([200, 200, 200])
+    const block = sys.createBlock([1, 1, 1])
     block.blockType = 'closed'
     // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
