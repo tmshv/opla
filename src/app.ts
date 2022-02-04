@@ -79,6 +79,14 @@ const directionNorm = new Map([
     ['top', new THREE.Vector3(0, 1, 0)],
     ['bottom', new THREE.Vector3(0, -1, 0)],
 ])
+const directionAttr = new Map([
+    ['1-0', 'x'],
+    ['1-1', 'x'],
+    ['2-0', 'z'],
+    ['2-1', 'z'],
+    ['top', 'y'],
+    ['bottom', 'y'],
+])
 // const blockOffset = new THREE.Vector3(-500, 0, -500)
 const blockOffset = new THREE.Vector3(0, 0, 0)
 const blockScale = 200
@@ -553,9 +561,11 @@ function addBlockAtCell(x: number, y: number) {
         return
     }
     const [dir, def] = selected
-    // todo: this 200 is hard coded now
-    // should be taken from size of selected block
-    const cell = nextBlockCell(sys.grid, dir, def, 200)
+    const b = def.block
+    const attr = directionAttr.get(dir)
+    let s = b.size[attr] as number
+    let shift = s * 200
+    const cell = nextBlockCell(sys.grid, dir, def, shift)
     if (!cell) {
         return
     }
