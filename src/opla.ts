@@ -233,8 +233,8 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
     const GRID = 200
 
     for (let i = 0; i < amountOfBlocks; i++) {
-        let sizeX = 1
-        let sizeY = 1
+        let sizeX = 3
+        let sizeY = 2
         let sizeZ = 1
         // let sizeX = choise([1, 2, 3, 4])
         // let sizeY = choise([1, 2, 3, 4])
