@@ -560,7 +560,8 @@ function addBlockAtCell(x: number, y: number) {
         return
     }
 
-    const block = sys.createBlock([1, 1, 1])
+    const size = def.block.size.toArray()
+    const block = sys.createBlock(size)
     block.location.copy(cell)
     block.blockType = 'closed'
     // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
