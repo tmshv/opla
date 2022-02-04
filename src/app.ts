@@ -552,13 +552,16 @@ function addBlockAtCell(x: number, y: number) {
     if (!selected) {
         return
     }
-    // const [dir, def] = selected
-    // const cell = nextBlockCell(sys.grid, dir, def)
-    // if (!cell) {
-    //     return
-    // }
+    const [dir, def] = selected
+    // todo: this 200 is hard coded now
+    // should be taken from size of selected block
+    const cell = nextBlockCell(sys.grid, dir, def, 200)
+    if (!cell) {
+        return
+    }
 
     const block = sys.createBlock([1, 1, 1])
+    block.location.copy(cell)
     block.blockType = 'closed'
     // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
@@ -644,20 +647,21 @@ function animate() {
     // stats.update();
 }
 
-function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef) {
-    // const v = directionNorm
-    //     .get(dir)
-    //     .clone()
-    // const cell = def.block.cellLocation
-    //     .clone()
-    //     .add(v)
+function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef, shiftMultiplier: number) {
+    const v = directionNorm
+        .get(dir)
+        .clone()
+        .multiplyScalar(shiftMultiplier)
+    const cell = def.block.location
+        .clone()
+        .add(v)
 
     // // next cell is out of grid bounds
     // if (cell.x < 0 || cell.y < 0 || cell.z < 0) {
     //     return null
     // }
 
-    // return cell
+    return cell
 }
 
 function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {
