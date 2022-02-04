@@ -396,6 +396,7 @@ function createDummyBlock(block: OplaBlock) {
         polygonOffsetUnits: 1
     })
     const mesh = new THREE.Mesh(box, material)
+	mesh.name = 'opla-block-XXX'
     mesh.position.copy(position)
 
     // wireframe
@@ -425,6 +426,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
         // flatShading: true,
     })
     const pick = new THREE.Mesh(box, pickingMaterial)
+	pick.name = 'opla-pick-XXX'
     pick.position.copy(position)
     pick.scale.copy(scale)
 
