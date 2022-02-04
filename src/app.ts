@@ -9,7 +9,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
-import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla'
+import { randomColor, OplaSystem, OplaBlock, OplaGrid } from './opla'
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller'
 import { loadAssets } from './lib/assets'
@@ -110,7 +110,6 @@ function hex(value: number) {
 
 export async function runApp(ctrl: AppController, elem: HTMLElement) {
     controller = ctrl
-    // const opla = createOplaSystem()
     container = elem
 
     const lib = await loadOplaAssets([

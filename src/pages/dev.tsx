@@ -1,12 +1,12 @@
 import { runApp } from "@/app"
 import { AppController } from "@/app/controller"
-import { createOplaSystem } from "@/opla"
+import { createRandomOplaSystem1 } from "@/opla"
 import { Button } from "@/ui/Button"
 import { NextPage } from "next"
 import { forwardRef, memo, MutableRefObject, useCallback, useEffect, useRef, useState } from "react"
 
 function make() {
-    const opla = createOplaSystem()
+    const opla = createRandomOplaSystem1(3)
 
     return new AppController(opla)
 }

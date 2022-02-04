@@ -213,7 +213,7 @@ function choise<T>(values: T[]): T {
     return values[i]
 }
 
-export function createOplaSystem() {
+export function createRandomOplaSystem1(amountOfBlocks: number) {
     const sizeX = 10
     const sizeY = 10
     const sizeZ = 10
@@ -221,12 +221,13 @@ export function createOplaSystem() {
     const GRID = 200
 
     const blocks = []
-    for (let i = 0; i < 5; i++) {
-        // let sizeX = 1 + i
-        let sizeX = choise([1, 2, 3, 4])
+    for (let i = 0; i < amountOfBlocks; i++) {
+        let sizeX = 1
         let sizeY = 1
-        // let sizeZ = 1
-        let sizeZ = choise([1, 2, 3, 4])
+        let sizeZ = 1
+        // let sizeX = choise([1, 2, 3, 4])
+        // let sizeY = choise([1, 2, 3, 4])
+        // let sizeZ = choise([1, 2, 3, 4])
 
         const x = 0
         const y = 0
