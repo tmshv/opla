@@ -186,6 +186,10 @@ export class OplaSystem {
     public grid: OplaGrid
     public blocks: OplaBlock[]
 
+    constructor() {
+        this.blocks = []
+    }
+
     public removeBlock(id: number) {
         this.blocks = this.blocks.filter(block => block.id !== id)
 
@@ -213,38 +217,10 @@ function choise<T>(values: T[]): T {
     return values[i]
 }
 
-export function createOplaSystem() {
+export function createRandomOplaSystem1(amountOfBlocks: number) {
     const sizeX = 10
     const sizeY = 10
     const sizeZ = 10
-
-    const GRID = 200
-
-    const blocks = []
-    for (let i = 0; i < 5; i++) {
-        // let sizeX = 1 + i
-        let sizeX = choise([1, 2, 3, 4])
-        let sizeY = 1
-        // let sizeZ = 1
-        let sizeZ = choise([1, 2, 3, 4])
-
-        const x = 0
-        const y = 0
-        const z = GRID * i
-        const pos = new THREE.Vector3(x, y, z)
-
-        const sizes = [sizeX, sizeY, sizeZ] as BlockSize
-        const block = new OplaBlock(idGenerator.create(), sizes)
-        block.blockType = 'closed'
-        const cell = block.getCellPosition(pos, GRID)
-        block.location.copy(cell)
-        blocks.push(block)
-    }
-    // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
-    // block.blockType = 'closed'
-    // block.cellLocation.set(0, 0, 0)
-    // block.location.set(0, 200, 0)
-    // const blocks = [block]
 
     const grid = new OplaGrid()
     grid.axisX = createGrid3(sizeX, 1, 1, x => 1)
@@ -253,7 +229,35 @@ export function createOplaSystem() {
 
     const system = new OplaSystem()
     system.grid = grid
-    system.blocks = blocks
+
+    const GRID = 200
+
+    for (let i = 0; i < amountOfBlocks; i++) {
+        let sizeX = 3
+        let sizeY = 2
+        let sizeZ = 1
+        // let sizeX = choise([1, 2, 3, 4])
+        // let sizeY = choise([1, 2, 3, 4])
+        // let sizeZ = choise([1, 2, 3, 4])
+
+        const x = 0
+        const y = 0
+        const z = GRID * i
+        const pos = new THREE.Vector3(x, y, z)
+
+        const sizes = [sizeX, sizeY, sizeZ] as BlockSize
+        const block = system.createBlock(sizes)
+        block.blockType = 'closed'
+        const cell = block.getCellPosition(pos, GRID)
+        block.location.copy(cell)
+        // blocks.push(block)
+        system.addBlock(block);
+    }
+    // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
+    // block.blockType = 'closed'
+    // block.cellLocation.set(0, 0, 0)
+    // block.location.set(0, 200, 0)
+    // const blocks = [block]
 
     return system
 }

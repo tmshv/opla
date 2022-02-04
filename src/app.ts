@@ -9,7 +9,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js'
-import { randomColor, createOplaSystem, OplaSystem, OplaBlock, OplaGrid } from './opla'
+import { randomColor, OplaSystem, OplaBlock, OplaGrid } from './opla'
 import { ScenePicker } from './lib/pick'
 import { AppController } from './app/controller'
 import { loadAssets } from './lib/assets'
@@ -79,6 +79,14 @@ const directionNorm = new Map([
     ['top', new THREE.Vector3(0, 1, 0)],
     ['bottom', new THREE.Vector3(0, -1, 0)],
 ])
+const directionAttr = new Map([
+    ['1-0', 'x'],
+    ['1-1', 'x'],
+    ['2-0', 'z'],
+    ['2-1', 'z'],
+    ['top', 'y'],
+    ['bottom', 'y'],
+])
 // const blockOffset = new THREE.Vector3(-500, 0, -500)
 const blockOffset = new THREE.Vector3(0, 0, 0)
 const blockScale = 200
@@ -110,7 +118,6 @@ function hex(value: number) {
 
 export async function runApp(ctrl: AppController, elem: HTMLElement) {
     controller = ctrl
-    // const opla = createOplaSystem()
     container = elem
 
     const lib = await loadOplaAssets([
@@ -396,6 +403,7 @@ function createDummyBlock(block: OplaBlock) {
         polygonOffsetUnits: 1
     })
     const mesh = new THREE.Mesh(box, material)
+	mesh.name = 'opla-block-XXX'
     mesh.position.copy(position)
 
     // wireframe
@@ -425,6 +433,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
         // flatShading: true,
     })
     const pick = new THREE.Mesh(box, pickingMaterial)
+	pick.name = 'opla-pick-XXX'
     pick.position.copy(position)
     pick.scale.copy(scale)
 
@@ -551,13 +560,19 @@ function addBlockAtCell(x: number, y: number) {
     if (!selected) {
         return
     }
-    // const [dir, def] = selected
-    // const cell = nextBlockCell(sys.grid, dir, def)
-    // if (!cell) {
-    //     return
-    // }
+    const [dir, def] = selected
+    const b = def.block
+    const attr = directionAttr.get(dir)
+    let s = b.size[attr] as number
+    let shift = s * 200
+    const cell = nextBlockCell(sys.grid, dir, def, shift)
+    if (!cell) {
+        return
+    }
 
-    const block = sys.createBlock([200, 200, 200])
+    const size = def.block.size.toArray()
+    const block = sys.createBlock(size)
+    block.location.copy(cell)
     block.blockType = 'closed'
     // block.blockType = Math.random() < 0.1 ? 'closed' : 'open'
 
@@ -643,20 +658,21 @@ function animate() {
     // stats.update();
 }
 
-function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef) {
-    // const v = directionNorm
-    //     .get(dir)
-    //     .clone()
-    // const cell = def.block.cellLocation
-    //     .clone()
-    //     .add(v)
+function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef, shiftMultiplier: number) {
+    const v = directionNorm
+        .get(dir)
+        .clone()
+        .multiplyScalar(shiftMultiplier)
+    const cell = def.block.location
+        .clone()
+        .add(v)
 
     // // next cell is out of grid bounds
     // if (cell.x < 0 || cell.y < 0 || cell.z < 0) {
     //     return null
     // }
 
-    // return cell
+    return cell
 }
 
 function nextBlockPosition(grid: OplaGrid, dir: string, def: BlockDef) {

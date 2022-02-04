@@ -1,12 +1,12 @@
 import { runApp } from "@/app"
 import { AppController } from "@/app/controller"
-import { createOplaSystem } from "@/opla"
+import { createRandomOplaSystem1 } from "@/opla"
 import { Button } from "@/ui/Button"
 import { NextPage } from "next"
 import { forwardRef, memo, MutableRefObject, useCallback, useEffect, useRef, useState } from "react"
 
 function make() {
-    const opla = createOplaSystem()
+    const opla = createRandomOplaSystem1(3)
 
     return new AppController(opla)
 }
@@ -134,24 +134,28 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
             <Button onClick={onClickAdd}>add</Button>
             <Button onClick={onClickRemove}>remove</Button>
 
-            <AxisSizeSelector
-                onClick={onClickX}
-                // ref={refAxisX}
-                value={ax}
-                options={ss}
-            />
-            <AxisSizeSelector
-                onClick={onClickY}
-                // ref={refAxisY}
-                value={ay}
-                options={ss}
-            />
-            <AxisSizeSelector
-                onClick={onClickZ}
-                // ref={refAxisZ}
-                value={az}
-                options={ss}
-            />
+            {true ? null : (
+                <>
+                    <AxisSizeSelector
+                        onClick={onClickX}
+                        // ref={refAxisX}
+                        value={ax}
+                        options={ss}
+                    />
+                    <AxisSizeSelector
+                        onClick={onClickY}
+                        // ref={refAxisY}
+                        value={ay}
+                        options={ss}
+                    />
+                    <AxisSizeSelector
+                        onClick={onClickZ}
+                        // ref={refAxisZ}
+                        value={az}
+                        options={ss}
+                    />
+                </>
+            )}
         </div>
     )
 })
