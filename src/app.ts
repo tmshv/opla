@@ -242,7 +242,8 @@ function init() {
     // controls.dynamicDampingFactor = 0.3;
 
     controls = createControls(camera, renderer.domElement)
-    control = initTC(camera, renderer.domElement)
+    control = new TransformControls(camera, renderer.domElement)
+    initTC(control)
 
     scene.add(control)
 
@@ -270,8 +271,7 @@ function initOplaSystem(opla: OplaSystem) {
     picker = createPicker(boxes)
 }
 
-export function initTC(camera: THREE.Camera, target: HTMLElement) {
-    const control = new TransformControls(camera, target)
+export function initTC(control: TransformControls) {
     control.setMode('translate')
     // control.setTranslationSnap(GRID_SIZE)
     // control.setSpace('world')
@@ -295,8 +295,6 @@ export function initTC(camera: THREE.Camera, target: HTMLElement) {
 
         controlIsActive = false
     })
-
-    return control
 }
 
 function onTranformControlsChange(event) {
