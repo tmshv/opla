@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 // import Stats from './jsm/libs/stats.module.js';
 
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
+import { BufferGeometryUtils } from 'three'
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
