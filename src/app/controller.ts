@@ -88,6 +88,10 @@ export class AppController implements IAssetLibrary {
         return this.subjects.cellDimension.next(this.cellDimension)
     }
 
+    public getCellDimensionArray() {
+        return this.cellDimension.toArray()
+    }
+
     public setTool(tool: string, options: object) {
         this.tool = tool
 
