@@ -243,7 +243,7 @@ function init() {
 
     controls = createControls(camera, renderer.domElement)
     control = new TransformControls(camera, renderer.domElement)
-    initTC(control)
+    setupTransformControls(control)
 
     scene.add(control)
 
@@ -271,7 +271,7 @@ function initOplaSystem(opla: OplaSystem) {
     picker = createPicker(boxes)
 }
 
-export function initTC(control: TransformControls) {
+export function setupTransformControls(control: TransformControls) {
     control.setMode('translate')
     // control.setTranslationSnap(GRID_SIZE)
     // control.setSpace('world')
