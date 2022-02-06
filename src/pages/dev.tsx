@@ -134,28 +134,24 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
             <Button onClick={onClickAdd}>add</Button>
             <Button onClick={onClickRemove}>remove</Button>
 
-            {true ? null : (
-                <>
-                    <AxisSizeSelector
-                        onClick={onClickX}
-                        // ref={refAxisX}
-                        value={ax}
-                        options={ss}
-                    />
-                    <AxisSizeSelector
-                        onClick={onClickY}
-                        // ref={refAxisY}
-                        value={ay}
-                        options={ss}
-                    />
-                    <AxisSizeSelector
-                        onClick={onClickZ}
-                        // ref={refAxisZ}
-                        value={az}
-                        options={ss}
-                    />
-                </>
-            )}
+            <AxisSizeSelector
+                onClick={onClickX}
+                // ref={refAxisX}
+                value={ax}
+                options={ss}
+            />
+            <AxisSizeSelector
+                onClick={onClickY}
+                // ref={refAxisY}
+                value={ay}
+                options={ss}
+            />
+            <AxisSizeSelector
+                onClick={onClickZ}
+                // ref={refAxisZ}
+                value={az}
+                options={ss}
+            />
         </div>
     )
 })

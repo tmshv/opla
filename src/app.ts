@@ -570,7 +570,8 @@ function addBlockAtCell(x: number, y: number) {
         return
     }
 
-    const size = def.block.size.toArray()
+    // const size = def.block.size.toArray() // take size of new block from currently selected
+    const size = controller.getCellDimensionArray() // take size of new block from user settings
     const block = sys.createBlock(size)
     block.location.copy(cell)
     block.blockType = 'closed'
