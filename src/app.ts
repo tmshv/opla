@@ -267,7 +267,7 @@ function initOplaSystem(opla: OplaSystem) {
     }
     scene.add(objects)
 
-    createPicker(boxes)
+    picker = createPicker(boxes)
 }
 
 export function initTC(camera: THREE.Camera, target: HTMLElement) {
@@ -502,7 +502,7 @@ async function loadOplaAssets(files: string[]) {
 
 function createPicker(boxes: BlockDef[]) {
     const scene = new THREE.Scene()
-    picker = new ScenePicker(camera, renderer)
+    const picker = new ScenePicker<[string, BlockDef]>(camera, renderer)
     boxes.forEach(item => {
         item.pickColors.forEach((color, i) => {
             picker.setItem(color.getHex(), [directionName[i], item])
@@ -512,6 +512,8 @@ function createPicker(boxes: BlockDef[]) {
     })
 
     picker.setScene(scene)
+
+    return picker
 }
 
 function onPointerMove(e: MouseEvent) {
