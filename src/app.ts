@@ -678,8 +678,9 @@ function addBlockAtPlane(x: number, y: number) {
         // console.log(vector)
 
         // newBoxCursor.setPositionFrom(coord)
-        newBoxCursor.setup(coord, new THREE.Vector3(GRID_SIZE, GRID_SIZE, GRID_SIZE))
-        newBoxCursor.show()
+        const g = new THREE.Vector3(GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        newBoxCursor.setup(coord[0], g);
+        newBoxCursor.show();
     }
 
     return
