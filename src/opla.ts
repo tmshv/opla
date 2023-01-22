@@ -262,6 +262,22 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
     return system
 }
 
+export function createEmptyOplaSystem() {
+    const sizeX = 10
+    const sizeY = 10
+    const sizeZ = 10
+
+    const grid = new OplaGrid()
+    grid.axisX = createGrid3(sizeX, 1, 1, x => 1)
+    grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
+    grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
+
+    const system = new OplaSystem()
+    system.grid = grid
+
+    return system
+}
+
 type GridFactoryFunction3<T> = (x: number, y: number, z: number, i: number) => T | null
 function createGrid3<T>(x: number, y: number, z: number, factory: GridFactoryFunction3<T>): T[] {
     const result: T[] = []

@@ -16,6 +16,8 @@ import { loadAssets } from './lib/assets'
 import { OplaCursor } from './lib/cursor'
 import { createControls } from './lib/three'
 import { createBoxVertices, createOplaModel } from './lib/geom'
+import { PickboxBuilder } from './lib/pickbox-builder'
+import { PlanePicker } from './lib/plane-picker'
 
 const BLOCK_COLOR = 0xffffff
 const BLOCK_COLOR_SELECTED = 0xff00ff
@@ -51,6 +53,7 @@ let mainLight: THREE.DirectionalLight
 
 let controlIsActive = false
 
+let newBoxCursor: OplaCursor
 // let hoverCursor: OplaCursor
 // let currentCursor: OplaCursor
 let controller: AppController
@@ -62,28 +65,31 @@ let selectedBoxAxisZ: CSS2DObject
 
 let tool = 'select'
 
-let picker: ScenePicker<[string, BlockDef]>
+// let picker: ScenePicker<[string, BlockDef]>
+let picker: ScenePicker<any>
+let planePicker: PlanePicker
 
 let currentBlock: BlockDef
 let defs: BlockDef[]
 
 var mouse = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
 let pointerMoved = false
 let selectedItemScaleOffset = new THREE.Vector3(2, 2, 2);
-const directionName = ['1-0', '1-1', 'top', 'bottom', '2-0', '2-1']
+const directionName = ['x-0', 'x-1', 'top', 'bottom', 'z-0', 'z-1']
 const directionNorm = new Map([
-    ['1-0', new THREE.Vector3(1, 0, 0)],
-    ['1-1', new THREE.Vector3(-1, 0, 0)],
-    ['2-0', new THREE.Vector3(0, 0, 1)],
-    ['2-1', new THREE.Vector3(0, 0, -1)],
+    ['x-0', new THREE.Vector3(1, 0, 0)],
+    ['x-1', new THREE.Vector3(-1, 0, 0)],
+    ['z-0', new THREE.Vector3(0, 0, 1)],
+    ['z-1', new THREE.Vector3(0, 0, -1)],
     ['top', new THREE.Vector3(0, 1, 0)],
     ['bottom', new THREE.Vector3(0, -1, 0)],
 ])
 const directionAttr = new Map([
-    ['1-0', 'x'],
-    ['1-1', 'x'],
-    ['2-0', 'z'],
-    ['2-1', 'z'],
+    ['x-0', 'x'],
+    ['x-1', 'x'],
+    ['z-0', 'z'],
+    ['z-1', 'z'],
     ['top', 'y'],
     ['bottom', 'y'],
 ])
@@ -139,7 +145,7 @@ export async function runApp(ctrl: AppController, elem: HTMLElement) {
 }
 
 function init() {
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
     camera.position.set(
         799.2459975462338,
         520.3577626459123,
@@ -153,7 +159,7 @@ function init() {
     var gridHelper = new THREE.GridHelper(2000, 10)
     const gg = new THREE.Group()
     gg.add(gridHelper)
-    gg.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
+    // gg.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
     scene.add(gg)
 
     scene.add(new THREE.AmbientLight(0x555555));
@@ -167,6 +173,13 @@ function init() {
     scene.add(light)
     mainLight = light
 
+    newBoxCursor = new OplaCursor({
+        color: 0xdd6600,
+        // opacity: 0.33,
+        opacity: 1,
+        scaleOffset: selectedItemScaleOffset,
+    })
+    newBoxCursor.hide()
     // hoverCursor = new OplaCursor({
     //     color: 0xdd6600,
     //     opacity: 0.33,
@@ -203,6 +216,7 @@ function init() {
     // highlightBox = lineSegments
 
 
+    scene.add(newBoxCursor.getMesh())
     // scene.add(hoverCursor.getMesh())
     // scene.add(currentCursor.getMesh())
 
@@ -253,6 +267,93 @@ function init() {
     renderer.domElement.addEventListener('pointermove', onPointerMove)
     renderer.domElement.addEventListener('pointerdown', onPointerDown)
     renderer.domElement.addEventListener('pointerup', onPointerUp)
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+}
+
+function initPlanes(scene: THREE.Scene) {
+    planePicker = new PlanePicker(camera)
+    scene.add(planePicker.getObject())
+    return scene
+
+    const box = (new PickboxBuilder())
+        .setScale(new THREE.Vector3(GRID_SIZE * 10, GRID_SIZE * 10, GRID_SIZE * 10))
+        .setPosition(new THREE.Vector3(GRID_SIZE * 5, GRID_SIZE * 5, GRID_SIZE * 5))
+        .setDoubleSide()
+        .build()
+
+    box.userData.colorId.forEach((color, i) => {
+        const id = color.getHex()
+        const sideName = directionName[i]
+        const normal = directionNorm.get(sideName)
+        picker.setItem(id, [normal, box])
+    })
+
+    // scene.add(box.clone())
+    // picker.getScene().add(box)
+
+    return scene
+
+
+    const planeX = createObstaclePlane(0xff0000)
+    planeX.name = "OplaPlaneX"
+    planeX.userData.colorId = randomColor()
+    // planeX.position.add(new THREE.Vector3(GRID_SIZE, 0, 0))
+    planeX.rotateY(Math.PI / 2);
+    // planeX.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
+    scene.add(planeX);
+
+    const planeY = createObstaclePlane(0x00ff00);
+    planeY.name = "OplaPlaneY"
+    planeY.userData.colorId = randomColor()
+    // planeX.position.add(new THREE.Vector3(GRID_SIZE, 0, 0))
+    planeY.rotateX(Math.PI / 2);
+    // planeY.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
+    scene.add(planeY);
+
+    const planeZ = createObstaclePlane(0x0000ff);
+    planeZ.name = "OplaPlaneZ"
+    planeZ.userData.colorId = randomColor()
+    planeZ.rotateZ(Math.PI / 2);
+    // planeZ.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
+    scene.add(planeZ);
+
+    var dotGeometry = new THREE.BufferGeometry()
+    dotGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3))
+    var dotMaterial = new THREE.PointsMaterial({ size: 10, color: 0x00ff00 })
+    var dot = new THREE.Points(dotGeometry, dotMaterial)
+    dot.position.set(-GRID_SIZE / 2, -GRID_SIZE / 2, -GRID_SIZE / 2)
+    scene.add(dot)
+
+    const axesHelper = new THREE.AxesHelper(500)
+    scene.add(axesHelper)
+
+    picker.setItem(planeX.userData.colorId, planeX);
+    picker.setItem(planeY.userData.colorId, planeY);
+    picker.setItem(planeZ.userData.colorId, planeZ);
+
+    return scene
+}
+
+function createObstaclePlane(color: number): THREE.Mesh {
+    const size = 1000;
+    const geometry = new THREE.PlaneGeometry(size, size);
+    const material = new THREE.MeshBasicMaterial({
+        color,
+        side: THREE.DoubleSide,
+        opacity: 0.75,
+    });
+    const plane = new THREE.Mesh(geometry, material);
+    return plane;
 }
 
 function initOplaSystem(opla: OplaSystem) {
@@ -269,11 +370,13 @@ function initOplaSystem(opla: OplaSystem) {
     scene.add(objects)
 
     picker = createPicker(boxes)
+
+    initPlanes(scene)
 }
 
 export function setupTransformControls(control: TransformControls) {
     control.setMode('translate')
-    // control.setTranslationSnap(GRID_SIZE)
+    // control.setTranslationSnap(GRID_SIZE + GRID_SIZE / 2)
     // control.setSpace('world')
     control.setSpace('local')
     // control.addEventListener('change', onTranformControlsChange)
@@ -303,6 +406,7 @@ function onTranformControlsChange(event) {
     }
 
     const b = currentBlock
+    // const cell = b.pick.position
     const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
     if (isInvalidCell(cell)) {
         b.pick.position.copy(currentBlock.block.location)
@@ -362,6 +466,10 @@ function setupController(ctrl: AppController) {
 
         // renderer.domElement.addEventListener('click', onClick)
     })
+
+    const sx = ctrl.subjects.cellDimension.subscribe(value => {
+        console.log(value)
+    })
 }
 
 function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: BoxColors) {
@@ -401,7 +509,7 @@ function createDummyBlock(block: OplaBlock) {
         polygonOffsetUnits: 1
     })
     const mesh = new THREE.Mesh(box, material)
-	mesh.name = 'opla-block-XXX'
+    mesh.name = 'opla-block-XXX'
     mesh.position.copy(position)
 
     // wireframe
@@ -431,7 +539,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
         // flatShading: true,
     })
     const pick = new THREE.Mesh(box, pickingMaterial)
-	pick.name = 'opla-pick-XXX'
+    pick.name = 'opla-pick-XXX'
     pick.position.copy(position)
     pick.scale.copy(scale)
 
@@ -515,8 +623,11 @@ function createPicker(boxes: BlockDef[]) {
 }
 
 function onPointerMove(e: MouseEvent) {
-    mouse.x = e.clientX
-    mouse.y = e.clientY
+    // mouse.x = e.clientX
+    // mouse.y = e.clientY
+    // dont know why this is right
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (e.clientY / window.innerHeight) * 2 + 1;
     pointerMoved = true
 }
 
@@ -549,10 +660,29 @@ function onClick(e: MouseEvent) {
     }
     if (tool == 'add') {
         addBlockAtCell(x, y)
+
+        // addBlockAtPlane(x, y)
     }
     if (tool == 'remove') {
         removeBlockAtCoord(x, y)
     }
+}
+
+function addBlockAtPlane(x: number, y: number) {
+    // const selected = picker.pick(x, y)
+    const coord = planePicker.pick(new THREE.Vector2(x, y))
+    console.log(`onclick (${x}; ${y}):`, coord)
+
+    if (coord) {
+        // const vector = new THREE.Vector3(x, y, -1).unproject(camera);
+        // console.log(vector)
+
+        // newBoxCursor.setPositionFrom(coord)
+        newBoxCursor.setup(coord, new THREE.Vector3(GRID_SIZE, GRID_SIZE, GRID_SIZE))
+        newBoxCursor.show()
+    }
+
+    return
 }
 
 function addBlockAtCell(x: number, y: number) {
@@ -757,10 +887,36 @@ function render() {
     mainLight.position.copy(camera.position)
     // mainLight.target.position.copy(camera.target)
 
+    camera.updateMatrixWorld()
+
+    const picked = planePicker.pick(mouse)
+    newBoxCursor.show()
+    if (picked) {
+        const [coord, norm] = picked
+        const v = coord.clone()
+
+        v.setX(Math.round(v.x / GRID_SIZE) * GRID_SIZE)
+        v.setY(Math.round(v.y / GRID_SIZE) * GRID_SIZE)
+        v.setZ(Math.round(v.z / GRID_SIZE) * GRID_SIZE)
+
+        const shift = norm.clone().multiplyScalar(GRID_SIZE / 2)
+        v.add(shift)
+
+        console.log('picked', v, norm)
+        // console.log('picked', picked)
+
+        // newBoxCursor.setPositionFrom(coord)
+        newBoxCursor.setup(v, new THREE.Vector3(GRID_SIZE, GRID_SIZE, GRID_SIZE))
+    }
+
     checkHover()
 
+    // render scene
     renderer.setRenderTarget(null)
     renderer.render(scene, camera)
+
     // domRenderer.render(scene, camera)
+
+    // render pick scene
     // renderer.render(picker.getScene(), camera)
 }
