@@ -61,15 +61,13 @@ function isInvalidCell(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
 
-type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
-
 type TransformSnap = (t: ThreeTransformControls) => [number, number, number] | null
 
-type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
+type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
     snap: TransformSnap
 }
 
-const OplaTransformControls: React.FC<OplaTransformControlsProps> = ({ snap, ...props }) => {
+const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...props }) => {
     const scene = useThree(t => t.scene)
 
     return (
@@ -118,7 +116,7 @@ export default function App() {
             />
 
             {!target ? null : (
-                <OplaTransformControls
+                <SnapTransformControls
                     object={target}
                     snap={t => {
                         const obj = t.object as Mesh;
