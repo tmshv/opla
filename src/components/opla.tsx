@@ -1,11 +1,11 @@
 'use client'
 
-import React from 'react'
 import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, TransformControls, useCursor } from '@react-three/drei'
-import { NextComponentType } from 'next'
-import { Object3D } from 'three'
+import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from '@react-three/drei'
+import { BoxGeometry, Mesh } from 'three'
+import * as THREE from 'three'
+import { TransformControls as ThreeTransformControls } from 'three/examples/jsm/controls/TransformControls'
 // import { useControls } from 'leva'
 // import create from 'zustand'
 
@@ -61,6 +61,53 @@ function isInvalidCell(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
 
+type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
+
+}
+
+const OplaTransformControls: React.FC<OplaTransformControlsProps> = props => {
+    return (
+        <TransformControls
+            {...props}
+            // mode={"translate"}
+            // space={"local"}
+            onObjectChange={event => {
+                const t = event.target as ThreeTransformControls;
+                const obj = t.object as Mesh;
+
+                const geom = obj.geometry as BoxGeometry
+                const p = geom.parameters;
+                const { width, height, depth } = p;
+                const { x, y, z } = obj.position;
+                // X - red | width
+                // Y - green | height
+                // Z - blue | depth
+                // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
+
+                if (isInvalidCell(obj.position)) {
+                    t.reset();
+                }
+
+                obj.position.set(
+                    isInt(x) ? x : nextPosition(x, width),
+                    isInt(y) ? y : nextPosition(y, height),
+                    isInt(z) ? z : nextPosition(z, depth),
+                );
+
+                // const b = currentBlock
+                // const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
+                // b.pick.position.copy(cell)
+                // if (isBlockIntersects(currentBlock, defs)) {
+                //     b.pick.position.copy(currentBlock.block.location)
+                //     return
+                // }
+                // b.block.location.copy(cell)
+                // b.model.position.copy(cell)
+            }}
+        />
+    )
+}
+
 export default function App() {
     const [target, setTarget] = useState<any | null>(null)
 
@@ -88,42 +135,8 @@ export default function App() {
             />
 
             {!target ? null : (
-                <TransformControls
+                <OplaTransformControls
                     object={target}
-                    mode={"translate"}
-                    // space={"local"}
-                    onObjectChange={event => {
-                        // const obj = event.target as Object3D;
-                        const obj = target;
-                        const p = obj.geometry.parameters;
-                        const { width, height, depth } = p;
-                        const { x, y, z } = obj.position;
-                        // X - red | width
-                        // Y - green | height
-                        // Z - blue | depth
-                        // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
-
-                        // TODO: use fix to non negative instead
-                        // if (isInvalidCell(obj.position)) {
-                        //     return
-                        // }
-
-                        obj.position.set(
-                            isInt(x) ? x : nextPosition(x, width),
-                            isInt(y) ? y : nextPosition(y, height),
-                            isInt(z) ? z : nextPosition(z, depth),
-                        );
-
-                        // const b = currentBlock
-                        // const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
-                        // b.pick.position.copy(cell)
-                        // if (isBlockIntersects(currentBlock, defs)) {
-                        //     b.pick.position.copy(currentBlock.block.location)
-                        //     return
-                        // }
-                        // b.block.location.copy(cell)
-                        // b.model.position.copy(cell)
-                    }}
                 />
             )}
             <OrbitControls makeDefault />
