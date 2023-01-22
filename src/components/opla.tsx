@@ -1,16 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useCallback, useState } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from '@react-three/drei'
-import { BoxGeometry, Mesh } from 'three'
+import { BoxGeometry, Group, Mesh, Object3D } from 'three'
 import * as THREE from 'three'
 import { TransformControls as ThreeTransformControls } from 'three/examples/jsm/controls/TransformControls'
-// import { useControls } from 'leva'
-// import create from 'zustand'
-
-// const useStore = create((set) => ({ target: null, setTarget: (target) => set({ target }) }))
-//
 
 type BoxProps = {
     [key: string]: any
@@ -18,22 +13,16 @@ type BoxProps = {
 }
 
 const Box: React.FC<BoxProps> = ({ size, ...props }) => {
-    // const setTarget = useStore((state) => state.setTarget)
-
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
 
     return (
         <mesh {...props}
-            // onClick={(e) => setTarget(e.object)}
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => setHovered(false)}
         >
             <boxGeometry
                 args={size}
-            // width={1}
-            // height={2}
-            // depth={1}
             />
             <meshNormalMaterial />
         </mesh>
@@ -57,6 +46,25 @@ function nextPosition(pos: number, size: number): number {
     return cell + cellShift
 }
 
+function isIntersects(block: Object3D, blocks: Group): boolean {
+    block.updateMatrixWorld()
+    const bbox = new THREE.Box3()
+    bbox.setFromObject(block)
+
+    for (let other of blocks.children) {
+        if (block === other) {
+            continue
+        }
+        const o = new THREE.Box3()
+        o.setFromObject(other)
+        if (bbox.intersectsBox(o)) {
+            return false
+        }
+    }
+
+    return false
+}
+
 function isInvalidCell(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
@@ -68,8 +76,6 @@ type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjec
 }
 
 const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...props }) => {
-    const scene = useThree(t => t.scene)
-
     return (
         <TransformControls
             {...props}
@@ -89,74 +95,100 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...
     )
 }
 
-export default function App() {
-    const [target, setTarget] = useState<any | null>(null)
+type OplaSceneProps = {
+    target: Object3D | null
+    children: React.ReactNode
+}
+
+const OplaScene: React.FC<OplaSceneProps> = ({ target, children }) => {
+    const scene = useThree(x => x.scene);
+    const snap = useCallback<TransformSnap>(t => {
+        const obj = t.object as Mesh;
+        if (isInvalidCell(obj.position)) {
+            return null
+        }
+
+        // const group = scene.getObjectByName("opla") as Group;
+        // if (isIntersects(obj, group)) {
+        //     return null
+        // }
+
+        const geom = obj.geometry as BoxGeometry
+        const p = geom.parameters;
+        const { width, height, depth } = p;
+        const { x, y, z } = obj.position;
+
+        // X - red | width
+        // Y - green | height
+        // Z - blue | depth
+        // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
+
+        return [
+            isInt(x) ? x : nextPosition(x, width),
+            isInt(y) ? y : nextPosition(y, height),
+            isInt(z) ? z : nextPosition(z, depth),
+        ]
+    }, [])
 
     return (
-        <Canvas dpr={[1, 2]} onPointerMissed={() => setTarget(null)}>
-            <Box
-                position={[0, 0, 0]}
-                size={[1, 1, 1]}
-                onClick={(e) => setTarget(e.object)}
-            />
-            <Box
-                position={[0.5, 1, 0]}
-                size={[2, 1, 1]}
-                onClick={(e) => setTarget(e.object)}
-            />
-            <Box
-                position={[0, 1.5, 1]}
-                size={[1, 2, 1]}
-                onClick={(e) => setTarget(e.object)}
-            />
-            <Box
-                position={[2, 0, 0.5]}
-                size={[1, 1, 2]}
-                onClick={(e) => setTarget(e.object)}
-            />
+        <>
+            <group name="opla">
+                {children}
+            </group>
 
+            <OrbitControls makeDefault />
             {!target ? null : (
                 <SnapTransformControls
                     object={target}
-                    snap={t => {
-                        const obj = t.object as Mesh;
-                        if (isInvalidCell(obj.position)) {
-                            return null
-                        }
-
-                        const geom = obj.geometry as BoxGeometry
-                        const p = geom.parameters;
-                        const { width, height, depth } = p;
-                        const { x, y, z } = obj.position;
-                        // X - red | width
-                        // Y - green | height
-                        // Z - blue | depth
-                        // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
-
-                        // if (isInvalidCell(obj.position)) {
-                        // }
-
-                        // console.log(scene.getObjectByName("opla"))
-
-
-                        // const b = currentBlock
-                        // const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
-                        // b.pick.position.copy(cell)
-                        // if (isBlockIntersects(currentBlock, defs)) {
-                        //     b.pick.position.copy(currentBlock.block.location)
-                        //     return
-                        // }
-                        // b.block.location.copy(cell)
-                        // b.model.position.copy(cell)
-                        return [
-                            isInt(x) ? x : nextPosition(x, width),
-                            isInt(y) ? y : nextPosition(y, height),
-                            isInt(z) ? z : nextPosition(z, depth),
-                        ]
-                    }}
+                    snap={snap}
                 />
             )}
-            <OrbitControls makeDefault />
+        </>
+    )
+}
+
+export default function Opla() {
+    const [target, setTarget] = useState<Object3D | null>(null)
+    const [items, setItems] = useState([
+        {
+            id: 0,
+            position: [0, 0, 0],
+            size: [1, 1, 1],
+        },
+        {
+            id: 1,
+            position: [0.5, 1, 0],
+            size: [2, 1, 1],
+        },
+        {
+            id: 2,
+            position: [0, 1.5, 0],
+            size: [1, 2, 1],
+        },
+        {
+            id: 3,
+            position: [2, 0, 0.5],
+            size: [1, 1, 2],
+        },
+        {
+            id: 4,
+            position: [2, 4, 0.5],
+            size: [2, 3, 4],
+        },
+    ])
+
+    return (
+        <Canvas dpr={[1, 2]} onPointerMissed={() => setTarget(null)}>
+            <OplaScene target={target}>
+                {items.map(box => (
+                    <Box
+                        key={box.id}
+                        position={box.position}
+                        size={box.size}
+                        onClick={(e) => setTarget(e.object)}
+                    />
+                ))}
+            </OplaScene>
         </Canvas>
     )
 }
