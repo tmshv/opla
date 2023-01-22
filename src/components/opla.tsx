@@ -63,13 +63,15 @@ function isInvalidCell(cell: THREE.Vector3): boolean {
 
 type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
 
-type TransformGuard = (t: ThreeTransformControls) => boolean;
+type TransformSnap = (t: ThreeTransformControls) => [number, number, number] | null
 
 type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
-    guard: TransformGuard
+    snap: TransformSnap
 }
 
-const OplaTransformControls: React.FC<OplaTransformControlsProps> = ({ guard, ...props }) => {
+const OplaTransformControls: React.FC<OplaTransformControlsProps> = ({ snap, ...props }) => {
+    const scene = useThree(t => t.scene)
+
     return (
         <TransformControls
             {...props}
@@ -77,36 +79,13 @@ const OplaTransformControls: React.FC<OplaTransformControlsProps> = ({ guard, ..
             // space={"local"}
             onObjectChange={event => {
                 const t = event.target as ThreeTransformControls;
-                const obj = t.object as Mesh;
-
-                const geom = obj.geometry as BoxGeometry
-                const p = geom.parameters;
-                const { width, height, depth } = p;
-                const { x, y, z } = obj.position;
-                // X - red | width
-                // Y - green | height
-                // Z - blue | depth
-                // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
-
-                if (!guard(t)) {
+                const coord = snap(t);
+                if (!coord) {
                     t.reset();
+                    return;
                 }
-
-                obj.position.set(
-                    isInt(x) ? x : nextPosition(x, width),
-                    isInt(y) ? y : nextPosition(y, height),
-                    isInt(z) ? z : nextPosition(z, depth),
-                );
-
-                // const b = currentBlock
-                // const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
-                // b.pick.position.copy(cell)
-                // if (isBlockIntersects(currentBlock, defs)) {
-                //     b.pick.position.copy(currentBlock.block.location)
-                //     return
-                // }
-                // b.block.location.copy(cell)
-                // b.model.position.copy(cell)
+                const [x, y, z] = coord;
+                t.object.position.set(x, y, z);
             }}
         />
     )
@@ -141,13 +120,41 @@ export default function App() {
             {!target ? null : (
                 <OplaTransformControls
                     object={target}
-                    guard={t => {
+                    snap={t => {
                         const obj = t.object as Mesh;
                         if (isInvalidCell(obj.position)) {
-                            return false
+                            return null
                         }
 
-                        return true
+                        const geom = obj.geometry as BoxGeometry
+                        const p = geom.parameters;
+                        const { width, height, depth } = p;
+                        const { x, y, z } = obj.position;
+                        // X - red | width
+                        // Y - green | height
+                        // Z - blue | depth
+                        // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
+
+                        // if (isInvalidCell(obj.position)) {
+                        // }
+
+                        // console.log(scene.getObjectByName("opla"))
+
+
+                        // const b = currentBlock
+                        // const cell = b.block.getCellPosition(b.pick.position, GRID_SIZE)
+                        // b.pick.position.copy(cell)
+                        // if (isBlockIntersects(currentBlock, defs)) {
+                        //     b.pick.position.copy(currentBlock.block.location)
+                        //     return
+                        // }
+                        // b.block.location.copy(cell)
+                        // b.model.position.copy(cell)
+                        return [
+                            isInt(x) ? x : nextPosition(x, width),
+                            isInt(y) ? y : nextPosition(y, height),
+                            isInt(z) ? z : nextPosition(z, depth),
+                        ]
                     }}
                 />
             )}
