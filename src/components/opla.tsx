@@ -63,9 +63,13 @@ function isInvalidCell(cell: THREE.Vector3): boolean {
 
 type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
 
+type TransformGuard = (t: ThreeTransformControls) => boolean;
+
+type OplaTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
+    guard: TransformGuard
 }
 
-const OplaTransformControls: React.FC<OplaTransformControlsProps> = props => {
+const OplaTransformControls: React.FC<OplaTransformControlsProps> = ({ guard, ...props }) => {
     return (
         <TransformControls
             {...props}
@@ -84,7 +88,7 @@ const OplaTransformControls: React.FC<OplaTransformControlsProps> = props => {
                 // Z - blue | depth
                 // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
 
-                if (isInvalidCell(obj.position)) {
+                if (!guard(t)) {
                     t.reset();
                 }
 
@@ -137,6 +141,14 @@ export default function App() {
             {!target ? null : (
                 <OplaTransformControls
                     object={target}
+                    guard={t => {
+                        const obj = t.object as Mesh;
+                        if (isInvalidCell(obj.position)) {
+                            return false
+                        }
+
+                        return true
+                    }}
                 />
             )}
             <OrbitControls makeDefault />
