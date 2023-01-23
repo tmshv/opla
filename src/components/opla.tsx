@@ -1,12 +1,12 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
-import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
+import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
 import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
-import { proxy, useSnapshot } from "valtio"
+import { proxy, subscribe, useSnapshot } from "valtio"
 
 type State = {
     target: string | null,
@@ -118,7 +118,6 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
         }
     })
 
-
     return (
         <mesh {...props}
             position={pos}
@@ -216,13 +215,15 @@ function isOutOfBounds(obj: Mesh): boolean {
     return x < 0 || y < 0 || z < 0
 }
 
-type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => [number, number, number] | null
+type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => Vector3 | null
+type OnTransformSnap = (t: ThreeTransformControls) => void
 
 type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
     snap: TransformSnap
+    onSnap: OnTransformSnap
 }
 
-const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...props }) => {
+const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, onSnap, ...props }) => {
     const pos = useRef<Vector3 | null>(null)
     const last = useRef<Vector3>(new Vector3(0, 0, 0))
     return (
@@ -249,18 +250,17 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...
             }}
             onObjectChange={event => {
                 const t = event.target as ThreeTransformControls
-                // const s = t.object.position
-                // cur.current = s;
-                // console.log(`[${s.x}; ${s.y}; ${s.z}]`)
                 const coord = snap(t, pos.current)
                 if (!coord) {
-                    // const revert = last.current ?? pos.current
                     t.object.position.copy(last.current)
                     // t.reset();
                 } else {
-                    const [x, y, z] = coord
-                    last.current.set(x, y, z)
-                    t.object.position.set(x, y, z)
+                    const posChanged = !last.current.equals(coord)
+                    last.current.copy(coord)
+                    t.object.position.copy(coord)
+                    if (posChanged) {
+                        onSnap(t)
+                    }
                 }
             }}
         />
@@ -274,11 +274,10 @@ type OplaBox = {
 }
 
 type BoxesProps = {
-    items: OplaBox[]
 }
 
-const Boxes: React.FC<BoxesProps> = ({ items }) => {
-    const { target } = useSnapshot(state)
+const Boxes: React.FC<BoxesProps> = () => {
+    const { target, items } = useSnapshot(state)
     return (
         <group name="opla">
             {items.map(box => (
@@ -300,11 +299,91 @@ const Boxes: React.FC<BoxesProps> = ({ items }) => {
     )
 }
 
-type OplaSceneProps = {
-    items: OplaBox[]
+type OplaWiresProps = {
 }
 
-const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
+const OplaWires: React.FC<OplaWiresProps> = () => {
+    // const scene = useThree(state => state.scene)
+    const { items } = useSnapshot(state)
+    const { nodes } = useGLTF("/assets/opla.glb")
+
+    return (
+        <Suspense fallback={null}>
+            {items.map(box => {
+                const [x, y, z] = box.position
+                const geom = (nodes.node_25mm as Mesh).geometry
+
+                return (
+                    <group
+                        key={box.id}
+                        dispose={null}
+                    >
+                        <mesh
+                            geometry={geom}
+                            position={[x + 0.5, y + 0.5, z + 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x + 0.5, y - 0.5, z - 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x + 0.5, y + 0.5, z - 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x + 0.5, y - 0.5, z + 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x - 0.5, y + 0.5, z + 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x - 0.5, y - 0.5, z - 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x - 0.5, y + 0.5, z - 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                        <mesh
+                            geometry={geom}
+                            position={[x - 0.5, -0.5, z + 0.5]}
+                            scale={4}
+                        >
+                            <meshNormalMaterial />
+                        </mesh>
+                    </group>
+                )
+            })}
+        </Suspense>
+    )
+}
+type OplaSceneProps = {
+}
+
+const OplaScene: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { target } = useSnapshot(state)
 
@@ -335,17 +414,17 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
         // Z - blue | depth
         // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
 
-        return [
+        return new Vector3(
             isInt(x) ? x : nextPosition(x, width, x < sx ? -1 : 1),
             isInt(y) ? y : nextPosition(y, height, y < sy ? -1 : 1),
             isInt(z) ? z : nextPosition(z, depth, z < sz ? -1 : 1),
-        ]
-    }, [])
+        )
+    }, [scene])
 
     return (
         <>
-            <Boxes items={items} />
-
+            <Boxes />
+            <OplaWires />
             <OrbitControls
                 makeDefault
                 dampingFactor={0.25}
@@ -354,6 +433,11 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
                 <SnapTransformControls
                     object={scene.getObjectByName(target)}
                     snap={snap}
+                    onSnap={t => {
+                        const obj = t.object
+                        const i = state.items.findIndex(x => x.id === obj.name)
+                        state.items[i].position = obj.position.toArray()
+                    }}
                 />
             )}
         </>
@@ -361,22 +445,21 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
 }
 
 export default function Opla() {
-    const { items } = useSnapshot(state)
-
     return (
         <Canvas
             dpr={[1, 2]}
             onPointerMissed={() => {
                 state.target = null
             }}
+            camera={{
+                position: [5.5, 2.5, 12.0],
+            }}
         >
             <ambientLight />
             <pointLight position={[5, 5, 5]} />
             <Environment preset="lobby" />
 
-            <OplaScene
-                items={items}
-            />
+            <OplaScene />
 
             {/* <BoxCursor */}
             {/*     color="0xff00ff" */}
