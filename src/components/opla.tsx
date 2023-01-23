@@ -3,10 +3,19 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
+import { Box3, BoxGeometry, Euler, Group, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
-import { proxy, subscribe, useSnapshot } from "valtio"
+import { proxy, useSnapshot } from "valtio"
+
+type Edge = [Vector3, Vector3]
+
+const edgeNames = new Map([
+    [1, "edge_200mm"],
+    [2, "edge_400mm"],
+    [3, "edge_600mm"],
+    [4, "edge_800mm"],
+])
 
 type State = {
     target: string | null,
@@ -38,8 +47,13 @@ let state = proxy<State>({
         },
         {
             id: "1x 2y 3z",
-            position: [2, 1.5, 0],
+            position: [2, 1.5, 1],
             size: [1, 2, 3],
+        },
+        {
+            id: "2x 2y 4z",
+            position: [5, 0.5, 1.5],
+            size: [2, 2, 4],
         },
         {
             id: "cube",
@@ -71,14 +85,14 @@ const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
             <meshStandardMaterial
                 color={color}
                 // side={THREE.DoubleSide}
-                // transparent
-                // opacity={0.85}
-                metalness={1}
-                roughness={0.4}
+                transparent
+                opacity={0.1}
+            // metalness={1}
+            // roughness={0.4}
             />
-            <Edges
-                color={0x111111}
-            />
+            {/* <Edges */}
+            {/*     color={0x111111} */}
+            {/* /> */}
         </mesh>
     )
 }
@@ -299,16 +313,42 @@ const Boxes: React.FC<BoxesProps> = () => {
     )
 }
 
+/**
+* x: row (+ right)
+* y: column (+ up)
+* z: diagonal (+ screen)
+*    .f------b
+*  .' |    .'|
+* e---+--a'  |
+* |   |  |   |
+* |  ,g--+---c
+* |.'    | .'
+* h------d'
+*
+* edges:
+*  ab
+*  ad
+*  ae
+*  cd
+*  cb
+*  cg
+*  dh
+*  bf
+*  fg
+*  fe
+*  eh
+*  gh
+* **/
 function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number) {
     return [
-        [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth],
-        [x + 0.5 * width, y - 0.5 * height, z - 0.5 * depth],
-        [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth],
-        [x + 0.5 * width, y - 0.5 * height, z + 0.5 * depth],
-        [x - 0.5 * width, y + 0.5 * height, z + 0.5 * depth],
-        [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth],
-        [x - 0.5 * width, y + 0.5 * height, z - 0.5 * depth],
-        [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth],
+        [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // a
+        [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // b
+        [x + 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // c
+        [x + 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // d
+        [x - 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // e
+        [x - 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // f
+        [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // g
+        [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // h
     ]
 }
 
@@ -318,7 +358,7 @@ function eq(a: [number, number, number], b: [number, number, number]): boolean {
     return ax === bx && ay === by && az === bz
 }
 
-function useWires(): [[number, number, number][], {}[]] {
+function useWires(): [[number, number, number][], Edge[]] {
     const { items } = useSnapshot(state)
     let nodes = []
     for (const box of items) {
@@ -332,7 +372,51 @@ function useWires(): [[number, number, number][], {}[]] {
             }
         }
     }
-    return [nodes, []]
+
+    let edges = []
+    for (const box of items) {
+        const [x, y, z] = box.position
+        const [width, height, depth] = box.size
+        const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
+        const boxEdges = [
+            [a, b],
+            [a, d],
+            [a, e],
+            [c, d],
+            [c, b],
+            [c, g],
+            [d, h],
+            [b, f],
+            [f, g],
+            [f, e],
+            [e, h],
+            [g, h],
+        ]
+        for (const edge of boxEdges) {
+            // const i = nodes.findIndex(node => eq(node, v))
+            // if (i === -1) {
+            edges.push(edge)
+            // }
+        }
+    }
+    return [nodes, edges]
+}
+
+function getRotation(edge: Edge): [number, number, number] {
+    const [a, b] = edge
+
+    // Z
+    if (a.x === b.x && a.y === b.y) {
+        return [Math.PI / 2, 0, 0]
+    }
+
+    // Y
+    if (a.x === b.x && a.z === b.z) {
+        return [0, 0, 0]
+    }
+
+    // X
+    return [0, 0, Math.PI / 2]
 }
 
 type OplaWiresProps = {
@@ -352,9 +436,32 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                             key={i}
                             geometry={geom}
                             position={pos}
-                            scale={4}
+                            scale={5}
                         >
                             <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
+                        </mesh>
+                    )
+                })}
+                {es.map((edge, i) => {
+                    const [a, b] = edge
+                    const pos = new Vector3()
+                    pos.lerpVectors(a, b, 0.5)
+                    const dist = a.distanceTo(b)
+                    const name = edgeNames.get(dist)
+                    const geom = (nodes[name] as Mesh).geometry
+                    const r = getRotation(edge)
+                    return (
+                        <mesh
+                            key={i}
+                            geometry={geom}
+                            position={pos}
+                            rotation={r}
+                            scale={5}
+                        >
+                            <meshStandardMaterial color={0xcccc99} metalness={1} roughness={0.5} />
                             <Edges
                                 color={0x111111}
                             />
