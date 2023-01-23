@@ -17,33 +17,33 @@ let state = proxy<State>({
     target: null,
     items: [
         {
-            id: "1",
+            id: "1x 1y 1z",
             position: [0, 0, 0],
             size: [1, 1, 1],
         },
         {
-            id: "2",
+            id: "2x 1y 1z",
             position: [0.5, 1, 0],
             size: [2, 1, 1],
         },
         {
-            id: "3",
-            position: [0, 1.5, 0],
+            id: "1x 2y 1z",
+            position: [0, 2.5, 0],
             size: [1, 2, 1],
         },
         {
-            id: "4",
+            id: "1x 1y 2z",
             position: [2, 0, 0.5],
             size: [1, 1, 2],
         },
         {
-            id: "5",
+            id: "1x 2y 3z",
             position: [2, 1.5, 0],
             size: [1, 2, 3],
         },
         {
-            id: "6",
-            position: [0, 3, 0],
+            id: "cube",
+            position: [0, 4, 0],
             size: [1, 1, 1],
         },
     ],
@@ -52,9 +52,10 @@ let state = proxy<State>({
 type BoxProps = {
     [key: string]: any
     size: [number, number, number]
+    color: string
 }
 
-const Box: React.FC<BoxProps> = ({ size, ...props }) => {
+const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
 
@@ -62,12 +63,18 @@ const Box: React.FC<BoxProps> = ({ size, ...props }) => {
         <mesh {...props}
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => setHovered(false)}
-            scale={0.99}
+        // scale={0.99}
         >
             <boxGeometry
                 args={size}
             />
-            <meshNormalMaterial />
+            <meshStandardMaterial
+                color={color}
+                // color={hovered
+                //     ? "#ee99ee"
+                //     : "#ffffff"
+                // }
+            />
         </mesh>
     )
 }
@@ -195,33 +202,23 @@ type OplaBox = {
     size: [number, number, number]
 }
 
-function useOplaItems() {
-    const scene = useThree(x => x.scene)
-    // return useMemo(() => {
-    //     return scene.getObjectByName("opla") as Group;
-    // }, [scene]);
-    return () => {
-        return scene.getObjectByName("opla") as Group
-    }
-}
-
 type BoxesProps = {
     items: OplaBox[]
 }
 
 const Boxes: React.FC<BoxesProps> = ({ items }) => {
+    const { target } = useSnapshot(state)
     return (
         <group name="opla">
             {items.map(box => (
                 <Box
                     key={box.id}
+                    name={box.id}
                     position={box.position}
                     size={box.size}
+                    color={box.id === target ? "#ff55ff" : "#ffffff"}
                     onClick={(e) => {
-                        // setTarget(e.object)
-                        // state.target = e.object
-                        state.target = e.object.id
-                        console.log("click on ", e.object.id)
+                        state.target = e.object.name
                     }}
                 />
             ))}
@@ -274,7 +271,7 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
             <OrbitControls makeDefault />
             {!target ? null : (
                 <SnapTransformControls
-                    object={scene.getObjectById(target)}
+                    object={scene.getObjectByName(target)}
                     snap={snap}
                 />
             )}
@@ -292,6 +289,8 @@ export default function Opla() {
                 state.target = null
             }}
         >
+            <ambientLight />
+            <pointLight position={[5, 5, 5]} />
             <OplaScene
                 items={items}
             />
