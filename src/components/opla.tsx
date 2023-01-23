@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react"
 import { Canvas, useThree } from "@react-three/fiber"
-import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
+import { Edges, Environment, OrbitControls, Stage, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
 import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
@@ -70,10 +70,14 @@ const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
             />
             <meshStandardMaterial
                 color={color}
-                // color={hovered
-                //     ? "#ee99ee"
-                //     : "#ffffff"
-                // }
+            // side={THREE.DoubleSide}
+            // transparent
+            // opacity={0.85}
+                metalness={1}
+                roughness={0.4}
+            />
+            <Edges
+                color={0x111111}
             />
         </mesh>
     )
@@ -143,6 +147,15 @@ function isIntersects(block: Object3D, blocks: Group): boolean {
 
 function isNegativePosition(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
+}
+
+function isOutOfBounds(obj: Mesh): boolean {
+    const geom = obj.geometry as BoxGeometry
+    const p = geom.parameters
+    const { width, height, depth } = p
+    const { x, y, z } = obj.position
+
+    return x < 0 || y < 0 || z < 0
 }
 
 type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => [number, number, number] | null
@@ -216,7 +229,10 @@ const Boxes: React.FC<BoxesProps> = ({ items }) => {
                     name={box.id}
                     position={box.position}
                     size={box.size}
-                    color={box.id === target ? "#ff55ff" : "#ffffff"}
+                    color={box.id === target
+                        ? "#ff55ff"
+                        : "#cccccc"
+                    }
                     onClick={(e) => {
                         state.target = e.object.name
                     }}
@@ -237,6 +253,10 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
     const snap = useCallback<TransformSnap>((t, start) => {
         const obj = t.object as Mesh
         if (isNegativePosition(obj.position)) {
+            return null
+        }
+
+        if (isOutOfBounds(obj)) {
             return null
         }
 
@@ -268,7 +288,10 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
         <>
             <Boxes items={items} />
 
-            <OrbitControls makeDefault />
+            <OrbitControls
+                makeDefault
+                dampingFactor={0.25}
+            />
             {!target ? null : (
                 <SnapTransformControls
                     object={scene.getObjectByName(target)}
@@ -291,33 +314,47 @@ export default function Opla() {
         >
             <ambientLight />
             <pointLight position={[5, 5, 5]} />
+            <Environment preset="lobby" />
+
             <OplaScene
                 items={items}
             />
 
             {/* normal to Y */}
             <mesh
-                rotation={[-Math.PI/2, 0, 0]}
-                position={[1.5, -0.5, 1.5]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[1.5, -0.5 - 0.01, 1.5]}
             >
                 <planeGeometry args={[4, 4, 4]} />
-                <meshNormalMaterial />
+                <meshStandardMaterial
+                    transparent
+                    color={0x00ff00}
+                    opacity={0.85}
+                />
             </mesh>
             {/* normal to X */}
             <mesh
-                rotation={[0, Math.PI/2, 0]}
-                position={[-0.5, 1.5, 1.5]}
+                rotation={[0, Math.PI / 2, 0]}
+                position={[-0.5 - 0.01, 1.5, 1.5]}
             >
                 <planeGeometry args={[4, 4, 4]} />
-                <meshNormalMaterial />
+                <meshStandardMaterial
+                    transparent
+                    color={0xff0000}
+                    opacity={0.85}
+                />
             </mesh>
             {/* normal to Z */}
             <mesh
-                rotation={[0, 0, Math.PI/2]}
-                position={[1.5, 1.5, -0.5]}
+                rotation={[0, 0, Math.PI / 2]}
+                position={[1.5, 1.5, -0.5 - 0.01]}
             >
                 <planeGeometry args={[4, 4, 4]} />
-                <meshNormalMaterial />
+                <meshStandardMaterial
+                    transparent
+                    color={0x0000ff}
+                    opacity={0.85}
+                />
             </mesh>
         </Canvas>
     )
