@@ -1,11 +1,53 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from '@react-three/drei'
-import { BoxGeometry, Group, Mesh, Object3D } from 'three'
+import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from 'three'
 import * as THREE from 'three'
 import { TransformControls as ThreeTransformControls } from 'three/examples/jsm/controls/TransformControls'
+import { proxy, useSnapshot } from 'valtio'
+
+type State = {
+    target: string | null,
+    items: OplaBox[],
+}
+
+let state = proxy<State>({
+    target: null,
+    items: [
+        {
+            id: '1',
+            position: [0, 0, 0],
+            size: [1, 1, 1],
+        },
+        {
+            id: '2',
+            position: [0.5, 1, 0],
+            size: [2, 1, 1],
+        },
+        {
+            id: '3',
+            position: [0, 1.5, 0],
+            size: [1, 2, 1],
+        },
+        {
+            id: '4',
+            position: [2, 0, 0.5],
+            size: [1, 1, 2],
+        },
+        {
+            id: '5',
+            position: [2.5, 2, 0.5],
+            size: [2, 3, 4],
+        },
+        {
+            id: '6',
+            position: [0, 10, 0],
+            size: [1, 1, 1],
+        },
+    ],
+})
 
 type BoxProps = {
     [key: string]: any
@@ -20,6 +62,7 @@ const Box: React.FC<BoxProps> = ({ size, ...props }) => {
         <mesh {...props}
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => setHovered(false)}
+            scale={0.99}
         >
             <boxGeometry
                 args={size}
@@ -34,21 +77,36 @@ function isInt(value: number): boolean {
     return n === value;
 }
 
-function nextPosition(pos: number, size: number): number {
-    const cell = Math.floor(pos);
-    let cellShift = 1;
+function nextPosition(pos: number, size: number, sign: number): number {
+    // const cell = Math.floor(pos);
+    const cell = Math.round(pos);
+    let cellShift = 0;
 
     // move by half cell
     if (size % 2 === 0) {
         cellShift = 0.5;
     }
 
-    return cell + cellShift
+    return cell + cellShift * sign
+}
+
+function boxIntersect(a: Box3, b: Box3): boolean {
+    // console.log(a, b)
+
+    // using 6 splitting planes to rule out intersections.
+    return a.max.x < b.min.x
+        || a.min.x > b.max.x
+        || a.max.y < b.min.y
+        || a.min.y > b.max.y
+        || a.max.z < b.min.z
+        || a.min.z > b.max.z
+        ? false
+        : true;
 }
 
 function isIntersects(block: Object3D, blocks: Group): boolean {
-    block.updateMatrixWorld()
-    const bbox = new THREE.Box3()
+    // block.updateMatrixWorld()
+    const bbox = new Box3()
     bbox.setFromObject(block)
 
     for (let other of blocks.children) {
@@ -57,66 +115,131 @@ function isIntersects(block: Object3D, blocks: Group): boolean {
         }
         const o = new THREE.Box3()
         o.setFromObject(other)
-        if (bbox.intersectsBox(o)) {
-            return false
+        if (boxIntersect(bbox, o)) {
+            console.log("intersect with", other.id)
+            return true
         }
     }
 
     return false
 }
 
-function isInvalidCell(cell: THREE.Vector3): boolean {
+function isNegativePosition(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
 
-type TransformSnap = (t: ThreeTransformControls) => [number, number, number] | null
+type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => [number, number, number] | null
 
 type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
     snap: TransformSnap
 }
 
 const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...props }) => {
+    const pos = useRef<Vector3 | null>(null)
     return (
         <TransformControls
             {...props}
-            // mode={"translate"}
-            // space={"local"}
+            space={"local"}
+            onMouseDown={event => {
+                const t = event.target as ThreeTransformControls;
+                pos.current = t.object.position.clone();
+            }}
+            onMouseUp={event => {
+                const t = event.target as ThreeTransformControls;
+                const coord = snap(t, pos.current);
+                if (coord) {
+                    const [x, y, z] = coord;
+                    t.object.position.set(x, y, z);
+
+                    const s = pos.current
+                    console.log(`[${s.x}; ${s.y}; ${s.z}] -> [${x}; ${y}; ${z}]`)
+
+                } else {
+                    t.object.position.copy(pos.current)
+                }
+                pos.current = null
+            }}
             onObjectChange={event => {
                 const t = event.target as ThreeTransformControls;
+                // const s = t.object.position;
+                // console.log(`[${s.x}; ${s.y}; ${s.z}]`)
                 const coord = snap(t);
                 if (!coord) {
-                    t.reset();
-                    return;
+                    t.object.position.copy(pos.current)
+                    // t.reset();
+                } else {
+                    const [x, y, z] = coord;
+                    t.object.position.set(x, y, z);
                 }
-                const [x, y, z] = coord;
-                t.object.position.set(x, y, z);
             }}
         />
     )
 }
 
-type OplaSceneProps = {
-    target: Object3D | null
-    children: React.ReactNode
+type OplaBox = {
+    id: string
+    position: [number, number, number]
+    size: [number, number, number]
 }
 
-const OplaScene: React.FC<OplaSceneProps> = ({ target, children }) => {
+function useOplaItems() {
     const scene = useThree(x => x.scene);
-    const snap = useCallback<TransformSnap>(t => {
+    // return useMemo(() => {
+    //     return scene.getObjectByName("opla") as Group;
+    // }, [scene]);
+    return () => {
+        return scene.getObjectByName("opla") as Group;
+    }
+}
+
+type BoxesProps = {
+    items: OplaBox[]
+}
+
+const Boxes: React.FC<BoxesProps> = ({ items }) => { return (
+        <group name="opla">
+            {items.map(box => (
+                <Box
+                    key={box.id}
+                    position={box.position}
+                    size={box.size}
+                    onClick={(e) => {
+                        // setTarget(e.object)
+                        // state.target = e.object
+                        state.target = e.object.id;
+                        console.log("click on ", e.object.id)
+                    }}
+                />
+            ))}
+        </group>
+    )
+}
+
+type OplaSceneProps = {
+    items: OplaBox[]
+}
+
+const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
+    const scene = useThree(state => state.scene)
+    const { target } = useSnapshot(state)
+
+    const snap = useCallback<TransformSnap>((t, start) => {
         const obj = t.object as Mesh;
-        if (isInvalidCell(obj.position)) {
+        if (isNegativePosition(obj.position)) {
             return null
         }
 
-        // const group = scene.getObjectByName("opla") as Group;
-        // if (isIntersects(obj, group)) {
-        //     return null
-        // }
+        const group = scene.getObjectByName("opla") as Group;
+        if (isIntersects(obj, group)) {
+            return null
+        }
 
         const geom = obj.geometry as BoxGeometry
         const p = geom.parameters;
         const { width, height, depth } = p;
         const { x, y, z } = obj.position;
+        // const { x: sx, y: sy, z: sz } = start;
+        const [sx, sy, sz] = [0, 0, 0]
 
         // X - red | width
         // Y - green | height
@@ -124,22 +247,20 @@ const OplaScene: React.FC<OplaSceneProps> = ({ target, children }) => {
         // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
 
         return [
-            isInt(x) ? x : nextPosition(x, width),
-            isInt(y) ? y : nextPosition(y, height),
-            isInt(z) ? z : nextPosition(z, depth),
+            isInt(x) ? x : nextPosition(x, width, x < sx ? -1 : 1),
+            isInt(y) ? y : nextPosition(y, height, y < sy ? -1 : 1),
+            isInt(z) ? z : nextPosition(z, depth, z < sz ? -1 : 1),
         ]
     }, [])
 
     return (
         <>
-            <group name="opla">
-                {children}
-            </group>
+            <Boxes items={items} />
 
             <OrbitControls makeDefault />
             {!target ? null : (
                 <SnapTransformControls
-                    object={target}
+                    object={scene.getObjectById(target)}
                     snap={snap}
                 />
             )}
@@ -148,47 +269,18 @@ const OplaScene: React.FC<OplaSceneProps> = ({ target, children }) => {
 }
 
 export default function Opla() {
-    const [target, setTarget] = useState<Object3D | null>(null)
-    const [items, setItems] = useState([
-        {
-            id: 0,
-            position: [0, 0, 0],
-            size: [1, 1, 1],
-        },
-        {
-            id: 1,
-            position: [0.5, 1, 0],
-            size: [2, 1, 1],
-        },
-        {
-            id: 2,
-            position: [0, 1.5, 0],
-            size: [1, 2, 1],
-        },
-        {
-            id: 3,
-            position: [2, 0, 0.5],
-            size: [1, 1, 2],
-        },
-        {
-            id: 4,
-            position: [2, 4, 0.5],
-            size: [2, 3, 4],
-        },
-    ])
+    const { items } = useSnapshot(state)
 
     return (
-        <Canvas dpr={[1, 2]} onPointerMissed={() => setTarget(null)}>
-            <OplaScene target={target}>
-                {items.map(box => (
-                    <Box
-                        key={box.id}
-                        position={box.position}
-                        size={box.size}
-                        onClick={(e) => setTarget(e.object)}
-                    />
-                ))}
-            </OplaScene>
+        <Canvas
+            dpr={[1, 2]}
+            onPointerMissed={() => {
+                state.target = null
+            }}
+        >
+            <OplaScene
+                items={items}
+            />
         </Canvas>
     )
 }
