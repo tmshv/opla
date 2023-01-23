@@ -6,7 +6,6 @@
     "dependencies": {
         "@react-three/drei": "^9.54.0",
         "@react-three/fiber": "^8.10.0",
-        "@typescript-eslint/eslint-plugin": "^5.48.2",
         "autoprefixer": "^10.4.2",
         "eslint": "^8.32.0",
         "eslint-config-next": "^13.1.4",
@@ -22,16 +21,22 @@
         "valtio": "^1.9.0"
     },
     "devDependencies": {
+        "@types/jest": "^29.2.6",
         "@types/node": "^18.11.0",
         "@types/react": "^18.0.0",
-        "@types/three": "^0.137.0"
+        "@types/three": "^0.137.0",
+        "@typescript-eslint/eslint-plugin": "^5.48.2",
+        "ts-jest": "^29.0.5",
+        "jest": "^29.3.1",
+        "jest-environment-jsdom": "^29.3.1"
     },
     "scripts": {
+        "vercel-build": "npm t && npm build",
         "dev": "next",
         "build": "next build",
         "lint": "next lint",
         "format": "npm run lint -- --fix",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest"
     },
     "keywords": [],
     "author": "",
