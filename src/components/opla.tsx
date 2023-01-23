@@ -299,6 +299,19 @@ const Boxes: React.FC<BoxesProps> = () => {
     )
 }
 
+function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number) {
+    return [
+        [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth],
+        [x + 0.5 * width, y - 0.5 * height, z - 0.5 * depth],
+        [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth],
+        [x + 0.5 * width, y - 0.5 * height, z + 0.5 * depth],
+        [x - 0.5 * width, y + 0.5 * height, z + 0.5 * depth],
+        [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth],
+        [x - 0.5 * width, y + 0.5 * height, z - 0.5 * depth],
+        [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth],
+    ]
+}
+
 type OplaWiresProps = {
 }
 
@@ -313,6 +326,17 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                 const [x, y, z] = box.position
                 const geom = (nodes.node_25mm as Mesh).geometry
 
+                const [width, height, depth] = box.size
+                const vs = boxVerticies(x, y, z, width, height, depth)
+                const a = vs[0]
+                const b = vs[1]
+                const c = vs[2]
+                const d = vs[3]
+                const e = vs[4]
+                const f = vs[5]
+                const g = vs[6]
+                const h = vs[7]
+
                 return (
                     <group
                         key={box.id}
@@ -320,56 +344,56 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                     >
                         <mesh
                             geometry={geom}
-                            position={[x + 0.5, y + 0.5, z + 0.5]}
+                            position={a}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x + 0.5, y - 0.5, z - 0.5]}
+                            position={b}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x + 0.5, y + 0.5, z - 0.5]}
+                            position={c}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x + 0.5, y - 0.5, z + 0.5]}
+                            position={d}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x - 0.5, y + 0.5, z + 0.5]}
+                            position={e}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x - 0.5, y - 0.5, z - 0.5]}
+                            position={f}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x - 0.5, y + 0.5, z - 0.5]}
+                            position={g}
                             scale={4}
                         >
                             <meshNormalMaterial />
                         </mesh>
                         <mesh
                             geometry={geom}
-                            position={[x - 0.5, -0.5, z + 0.5]}
+                            position={h}
                             scale={4}
                         >
                             <meshNormalMaterial />
