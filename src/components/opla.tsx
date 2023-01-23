@@ -312,39 +312,43 @@ function boxVerticies(x: number, y: number, z: number, width: number, height: nu
     ]
 }
 
+function useWires(): [[number, number, number][], {}[]] {
+    const { items } = useSnapshot(state)
+    let nodes = []
+    for (const box of items) {
+        const [x, y, z] = box.position
+        const [width, height, depth] = box.size
+        const vs = boxVerticies(x, y, z, width, height, depth)
+        nodes = nodes.concat(vs)
+        // const a = vs[0]
+        // const b = vs[1]
+        // const c = vs[2]
+        // const d = vs[3]
+        // const e = vs[4]
+        // const f = vs[5]
+        // const g = vs[6]
+        // const h = vs[7]
+    }
+    return [nodes, []]
+}
+
 type OplaWiresProps = {
 }
 
 const OplaWires: React.FC<OplaWiresProps> = () => {
-    // const scene = useThree(state => state.scene)
-    const { items } = useSnapshot(state)
+    const [ns, es] = useWires()
     const { nodes } = useGLTF("/assets/opla.glb")
 
     return (
         <Suspense fallback={null}>
-            {items.map(box => {
-                const [x, y, z] = box.position
-                const geom = (nodes.node_25mm as Mesh).geometry
-
-                const [width, height, depth] = box.size
-                const vs = boxVerticies(x, y, z, width, height, depth)
-                const a = vs[0]
-                const b = vs[1]
-                const c = vs[2]
-                const d = vs[3]
-                const e = vs[4]
-                const f = vs[5]
-                const g = vs[6]
-                const h = vs[7]
-
-                return (
-                    <group
-                        key={box.id}
-                        dispose={null}
-                    >
+            <group>
+                {ns.map((pos, i) => {
+                    const geom = (nodes.node_25mm as Mesh).geometry
+                    return (
                         <mesh
+                            key={i}
                             geometry={geom}
-                            position={a}
+                            position={pos}
                             scale={4}
                         >
                             <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
@@ -352,82 +356,13 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                                 color={0x111111}
                             />
                         </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={b}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={c}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={d}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={e}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={f}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={g}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                        <mesh
-                            geometry={geom}
-                            position={h}
-                            scale={4}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
-                    </group>
-                )
-            })}
+                    )
+                })}
+            </group>
         </Suspense>
     )
 }
+
 type OplaSceneProps = {
 }
 
