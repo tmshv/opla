@@ -77,9 +77,19 @@ function isInt(value: number): boolean {
     return n === value
 }
 
+/*
+* Need to floor number other way: -1.53 -> 1 (not 2)
+*/
+function floor(value: number): number {
+    if (value < 0) {
+        return Math.floor(value) + 1
+    } else {
+        return Math.floor(value)
+    }
+}
+
 function nextPosition(pos: number, size: number, sign: number): number {
-    // const cell = Math.floor(pos);
-    const cell = Math.round(pos)
+    const cell = floor(pos)
     let cellShift = 0
 
     // move by half cell
@@ -90,16 +100,17 @@ function nextPosition(pos: number, size: number, sign: number): number {
     return cell + cellShift * sign
 }
 
+/*
+* Same as intersection check in threejs but allow equals
+*/
 function boxIntersect(a: Box3, b: Box3): boolean {
-    // console.log(a, b)
-
     // using 6 splitting planes to rule out intersections.
-    return a.max.x < b.min.x
-        || a.min.x > b.max.x
-        || a.max.y < b.min.y
-        || a.min.y > b.max.y
-        || a.max.z < b.min.z
-        || a.min.z > b.max.z
+    return a.max.x <= b.min.x
+        || a.min.x >= b.max.x
+        || a.max.y <= b.min.y
+        || a.min.y >= b.max.y
+        || a.max.z <= b.min.z
+        || a.min.z >= b.max.z
         ? false
         : true
 }
@@ -116,7 +127,6 @@ function isIntersects(block: Object3D, blocks: Group): boolean {
         const o = new THREE.Box3()
         o.setFromObject(other)
         if (boxIntersect(bbox, o)) {
-            console.log("intersect with", other.id)
             return true
         }
     }
@@ -136,6 +146,7 @@ type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjec
 
 const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...props }) => {
     const pos = useRef<Vector3 | null>(null)
+    const last = useRef<Vector3>(new Vector3(0, 0, 0))
     return (
         <TransformControls
             {...props}
@@ -145,30 +156,32 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...
                 pos.current = t.object.position.clone()
             }}
             onMouseUp={event => {
-                const t = event.target as ThreeTransformControls;
-                const coord = snap(t, pos.current);
-                if (coord) {
-                    const [x, y, z] = coord;
-                    t.object.position.set(x, y, z);
-
-                    const s = pos.current
-                    console.log(`[${s.x}; ${s.y}; ${s.z}] -> [${x}; ${y}; ${z}]`)
-
-                } else {
-                    t.object.position.copy(pos.current)
-                }
+                // const t = event.target as ThreeTransformControls
+                // const coord = snap(t, pos.current)
+                // const c = t.object.position
+                // if (coord) {
+                //     const [x, y, z] = coord
+                //     t.object.position.set(x, y, z)
+                //     const s = pos.current
+                //     console.log(`[${s.x}; ${s.y}; ${s.z}] -> [${x}; ${y}; ${z}] ([${c.x}; ${c.y}; ${c.z}])`)
+                // } else {
+                //     t.object.position.copy(pos.current)
+                // }
                 pos.current = null
             }}
             onObjectChange={event => {
                 const t = event.target as ThreeTransformControls
-                // const s = t.object.position;
+                // const s = t.object.position
+                // cur.current = s;
                 // console.log(`[${s.x}; ${s.y}; ${s.z}]`)
-                const coord = snap(t)
+                const coord = snap(t, pos.current)
                 if (!coord) {
-                    t.object.position.copy(pos.current)
+                    // const revert = last.current ?? pos.current
+                    t.object.position.copy(last.current)
                     // t.reset();
                 } else {
                     const [x, y, z] = coord
+                    last.current.set(x, y, z)
                     t.object.position.set(x, y, z)
                 }
             }}
@@ -196,23 +209,24 @@ type BoxesProps = {
     items: OplaBox[]
 }
 
-const Boxes: React.FC<BoxesProps> = ({ items }) => { return (
-    <group name="opla">
-        {items.map(box => (
-            <Box
-                key={box.id}
-                position={box.position}
-                size={box.size}
-                onClick={(e) => {
-                    // setTarget(e.object)
-                    // state.target = e.object
-                    state.target = e.object.id
-                    console.log("click on ", e.object.id)
-                }}
-            />
-        ))}
-    </group>
-)
+const Boxes: React.FC<BoxesProps> = ({ items }) => {
+    return (
+        <group name="opla">
+            {items.map(box => (
+                <Box
+                    key={box.id}
+                    position={box.position}
+                    size={box.size}
+                    onClick={(e) => {
+                        // setTarget(e.object)
+                        // state.target = e.object
+                        state.target = e.object.id
+                        console.log("click on ", e.object.id)
+                    }}
+                />
+            ))}
+        </group>
+    )
 }
 
 type OplaSceneProps = {
@@ -224,7 +238,7 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
     const { target } = useSnapshot(state)
 
     const snap = useCallback<TransformSnap>((t, start) => {
-        const obj = t.object as Mesh;
+        const obj = t.object as Mesh
         if (isNegativePosition(obj.position)) {
             return null
         }
