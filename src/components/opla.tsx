@@ -347,56 +347,80 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                             position={a}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={b}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={c}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={d}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={e}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={f}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={g}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                         <mesh
                             geometry={geom}
                             position={h}
                             scale={4}
                         >
-                            <meshNormalMaterial />
+                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
+                            <Edges
+                                color={0x111111}
+                            />
                         </mesh>
                     </group>
                 )
