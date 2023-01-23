@@ -312,6 +312,12 @@ function boxVerticies(x: number, y: number, z: number, width: number, height: nu
     ]
 }
 
+function eq(a: [number, number, number], b: [number, number, number]): boolean {
+    const [ax, ay, az] = a
+    const [bx, by, bz] = b
+    return ax === bx && ay === by && az === bz
+}
+
 function useWires(): [[number, number, number][], {}[]] {
     const { items } = useSnapshot(state)
     let nodes = []
@@ -319,15 +325,12 @@ function useWires(): [[number, number, number][], {}[]] {
         const [x, y, z] = box.position
         const [width, height, depth] = box.size
         const vs = boxVerticies(x, y, z, width, height, depth)
-        nodes = nodes.concat(vs)
-        // const a = vs[0]
-        // const b = vs[1]
-        // const c = vs[2]
-        // const d = vs[3]
-        // const e = vs[4]
-        // const f = vs[5]
-        // const g = vs[6]
-        // const h = vs[7]
+        for (const v of vs) {
+            const i = nodes.findIndex(node => eq(node, v))
+            if (i === -1) {
+                nodes.push(v)
+            }
+        }
     }
     return [nodes, []]
 }
