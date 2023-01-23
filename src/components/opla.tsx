@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import { useCallback, useRef, useState } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from '@react-three/drei'
-import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from 'three'
-import * as THREE from 'three'
-import { TransformControls as ThreeTransformControls } from 'three/examples/jsm/controls/TransformControls'
-import { proxy, useSnapshot } from 'valtio'
+import { useCallback, useRef, useState } from "react"
+import { Canvas, useThree } from "@react-three/fiber"
+import { OrbitControls, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
+import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
+import * as THREE from "three"
+import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
+import { proxy, useSnapshot } from "valtio"
 
 type State = {
     target: string | null,
@@ -17,33 +17,33 @@ let state = proxy<State>({
     target: null,
     items: [
         {
-            id: '1',
+            id: "1",
             position: [0, 0, 0],
             size: [1, 1, 1],
         },
         {
-            id: '2',
+            id: "2",
             position: [0.5, 1, 0],
             size: [2, 1, 1],
         },
         {
-            id: '3',
+            id: "3",
             position: [0, 1.5, 0],
             size: [1, 2, 1],
         },
         {
-            id: '4',
+            id: "4",
             position: [2, 0, 0.5],
             size: [1, 1, 2],
         },
         {
-            id: '5',
-            position: [2.5, 2, 0.5],
-            size: [2, 3, 4],
+            id: "5",
+            position: [2, 1.5, 0],
+            size: [1, 2, 3],
         },
         {
-            id: '6',
-            position: [0, 10, 0],
+            id: "6",
+            position: [0, 3, 0],
             size: [1, 1, 1],
         },
     ],
@@ -73,18 +73,18 @@ const Box: React.FC<BoxProps> = ({ size, ...props }) => {
 }
 
 function isInt(value: number): boolean {
-    const n = Math.floor(value);
-    return n === value;
+    const n = Math.floor(value)
+    return n === value
 }
 
 function nextPosition(pos: number, size: number, sign: number): number {
     // const cell = Math.floor(pos);
-    const cell = Math.round(pos);
-    let cellShift = 0;
+    const cell = Math.round(pos)
+    let cellShift = 0
 
     // move by half cell
     if (size % 2 === 0) {
-        cellShift = 0.5;
+        cellShift = 0.5
     }
 
     return cell + cellShift * sign
@@ -101,7 +101,7 @@ function boxIntersect(a: Box3, b: Box3): boolean {
         || a.max.z < b.min.z
         || a.min.z > b.max.z
         ? false
-        : true;
+        : true
 }
 
 function isIntersects(block: Object3D, blocks: Group): boolean {
@@ -141,8 +141,8 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...
             {...props}
             space={"local"}
             onMouseDown={event => {
-                const t = event.target as ThreeTransformControls;
-                pos.current = t.object.position.clone();
+                const t = event.target as ThreeTransformControls
+                pos.current = t.object.position.clone()
             }}
             onMouseUp={event => {
                 const t = event.target as ThreeTransformControls;
@@ -160,16 +160,16 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, ...
                 pos.current = null
             }}
             onObjectChange={event => {
-                const t = event.target as ThreeTransformControls;
+                const t = event.target as ThreeTransformControls
                 // const s = t.object.position;
                 // console.log(`[${s.x}; ${s.y}; ${s.z}]`)
-                const coord = snap(t);
+                const coord = snap(t)
                 if (!coord) {
                     t.object.position.copy(pos.current)
                     // t.reset();
                 } else {
-                    const [x, y, z] = coord;
-                    t.object.position.set(x, y, z);
+                    const [x, y, z] = coord
+                    t.object.position.set(x, y, z)
                 }
             }}
         />
@@ -183,12 +183,12 @@ type OplaBox = {
 }
 
 function useOplaItems() {
-    const scene = useThree(x => x.scene);
+    const scene = useThree(x => x.scene)
     // return useMemo(() => {
     //     return scene.getObjectByName("opla") as Group;
     // }, [scene]);
     return () => {
-        return scene.getObjectByName("opla") as Group;
+        return scene.getObjectByName("opla") as Group
     }
 }
 
@@ -197,22 +197,22 @@ type BoxesProps = {
 }
 
 const Boxes: React.FC<BoxesProps> = ({ items }) => { return (
-        <group name="opla">
-            {items.map(box => (
-                <Box
-                    key={box.id}
-                    position={box.position}
-                    size={box.size}
-                    onClick={(e) => {
-                        // setTarget(e.object)
-                        // state.target = e.object
-                        state.target = e.object.id;
-                        console.log("click on ", e.object.id)
-                    }}
-                />
-            ))}
-        </group>
-    )
+    <group name="opla">
+        {items.map(box => (
+            <Box
+                key={box.id}
+                position={box.position}
+                size={box.size}
+                onClick={(e) => {
+                    // setTarget(e.object)
+                    // state.target = e.object
+                    state.target = e.object.id
+                    console.log("click on ", e.object.id)
+                }}
+            />
+        ))}
+    </group>
+)
 }
 
 type OplaSceneProps = {
@@ -229,15 +229,15 @@ const OplaScene: React.FC<OplaSceneProps> = ({ items }) => {
             return null
         }
 
-        const group = scene.getObjectByName("opla") as Group;
+        const group = scene.getObjectByName("opla") as Group
         if (isIntersects(obj, group)) {
             return null
         }
 
         const geom = obj.geometry as BoxGeometry
-        const p = geom.parameters;
-        const { width, height, depth } = p;
-        const { x, y, z } = obj.position;
+        const p = geom.parameters
+        const { width, height, depth } = p
+        const { x, y, z } = obj.position
         // const { x: sx, y: sy, z: sz } = start;
         const [sx, sy, sz] = [0, 0, 0]
 
