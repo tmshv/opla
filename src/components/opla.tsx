@@ -1,8 +1,8 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
-import { Canvas, useThree } from "@react-three/fiber"
-import { Edges, Environment, OrbitControls, Stage, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
+import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
+import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor } from "@react-three/drei"
 import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
@@ -70,14 +70,72 @@ const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
             />
             <meshStandardMaterial
                 color={color}
-            // side={THREE.DoubleSide}
-            // transparent
-            // opacity={0.85}
+                // side={THREE.DoubleSide}
+                // transparent
+                // opacity={0.85}
                 metalness={1}
                 roughness={0.4}
             />
             <Edges
                 color={0x111111}
+            />
+        </mesh>
+    )
+}
+
+type BoxCursorProps = MeshProps & {
+    size: [number, number, number]
+    color: string
+}
+
+const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
+    // const raycaster = useThree(x => x.raycaster)
+    const [hovered, setHovered] = useState(false)
+    const [pos, setPos] = useState(new Vector3(0, 0, 0))
+    useCursor(hovered)
+
+    // raycaster.intersectObjects()
+
+    useFrame(({ raycaster, camera, pointer, scene }) => {
+        // raycaster.setFromCamera(pointer, camera)
+        // const w = scene.getObjectByName("walls")
+        // const w = scene.getObjectByName("opla")
+        const w = scene
+        const intersects = raycaster.intersectObjects(w.children)
+
+        if (intersects.length > 0) {
+            const wall = intersects[0]
+            // console.log("frame", wall.object.name, wall.face.normal, wall.point)
+
+            const pos = wall.point.clone()
+            pos.x = floor(pos.x)
+            pos.y = floor(pos.y)
+            pos.z = floor(pos.z)
+
+            // pos.add(wall.face.normal)
+
+            setPos(pos)
+        }
+    })
+
+
+    return (
+        <mesh {...props}
+            position={pos}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+        // scale={0.99}
+        >
+            <boxGeometry
+                args={size}
+            />
+            <meshStandardMaterial
+                color={color}
+                // side={THREE.DoubleSide}
+                transparent
+                opacity={0.85}
+            // metalness={1}
+            // roughness={0.4}
             />
         </mesh>
     )
@@ -152,7 +210,7 @@ function isNegativePosition(cell: THREE.Vector3): boolean {
 function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
     const p = geom.parameters
-    const { width, height, depth } = p
+    // const { width, height, depth } = p
     const { x, y, z } = obj.position
 
     return x < 0 || y < 0 || z < 0
@@ -320,42 +378,50 @@ export default function Opla() {
                 items={items}
             />
 
-            {/* normal to Y */}
-            <mesh
-                rotation={[-Math.PI / 2, 0, 0]}
-                position={[1.5, -0.5 - 0.01, 1.5]}
-            >
-                <planeGeometry args={[4, 4, 4]} />
-                <meshStandardMaterial
-                    transparent
-                    color={0x00ff00}
-                    opacity={0.85}
-                />
-            </mesh>
-            {/* normal to X */}
-            <mesh
-                rotation={[0, Math.PI / 2, 0]}
-                position={[-0.5 - 0.01, 1.5, 1.5]}
-            >
-                <planeGeometry args={[4, 4, 4]} />
-                <meshStandardMaterial
-                    transparent
-                    color={0xff0000}
-                    opacity={0.85}
-                />
-            </mesh>
-            {/* normal to Z */}
-            <mesh
-                rotation={[0, 0, Math.PI / 2]}
-                position={[1.5, 1.5, -0.5 - 0.01]}
-            >
-                <planeGeometry args={[4, 4, 4]} />
-                <meshStandardMaterial
-                    transparent
-                    color={0x0000ff}
-                    opacity={0.85}
-                />
-            </mesh>
+            {/* <BoxCursor */}
+            {/*     color="0xff00ff" */}
+            {/*     size={[1, 1, 1]} */}
+            {/*     position={[10, 10, 10]} */}
+            {/* /> */}
+
+            <group name="walls">
+                {/* normal to Y */}
+                <mesh
+                    rotation={[-Math.PI / 2, 0, 0]}
+                    position={[1.5, -0.5 - 0.01, 1.5]}
+                >
+                    <planeGeometry args={[4, 4, 4]} />
+                    <meshStandardMaterial
+                        transparent
+                        color={0x00ff00}
+                        opacity={0.85}
+                    />
+                </mesh>
+                {/* normal to X */}
+                <mesh
+                    rotation={[0, Math.PI / 2, 0]}
+                    position={[-0.5 - 0.01, 1.5, 1.5]}
+                >
+                    <planeGeometry args={[4, 4, 4]} />
+                    <meshStandardMaterial
+                        transparent
+                        color={0xff0000}
+                        opacity={0.85}
+                    />
+                </mesh>
+                {/* normal to Z */}
+                <mesh
+                    rotation={[0, 0, Math.PI / 2]}
+                    position={[1.5, 1.5, -0.5 - 0.01]}
+                >
+                    <planeGeometry args={[4, 4, 4]} />
+                    <meshStandardMaterial
+                        transparent
+                        color={0x0000ff}
+                        opacity={0.85}
+                    />
+                </mesh>
+            </group>
         </Canvas>
     )
 }
