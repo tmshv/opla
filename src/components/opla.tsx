@@ -294,6 +294,31 @@ export default function Opla() {
             <OplaScene
                 items={items}
             />
+
+            {/* normal to Y */}
+            <mesh
+                rotation={[-Math.PI/2, 0, 0]}
+                position={[1.5, -0.5, 1.5]}
+            >
+                <planeGeometry args={[4, 4, 4]} />
+                <meshNormalMaterial />
+            </mesh>
+            {/* normal to X */}
+            <mesh
+                rotation={[0, Math.PI/2, 0]}
+                position={[-0.5, 1.5, 1.5]}
+            >
+                <planeGeometry args={[4, 4, 4]} />
+                <meshNormalMaterial />
+            </mesh>
+            {/* normal to Z */}
+            <mesh
+                rotation={[0, 0, Math.PI/2]}
+                position={[1.5, 1.5, -0.5]}
+            >
+                <planeGeometry args={[4, 4, 4]} />
+                <meshNormalMaterial />
+            </mesh>
         </Canvas>
     )
 }
