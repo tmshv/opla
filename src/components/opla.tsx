@@ -564,37 +564,37 @@ export default function Opla() {
                 {/* normal to Y */}
                 <mesh
                     rotation={[-Math.PI / 2, 0, 0]}
-                    position={[1.5, -0.5 - 0.01, 1.5]}
+                    position={[1.5, -0.5 - 0.07, 1.5]}
                 >
                     <planeGeometry args={[4, 4, 4]} />
                     <meshStandardMaterial
-                        transparent
-                        color={0x00ff00}
-                        opacity={0.85}
+                        color={0xaaffaa}
+                        metalness={0.5}
+                        roughness={0.75}
                     />
                 </mesh>
                 {/* normal to X */}
                 <mesh
                     rotation={[0, Math.PI / 2, 0]}
-                    position={[-0.5 - 0.01, 1.5, 1.5]}
+                    position={[-0.5 - 0.07, 1.5, 1.5]}
                 >
                     <planeGeometry args={[4, 4, 4]} />
                     <meshStandardMaterial
-                        transparent
-                        color={0xff0000}
-                        opacity={0.85}
+                        color={0xffaaaa}
+                        metalness={0.5}
+                        roughness={0.75}
                     />
                 </mesh>
                 {/* normal to Z */}
                 <mesh
                     rotation={[0, 0, Math.PI / 2]}
-                    position={[1.5, 1.5, -0.5 - 0.01]}
+                    position={[1.5, 1.5, -0.5 - 0.07]}
                 >
                     <planeGeometry args={[4, 4, 4]} />
                     <meshStandardMaterial
-                        transparent
-                        color={0x0000ff}
-                        opacity={0.85}
+                        color={0xaaaaff}
+                        metalness={0.5}
+                        roughness={0.75}
                     />
                 </mesh>
             </group>
