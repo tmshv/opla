@@ -322,6 +322,20 @@ const Boxes: React.FC<BoxesProps> = () => {
 * |.'    | .'
 * h------d'
 *
+* faces
+    [a, b, c, d, a],
+    [a, b, f, e, a],
+    [e, f, g, h, e],
+    [h, d, c, g, h],
+    [e, a, d, h, e],
+    [f, b, c, g, g],
+bbox
+    [a, c],
+    [a, f],
+    [e, g],
+    [h, c],
+    [e, d],
+    [f, c],
 * edges:
 *  ab
 *  ad
@@ -362,7 +376,150 @@ function createTopology(boxes: [number, number, number][]) {
     // 2. analyze graph with set of rules
 }
 
-function useWires(): [[number, number, number][], Edge[]] {
+function pairs<T>(items: T[]): [T, T][] {
+    const pairs = []
+    const visit = new Set<string>()
+    const len = items.length
+    for (let i = 0; i < len; i++) {
+        for (let j = 0; j < len; j++) {
+            if (i === j) {
+                continue
+            }
+            // AB is the same as BA
+            if (visit.has(`${i}-${j}`) || visit.has(`${j}-${i}`)) {
+                continue
+            }
+            pairs.push([items[i], items[j]])
+            visit.add(`${i}-${j}`)
+            visit.add(`${j}-${i}`)
+        }
+    }
+    return pairs
+}
+
+function isPolygonsOverlapping(a: Vector3[], b: Vector3[]): boolean {
+    return false
+}
+
+function getPlanes(center: Vector3, size: Vector3): Box3[] {
+    const planes = []
+    const [a, b, c, d, e, f, g, h] = boxVerticies(center.x, center.y, center.z, size.x, size.y, size.z)
+    let box = new Box3()
+
+    box = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
+    box.translate(new Vector3(size.x / 2, 0, 0))
+    box.translate(center)
+    planes.push(box)
+
+    box = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
+    box.translate(new Vector3(-size.x / 2, 0, 0))
+    box.translate(center)
+    planes.push(box)
+
+    box = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
+    box.translate(new Vector3(0, -size.y / 2, 0))
+    box.translate(center)
+    planes.push(box)
+
+    box = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
+    box.translate(new Vector3(0, +size.y / 2, 0))
+    box.translate(center)
+    planes.push(box)
+
+    box = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
+    box.translate(new Vector3(0, 0, -size.z / 2))
+    box.translate(center)
+    planes.push(box)
+
+    box = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
+    box.translate(new Vector3(0, 0, size.z / 2))
+    box.translate(center)
+    planes.push(box)
+
+    return planes
+}
+
+function box3FromVector3(v: Vector3, size: number): Box3 {
+    // const s = new Vector3(size, size, size)
+    const min = v.clone()
+    min.subScalar(size)
+    const max = v.clone()
+    max.addScalar(size)
+    return new Box3(min, max)
+}
+
+/**
+* returns two boxes in order [BIGGER, SMALLER]
+*/
+function sortBox3(a: Box3, b: Box3): [Box3, Box3] {
+    if (a.containsBox(b)) {
+        return [a, b]
+    }
+    return [b, a]
+}
+
+function vectorToAxes(v: Vector3): [Vector3, Vector3, Vector3] {
+    return [
+        new Vector3(v.x, 0, 0),
+        new Vector3(0, v.y, 0),
+        new Vector3(0, 0, v.z),
+    ]
+}
+
+function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
+    const axes = vectorToAxes(v)
+    const [a, b, ..._] = axes.filter(a => a.lengthSq() > 0)
+    return [a, b]
+}
+
+function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
+    const box = new Box3()
+    box.setFromPoints([a, b])
+    return box
+}
+
+/**
+* split box A by box B to 9 parts
+* required to box A contains box B
+*/
+function splitTo9(a: Box3, b: Box3): Box3[] {
+    const [ax, ay] = vectorToAxes2(a.getSize(new Vector3()))
+    // as2.divideScalar(2)
+    const a1 = a.min.clone()
+    const a2 = a.min.clone()
+    a2.add(ax)
+    const a3 = a.min.clone()
+    a3.add(ay)
+    const a4 = a.max.clone()
+
+    const [bx, by] = vectorToAxes2(b.getSize(new Vector3()))
+    const b1 = b.min.clone()
+    const b2 = b.min.clone()
+    b2.add(bx)
+    const b3 = b.min.clone()
+    b3.add(by)
+    const b4 = b.max.clone()
+
+    const boxes = []
+
+    // boxes.push(box3FromVector3(a1, 0.01))
+    // boxes.push(box3FromVector3(b1, 0.01))
+    // boxes.push(box3FromVector3(a2, 0.01))
+    // boxes.push(box3FromVector3(b2, 0.01))
+    // boxes.push(box3FromVector3(a3, 0.01))
+    // boxes.push(box3FromVector3(a4, 0.01))
+    // boxes.push(box3FromVector3(b3, 0.01))
+    // boxes.push(box3FromVector3(b4, 0.01))
+
+    boxes.push(box3FromTwoVector3(a1, b1))
+    boxes.push(box3FromTwoVector3(a2, b2))
+    boxes.push(box3FromTwoVector3(a3, b3))
+    boxes.push(box3FromTwoVector3(a4, b4))
+
+    return boxes
+}
+
+function useWires(): [[number, number, number][], Edge[], Box3[]] {
     const { items } = useSnapshot(state)
     let nodes: [number, number, number][] = []
     for (const box of items) {
@@ -403,7 +560,76 @@ function useWires(): [[number, number, number][], Edge[]] {
             // }
         }
     }
-    return [nodes, edges]
+
+    // list of all polygons in scene
+    // const polygons = items.flatMap(box => {
+    //     const [x, y, z] = box.position
+    //     const [width, height, depth] = box.size
+    //     const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
+    //     return [
+    //         [a, b, c, d, a],
+    //         [a, b, f, e, a],
+    //         [e, f, g, h, e],
+    //         [h, d, c, g, h],
+    //         [e, a, d, h, e],
+    //         [f, b, c, g, g],
+    //     ]
+    // })
+    const overlaps = []
+    for (const pair of pairs(items)) {
+        const [a, b] = pair.map(box => {
+            const [w, h, d] = box.size
+            const b = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+            const [x, y, z] = box.position
+            const pos = new Vector3(x, y, z)
+            b.translate(pos)
+            return b
+        })
+
+        if (a.intersectsBox(b)) {
+            const bb = a.clone().intersect(b)
+            const size = bb.getSize(new Vector3())
+            const center = bb.getCenter(new Vector3())
+
+            // if size of overlapping shape is match this pattern
+            // [X, 0, 0], [0, X, 0], [0, 0, X]
+            // means overlapping edge only not a polygon
+            const isEdgeOverlap = size.toArray().filter(x => x !== 0).length === 1
+            if (!isEdgeOverlap) {
+                // overlaps.push(box3FromVector3(center, 0.01))
+
+                const { position: positionA, size: sizeA } = pair[0]
+                const planesA = getPlanes(new Vector3(...positionA), new Vector3(...sizeA))
+                // for(let p of planesA) {
+                //     overlaps.push(p)
+                // }
+                const a = planesA.find(plane => {
+                    return plane.containsPoint(center)
+                })
+                const { position: positionB, size: sizeB } = pair[1]
+                const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
+                // for (let p of planesB) {
+                //     overlaps.push(p)
+                // }
+                const b = planesB.find(plane => {
+                    return plane.containsPoint(center)
+                })
+
+                console.log("overlap!", a, b)
+
+                const [bigBox, smallBox] = sortBox3(a, b)
+                for (let x of splitTo9(bigBox, smallBox)) {
+                    overlaps.push(x)
+                }
+
+                // overlaps.push(a)
+                // overlaps.push(b)
+                // overlaps.push(sortBox3(a, b)[0])
+                // overlaps.push(bb)
+            }
+        }
+    }
+    return [nodes, edges, overlaps]
 }
 
 function getRotation(edge: Edge): [number, number, number] {
@@ -427,7 +653,7 @@ type OplaWiresProps = {
 }
 
 const OplaWires: React.FC<OplaWiresProps> = () => {
-    const [ns, es] = useWires()
+    const [ns, es, overlaps] = useWires()
     const { nodes } = useGLTF("/assets/opla.glb")
 
     return (
