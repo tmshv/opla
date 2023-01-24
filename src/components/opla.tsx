@@ -52,12 +52,12 @@ let state = proxy<State>({
         },
         {
             id: "2x 2y 4z",
-            position: [5, 0.5, 1.5],
+            position: [4.5, 0.5, 1.5],
             size: [2, 2, 4],
         },
         {
             id: "3x 3y 3z",
-            position: [8.5, 1, 1.5],
+            position: [8, 1, 1],
             size: [3, 3, 3],
         },
         {
