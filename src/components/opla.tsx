@@ -222,11 +222,15 @@ function isNegativePosition(cell: THREE.Vector3): boolean {
 
 function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
-    const { width, height, depth } = geom.parameters
-    const { x, y, z } = obj.position
-    return x - width / 2 < 0
-        || y - height / 2 < 0
-        || z - depth / 2 < 0
+    const { width: w, height: h, depth: d } = geom.parameters
+    const [x, y, z] = obj.position.toArray()
+    const out = x - w / 2 <= 0
+        || y - h / 2 <= 0
+        || z - d / 2 <= 0
+    // if (out) {
+    //     console.log("out of bounds", x, y, z, x - w / 2, y - h / 2, z - d / 2)
+    // }
+    return out
 }
 
 type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => Vector3 | null
@@ -238,7 +242,7 @@ type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjec
 }
 
 const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, onSnap, ...props }) => {
-    const pos = useRef<Vector3 | null>(null)
+    const start = useRef<Vector3 | null>(null)
     const last = useRef<Vector3>(new Vector3(0, 0, 0))
     return (
         <TransformControls
@@ -246,14 +250,15 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, onS
             space={"local"}
             onMouseDown={event => {
                 const t = event.target as ThreeTransformControls
-                pos.current = t.object.position.clone()
+                start.current = t.object.position.clone()
+                last.current = t.object.position.clone()
             }}
             onMouseUp={() => {
-                pos.current = null
+                start.current = null
             }}
             onObjectChange={event => {
                 const t = event.target as ThreeTransformControls
-                const coord = snap(t, pos.current)
+                const coord = snap(t, start.current)
                 if (!coord) {
                     t.object.position.copy(last.current)
                     // t.reset();
@@ -484,6 +489,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
         // if (isOutOfBounds(obj)) {
         //     return null
         // }
+
         if (isNegativePosition(obj.position)) {
             return null
         }
