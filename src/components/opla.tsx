@@ -478,27 +478,23 @@ function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
     return box
 }
 
-/**
-* split box A by box B to 9 parts
+function box3ToCorners(box: Box3): [Vector3, Vector3, Vector3, Vector3] {
+    const [ax, ay] = vectorToAxes2(box.getSize(new Vector3()))
+    const a1 = box.min.clone()
+    const a2 = box.min.clone()
+    a2.add(ax)
+    const a3 = box.min.clone()
+    a3.add(ay)
+    const a4 = box.max.clone()
+    return [a1, a2, a3, a4]
+}
+
+/* split box A by box B to 9 parts
 * required to box A contains box B
 */
 function splitTo9(a: Box3, b: Box3): Box3[] {
-    const [ax, ay] = vectorToAxes2(a.getSize(new Vector3()))
-    // as2.divideScalar(2)
-    const a1 = a.min.clone()
-    const a2 = a.min.clone()
-    a2.add(ax)
-    const a3 = a.min.clone()
-    a3.add(ay)
-    const a4 = a.max.clone()
-
-    const [bx, by] = vectorToAxes2(b.getSize(new Vector3()))
-    const b1 = b.min.clone()
-    const b2 = b.min.clone()
-    b2.add(bx)
-    const b3 = b.min.clone()
-    b3.add(by)
-    const b4 = b.max.clone()
+    const [a1, a2, a3, a4] = box3ToCorners(a)
+    const [b1, b2, b3, b4] = box3ToCorners(b)
 
     const boxes = []
 
@@ -615,11 +611,28 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
                     return plane.containsPoint(center)
                 })
 
-                console.log("overlap!", a, b)
+                console.log("overlap!")
 
                 const [bigBox, smallBox] = sortBox3(a, b)
-                for (let x of splitTo9(bigBox, smallBox)) {
-                    overlaps.push(x)
+                for (let box of splitTo9(bigBox, smallBox)) {
+                    if (box.isEmpty()) {
+                        continue
+                    }
+                    try {
+                        const [a1, a2, a3, a4] = box3ToCorners(box)
+                        nodes.push(a1.toArray())
+                        nodes.push(a2.toArray())
+                        nodes.push(a3.toArray())
+                        nodes.push(a4.toArray())
+
+                        edges.push([a1, a2])
+                        edges.push([a1, a3])
+                        edges.push([a2, a4])
+                        edges.push([a3, a4])
+                    } catch (error) {
+                        console.log("fail", box)
+                    }
+                    //     overlaps.push(box)
                 }
 
                 // overlaps.push(a)
