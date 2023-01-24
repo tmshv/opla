@@ -1,9 +1,9 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useRef, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Euler, Group, Mesh, Object3D, Vector3 } from "three"
+import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
 import { proxy, useSnapshot } from "valtio"
@@ -56,6 +56,11 @@ let state = proxy<State>({
             size: [2, 2, 4],
         },
         {
+            id: "3x 3y 3z",
+            position: [8.5, 1, 1.5],
+            size: [3, 3, 3],
+        },
+        {
             id: "cube",
             position: [0, 4, 0],
             size: [1, 1, 1],
@@ -63,13 +68,15 @@ let state = proxy<State>({
     ],
 })
 
-type BoxProps = {
-    [key: string]: any
-    size: [number, number, number]
+type BoxProps = MeshProps & {
+    width: number
+    height: number
+    depth: number
     color: string
+    visible: boolean
 }
 
-const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
+const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...props }) => {
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
 
@@ -77,22 +84,15 @@ const Box: React.FC<BoxProps> = ({ size, color, ...props }) => {
         <mesh {...props}
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => setHovered(false)}
-        // scale={0.99}
         >
             <boxGeometry
-                args={size}
+                args={[width, height, depth]}
             />
             <meshStandardMaterial
                 color={color}
-                // side={THREE.DoubleSide}
                 transparent
-                opacity={0.1}
-            // metalness={1}
-            // roughness={0.4}
+                opacity={visible ? 0.4 : 0}
             />
-            {/* <Edges */}
-            {/*     color={0x111111} */}
-            {/* /> */}
         </mesh>
     )
 }
@@ -222,11 +222,11 @@ function isNegativePosition(cell: THREE.Vector3): boolean {
 
 function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
-    const p = geom.parameters
-    // const { width, height, depth } = p
+    const { width, height, depth } = geom.parameters
     const { x, y, z } = obj.position
-
-    return x < 0 || y < 0 || z < 0
+    return x - width / 2 < 0
+        || y - height / 2 < 0
+        || z - depth / 2 < 0
 }
 
 type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => Vector3 | null
@@ -248,18 +248,7 @@ const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, onS
                 const t = event.target as ThreeTransformControls
                 pos.current = t.object.position.clone()
             }}
-            onMouseUp={event => {
-                // const t = event.target as ThreeTransformControls
-                // const coord = snap(t, pos.current)
-                // const c = t.object.position
-                // if (coord) {
-                //     const [x, y, z] = coord
-                //     t.object.position.set(x, y, z)
-                //     const s = pos.current
-                //     console.log(`[${s.x}; ${s.y}; ${s.z}] -> [${x}; ${y}; ${z}] ([${c.x}; ${c.y}; ${c.z}])`)
-                // } else {
-                //     t.object.position.copy(pos.current)
-                // }
+            onMouseUp={() => {
                 pos.current = null
             }}
             onObjectChange={event => {
@@ -294,21 +283,24 @@ const Boxes: React.FC<BoxesProps> = () => {
     const { target, items } = useSnapshot(state)
     return (
         <group name="opla">
-            {items.map(box => (
-                <Box
-                    key={box.id}
-                    name={box.id}
-                    position={box.position}
-                    size={box.size}
-                    color={box.id === target
-                        ? "#ff55ff"
-                        : "#cccccc"
-                    }
-                    onClick={(e) => {
-                        state.target = e.object.name
-                    }}
-                />
-            ))}
+            {items.map(box => {
+                const [width, height, depth] = box.size
+                return (
+                    <Box
+                        key={box.id}
+                        name={box.id}
+                        position={box.position}
+                        width={width}
+                        height={height}
+                        depth={depth}
+                        visible={box.id === target}
+                        color={"#aa00aa"}
+                        onClick={event => {
+                            state.target = event.object.name
+                        }}
+                    />
+                )
+            })}
         </group>
     )
 }
@@ -339,7 +331,7 @@ const Boxes: React.FC<BoxesProps> = () => {
 *  eh
 *  gh
 * **/
-function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number) {
+function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number): [number, number, number][] {
     return [
         [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // a
         [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // b
@@ -358,9 +350,16 @@ function eq(a: [number, number, number], b: [number, number, number]): boolean {
     return ax === bx && ay === by && az === bz
 }
 
+function createTopology(boxes: [number, number, number][]) {
+    // 1. create topology graph
+    // each box is a node
+    // edge if two boxes has overlapping edges
+    // 2. analyze graph with set of rules
+}
+
 function useWires(): [[number, number, number][], Edge[]] {
     const { items } = useSnapshot(state)
-    let nodes = []
+    let nodes: [number, number, number][] = []
     for (const box of items) {
         const [x, y, z] = box.position
         const [width, height, depth] = box.size
@@ -480,13 +479,12 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { target } = useSnapshot(state)
 
-    const snap = useCallback<TransformSnap>((t, start) => {
+    const snap = useCallback<TransformSnap>(t => {
         const obj = t.object as Mesh
+        // if (isOutOfBounds(obj)) {
+        //     return null
+        // }
         if (isNegativePosition(obj.position)) {
-            return null
-        }
-
-        if (isOutOfBounds(obj)) {
             return null
         }
 
