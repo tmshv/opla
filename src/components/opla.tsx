@@ -8,6 +8,7 @@ import * as THREE from "three"
 import { proxy, useSnapshot } from "valtio"
 import { useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
+import { floor, isInt } from "@/lib/math"
 
 type Edge = [Vector3, Vector3]
 
@@ -154,22 +155,6 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
             />
         </mesh>
     )
-}
-
-function isInt(value: number): boolean {
-    const n = Math.floor(value)
-    return n === value
-}
-
-/*
-* Need to floor number other way: -1.53 -> 1 (not 2)
-*/
-function floor(value: number): number {
-    if (value < 0) {
-        return Math.floor(value) + 1
-    } else {
-        return Math.floor(value)
-    }
 }
 
 function nextPosition(pos: number, size: number, sign: number): number {
