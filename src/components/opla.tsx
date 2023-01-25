@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useRef, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Group, Line3, Mesh, Object3D, Vector3 } from "three"
+import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
 import { proxy, useSnapshot } from "valtio"
@@ -102,6 +102,7 @@ type BoxCursorProps = MeshProps & {
     color: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     // const raycaster = useThree(x => x.raycaster)
     const [hovered, setHovered] = useState(false)
@@ -220,6 +221,7 @@ function isNegativePosition(cell: THREE.Vector3): boolean {
     return cell.x < 0 || cell.y < 0 || cell.z < 0
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
     const { width: w, height: h, depth: d } = geom.parameters
@@ -363,20 +365,7 @@ function boxVerticies(x: number, y: number, z: number, width: number, height: nu
     ]
 }
 
-function eq(a: [number, number, number], b: [number, number, number]): boolean {
-    const [ax, ay, az] = a
-    const [bx, by, bz] = b
-    return ax === bx && ay === by && az === bz
-}
-
-function createTopology(boxes: [number, number, number][]) {
-    // 1. create topology graph
-    // each box is a node
-    // edge if two boxes has overlapping edges
-    // 2. analyze graph with set of rules
-}
-
-function pairs<T>(items: T[]): [T, T][] {
+function pairs<T>(items: readonly T[]): [T, T][] {
     const pairs = []
     const visit = new Set<string>()
     const len = items.length
@@ -397,13 +386,8 @@ function pairs<T>(items: T[]): [T, T][] {
     return pairs
 }
 
-function isPolygonsOverlapping(a: Vector3[], b: Vector3[]): boolean {
-    return false
-}
-
 function getPlanes(center: Vector3, size: Vector3): Box3[] {
     const planes = []
-    const [a, b, c, d, e, f, g, h] = boxVerticies(center.x, center.y, center.z, size.x, size.y, size.z)
     let box = new Box3()
 
     box = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
@@ -439,6 +423,7 @@ function getPlanes(center: Vector3, size: Vector3): Box3[] {
     return planes
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function box3FromVector3(v: Vector3, size: number): Box3 {
     // const s = new Vector3(size, size, size)
     const min = v.clone()
@@ -468,7 +453,7 @@ function vectorToAxes(v: Vector3): [Vector3, Vector3, Vector3] {
 
 function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
     const axes = vectorToAxes(v)
-    const [a, b, ..._] = axes.filter(a => a.lengthSq() > 0)
+    const [a, b, _] = axes.filter(a => a.lengthSq() > 0)
     return [a, b]
 }
 
@@ -534,6 +519,7 @@ function isLinesOverlapping(a: Line3, b: Line3): boolean {
     return aa.containsBox(bb)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleanEdges(edges: Line3[]): Line3[] {
     const sorted = edges.sort((a, b) => {
         const da = a.delta(new Vector3())
@@ -761,12 +747,12 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                 })}
             </group>
 
-            {/* {overlaps.map((box, i) => ( */}
-            {/*     <box3Helper */}
-            {/*         key={i} */}
-            {/*         args={[box, 0xff00ff]} */}
-            {/*     /> */}
-            {/* ))} */}
+            {overlaps.map((box, i) => (
+                <box3Helper
+                    key={i}
+                    args={[box, "#ff00ff" as unknown as Color]}
+                />
+            ))}
         </Suspense>
     )
 }
@@ -822,7 +808,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
             />
             {!target ? null : (
                 <SnapTransformControls
-                    object={scene.getObjectByName(target)}
+                    object={scene.getObjectByName(target) as any}
                     snap={snap}
                     onSnap={t => {
                         const obj = t.object
