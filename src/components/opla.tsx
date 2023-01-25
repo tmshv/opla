@@ -11,6 +11,7 @@ import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
 import { pairs } from "@/lib/array"
+import { boxInclusiveIntersect } from "@/lib/t"
 
 type Edge = [Vector3, Vector3]
 
@@ -172,21 +173,6 @@ function nextPosition(pos: number, size: number, sign: number): number {
     }
 
     return cell + cellShift * sign
-}
-
-/*
-* Same as intersection check in threejs but allow equals
-*/
-function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
-    // using 6 splitting planes to rule out intersections.
-    return a.max.x <= b.min.x
-        || a.min.x >= b.max.x
-        || a.max.y <= b.min.y
-        || a.min.y >= b.max.y
-        || a.max.z <= b.min.z
-        || a.min.z >= b.max.z
-        ? false
-        : true
 }
 
 function isIntersects(block: Object3D, blocks: Group): boolean {
