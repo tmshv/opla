@@ -59,39 +59,41 @@ function boxVerticies(x: number, y: number, z: number, width: number, height: nu
     ]
 }
 
-function getPlanes(center: Vector3, size: Vector3): Box3[] {
+function boxToPlanes(box: Box3): Box3[] {
+    const center = box.getCenter(new Vector3())
+    const size = box.getSize(new Vector3())
     const planes = []
-    let box = new Box3()
+    let plane = new Box3()
 
-    box = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
-    box.translate(new Vector3(size.x / 2, 0, 0))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
+    plane.translate(new Vector3(size.x / 2, 0, 0))
+    plane.translate(center)
+    planes.push(plane)
 
-    box = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
-    box.translate(new Vector3(-size.x / 2, 0, 0))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
+    plane.translate(new Vector3(-size.x / 2, 0, 0))
+    plane.translate(center)
+    planes.push(plane)
 
-    box = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
-    box.translate(new Vector3(0, -size.y / 2, 0))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
+    plane.translate(new Vector3(0, -size.y / 2, 0))
+    plane.translate(center)
+    planes.push(plane)
 
-    box = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
-    box.translate(new Vector3(0, +size.y / 2, 0))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
+    plane.translate(new Vector3(0, +size.y / 2, 0))
+    plane.translate(center)
+    planes.push(plane)
 
-    box = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
-    box.translate(new Vector3(0, 0, -size.z / 2))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
+    plane.translate(new Vector3(0, 0, -size.z / 2))
+    plane.translate(center)
+    planes.push(plane)
 
-    box = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
-    box.translate(new Vector3(0, 0, size.z / 2))
-    box.translate(center)
-    planes.push(box)
+    plane = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
+    plane.translate(new Vector3(0, 0, size.z / 2))
+    plane.translate(center)
+    planes.push(plane)
 
     return planes
 }
@@ -308,26 +310,8 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
         }
 
         const center = intersection.getCenter(new Vector3())
-        // overlaps.push(box3FromVector3(center, 0.01))
-
-        // const { position: positionA, size: sizeA } = a
-        const planesA = getPlanes(aa.getCenter(new Vector3()), aa.getSize(new Vector3()))
-        // for(let p of planesA) {
-        //     overlaps.push(p)
-        // }
-        const a = planesA.find(plane => {
-            return plane.containsPoint(center)
-        })
-        // const { position: positionB, size: sizeB } = b
-        // const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
-        const planesB = getPlanes(bb.getCenter(new Vector3()), bb.getSize(new Vector3()))
-        // for (let p of planesB) {
-        //     overlaps.push(p)
-        // }
-        const b = planesB.find(plane => {
-            return plane.containsPoint(center)
-        })
-
+        const a = boxToPlanes(aa).find(plane => plane.containsPoint(center))
+        const b = boxToPlanes(bb).find(plane => plane.containsPoint(center))
         if (!(a && b)) {
             continue
         }
