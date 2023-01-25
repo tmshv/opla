@@ -1,4 +1,6 @@
-export function boxInclusiveIntersect(a: THREE.Box3, b: THREE.Box3): boolean {
+import { Box3, Group, Object3D } from "three"
+
+export function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
     // using 6 splitting planes to rule out intersections.
     return a.max.x <= b.min.x
         || a.min.x >= b.max.x
@@ -8,5 +10,24 @@ export function boxInclusiveIntersect(a: THREE.Box3, b: THREE.Box3): boolean {
         || a.min.z >= b.max.z
         ? false
         : true
+}
+
+export function isIntersects(block: Object3D, blocks: Group): boolean {
+    // block.updateMatrixWorld()
+    const bbox = new Box3()
+    bbox.setFromObject(block)
+
+    for (let other of blocks.children) {
+        if (block === other) {
+            continue
+        }
+        const o = new Box3()
+        o.setFromObject(other)
+        if (boxInclusiveIntersect(bbox, o)) {
+            return true
+        }
+    }
+
+    return false
 }
 

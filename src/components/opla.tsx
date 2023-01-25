@@ -3,15 +3,14 @@
 import { Suspense, useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Object3D, Vector3 } from "three"
-import * as THREE from "three"
+import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Vector3 } from "three"
 import { proxy, useSnapshot } from "valtio"
 import { useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
 import { pairs } from "@/lib/array"
-import { boxInclusiveIntersect } from "@/lib/t"
+import { isIntersects } from "@/lib/t"
 
 type Edge = [Vector3, Vector3]
 
@@ -173,25 +172,6 @@ function nextPosition(pos: number, size: number, sign: number): number {
     }
 
     return cell + cellShift * sign
-}
-
-function isIntersects(block: Object3D, blocks: Group): boolean {
-    // block.updateMatrixWorld()
-    const bbox = new Box3()
-    bbox.setFromObject(block)
-
-    for (let other of blocks.children) {
-        if (block === other) {
-            continue
-        }
-        const o = new THREE.Box3()
-        o.setFromObject(other)
-        if (boxInclusiveIntersect(bbox, o)) {
-            return true
-        }
-    }
-
-    return false
 }
 
 function isNegativePosition(cell: THREE.Vector3): boolean {
