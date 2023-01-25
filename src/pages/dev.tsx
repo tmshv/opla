@@ -1,29 +1,29 @@
 import { runApp } from "@/app"
 import { AppController } from "@/app/controller"
-import { createEmptyOplaSystem, createRandomOplaSystem1 } from "@/opla"
+import { createRandomOplaSystem1 } from "@/opla"
 import { Button } from "@/ui/Button"
 import { NextPage } from "next"
 import { forwardRef, memo, MutableRefObject, useCallback, useEffect, useRef, useState } from "react"
 
 function make() {
     const opla = createRandomOplaSystem1(3)
-   // const opla = createEmptyOplaSystem()
+    // const opla = createEmptyOplaSystem()
 
     return new AppController(opla)
 }
 
 const sizes = new Map([
-    ['200', 1],
-    ['400', 2],
-    ['600', 3],
-    ['800', 4],
+    ["200", 1],
+    ["400", 2],
+    ["600", 3],
+    ["800", 4],
 ])
 
 const sizesN = new Map([
-    [1, '200'],
-    [2, '400'],
-    [3, '600'],
-    [4, '800'],
+    [1, "200"],
+    [2, "400"],
+    [3, "600"],
+    [4, "800"],
 ])
 
 // const sizes = new Map([
@@ -65,7 +65,7 @@ const AxisSizeSelector = forwardRef<HTMLDivElement, AxisSizeSelectorProps>((prop
                     key={x}
                     name={x}
                     onClick={onClick}
-                    theme={props.value === x ? 'checked' : 'default'}
+                    theme={props.value === x ? "checked" : "default"}
                 >{x}</Button>
             ))}
         </div>
@@ -85,7 +85,7 @@ function useOpla(ref: MutableRefObject<HTMLDivElement>, options: any) {
 }
 
 function useCellSize(ctrl: AppController) {
-    const [size, setSize] = useState(['1', '1', '1'])
+    const [size, setSize] = useState(["1", "1", "1"])
 
     useEffect(() => {
         ctrl.subjects.cellDimension.subscribe(cell => {
@@ -93,7 +93,7 @@ function useCellSize(ctrl: AppController) {
             const ay = sizesN.get(cell.y)
             const az = sizesN.get(cell.z)
 
-            console.log('upd useCellSize', ax, ay, az)
+            console.log("upd useCellSize", ax, ay, az)
             setSize([ax, ay, az])
         })
     }, [ctrl])
@@ -105,13 +105,13 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
     const [ax, ay, az] = useCellSize(props.ctrl)
 
     const onClickSelect = useCallback(event => {
-        props.ctrl.setTool('select', {})
+        props.ctrl.setTool("select", {})
     }, [])
     const onClickAdd = useCallback(event => {
-        props.ctrl.setTool('add', {})
+        props.ctrl.setTool("add", {})
     }, [])
     const onClickRemove = useCallback(event => {
-        props.ctrl.setTool('remove', {})
+        props.ctrl.setTool("remove", {})
     }, [])
 
     const onClickX = useCallback<AxisSizeSelectorOnClick>(name => {
@@ -127,7 +127,7 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
         props.ctrl.setCellDimensionZ(size)
     }, [])
 
-    const ss = ['200', '400', '600', '800']
+    const ss = ["200", "400", "600", "800"]
 
     return (
         <div className="max-w-sm px-2 py-2 bg-white rounded-none overflow-hidden shadow-lg">
@@ -172,14 +172,14 @@ const Page: NextPage = () => {
         <div>
             <div
                 style={{
-                    backgroundColor: '#dcdce1',
+                    backgroundColor: "#dcdce1",
                 }}
                 ref={ref}
             />
 
             <div
                 style={{
-                    position: 'absolute',
+                    position: "absolute",
                     top: 0,
                     bottom: 0,
                 }}
