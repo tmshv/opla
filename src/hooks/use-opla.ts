@@ -331,32 +331,46 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                             continue
                         }
 
-                        // overlaps.push(box)
+                        const [a1, a2, a3, a4] = box3ToCorners(box)
+                        nodes.push(a1)
+                        nodes.push(a2)
+                        nodes.push(a3)
+                        nodes.push(a4)
 
-                        try {
-                            const [a1, a2, a3, a4] = box3ToCorners(box)
-                            nodes.push(a1)
-                            nodes.push(a2)
-                            nodes.push(a3)
-                            nodes.push(a4)
+                        // four edges of box
+                        const l12 = new Line3(a1, a2)
+                        const l23 = new Line3(a2, a3)
+                        const l34 = new Line3(a3, a4)
+                        const l41 = new Line3(a4, a1)
 
-                            // four edges of box A
-                            const l12 = new Line3(a1, a2)
-                            const l23 = new Line3(a2, a3)
-                            const l34 = new Line3(a3, a4)
-                            const l41 = new Line3(a4, a1)
-
-                            edges.push(l12)
-                            edges.push(l23)
-                            edges.push(l34)
-                            edges.push(l41)
-                        } catch (error) {
-                            console.log("fail", box)
-                        }
+                        edges.push(l12)
+                        edges.push(l23)
+                        edges.push(l34)
+                        edges.push(l41)
                     }
 
-                    // overlaps.push(sortBox3(a, b)[0])
-                    // overlaps.push(bb)
+                    for (let box of splitTo9(smallBox, intersectionBox)) {
+                        if (!boxHasArea(box)) {
+                            continue
+                        }
+
+                        const [a1, a2, a3, a4] = box3ToCorners(box)
+                        nodes.push(a1)
+                        nodes.push(a2)
+                        nodes.push(a3)
+                        nodes.push(a4)
+
+                        // four edges of box
+                        const l12 = new Line3(a1, a2)
+                        const l23 = new Line3(a2, a3)
+                        const l34 = new Line3(a3, a4)
+                        const l41 = new Line3(a4, a1)
+
+                        edges.push(l12)
+                        edges.push(l23)
+                        edges.push(l34)
+                        edges.push(l41)
+                    }
                 }
             }
         }
