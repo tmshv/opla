@@ -1,13 +1,13 @@
 "use client"
 
-import { Suspense, useCallback, useRef, useState } from "react"
+import { Suspense, useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
-import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
+import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
 import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
-import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
 import { proxy, useSnapshot } from "valtio"
 import { useControls } from "leva"
+import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 
 type Edge = [Vector3, Vector3]
 
@@ -234,48 +234,6 @@ function isOutOfBounds(obj: Mesh): boolean {
     //     console.log("out of bounds", x, y, z, x - w / 2, y - h / 2, z - d / 2)
     // }
     return out
-}
-
-type TransformSnap = (t: ThreeTransformControls, startPosition: Vector3) => Vector3 | null
-type OnTransformSnap = (t: ThreeTransformControls) => void
-
-type SnapTransformControlsProps = Omit<TransformControlsProps, "mode" | "onObjectChange"> & {
-    snap: TransformSnap
-    onSnap: OnTransformSnap
-}
-
-const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ snap, onSnap, ...props }) => {
-    const start = useRef<Vector3 | null>(null)
-    const last = useRef<Vector3>(new Vector3(0, 0, 0))
-    return (
-        <TransformControls
-            {...props}
-            space={"local"}
-            onMouseDown={event => {
-                const t = event.target as ThreeTransformControls
-                start.current = t.object.position.clone()
-                last.current = t.object.position.clone()
-            }}
-            onMouseUp={() => {
-                start.current = null
-            }}
-            onObjectChange={event => {
-                const t = event.target as ThreeTransformControls
-                const coord = snap(t, start.current)
-                if (!coord) {
-                    t.object.position.copy(last.current)
-                    // t.reset();
-                } else {
-                    const posChanged = !last.current.equals(coord)
-                    last.current.copy(coord)
-                    t.object.position.copy(coord)
-                    if (posChanged) {
-                        onSnap(t)
-                    }
-                }
-            }}
-        />
-    )
 }
 
 type OplaBox = {
