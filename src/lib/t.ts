@@ -1,4 +1,4 @@
-import { Box3, Group, Object3D } from "three"
+import { Box3, Group, Object3D, Vector3 } from "three"
 
 export function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
     // using 6 splitting planes to rule out intersections.
@@ -29,5 +29,10 @@ export function isIntersects(block: Object3D, blocks: Group): boolean {
     }
 
     return false
+}
+
+export function boxHasArea(box: Box3): boolean {
+    const size = box.getSize(new Vector3())
+    return size.toArray().filter(x => x !== 0).length >= 2
 }
 

@@ -2,6 +2,7 @@ import { Box3, Line3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
 import { state } from "@/state"
+import { boxHasArea } from "@/lib/t"
 
 type Edge = [Vector3, Vector3]
 
@@ -143,7 +144,7 @@ function box3ToCorners(box: Box3): [Vector3, Vector3, Vector3, Vector3] {
     const a3 = box.min.clone()
     a3.add(ay)
     const a4 = box.max.clone()
-    return [a1, a2, a3, a4]
+    return [a1, a2, a4, a3]
 }
 
 /* split box A by box B to 9 parts
@@ -152,6 +153,12 @@ function box3ToCorners(box: Box3): [Vector3, Vector3, Vector3, Vector3] {
 function splitTo9(a: Box3, b: Box3): Box3[] {
     const [a1, a2, a3, a4] = box3ToCorners(a)
     const [b1, b2, b3, b4] = box3ToCorners(b)
+
+    // four edges of box A
+    const l12 = new Line3(a1, a2)
+    const l23 = new Line3(a2, a3)
+    const l34 = new Line3(a3, a4)
+    const l41 = new Line3(a4, a1)
 
     const boxes = []
 
@@ -164,10 +171,17 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
     // boxes.push(box3FromVector3(b3, 0.01))
     // boxes.push(box3FromVector3(b4, 0.01))
 
+    // corners
     boxes.push(box3FromTwoVector3(a1, b1))
     boxes.push(box3FromTwoVector3(a2, b2))
     boxes.push(box3FromTwoVector3(a3, b3))
     boxes.push(box3FromTwoVector3(a4, b4))
+
+    // sides
+    boxes.push(box3FromTwoVector3(b1, l12.closestPointToPoint(b2, false, new Vector3())))
+    boxes.push(box3FromTwoVector3(b2, l23.closestPointToPoint(b4, false, new Vector3())))
+    boxes.push(box3FromTwoVector3(b3, l34.closestPointToPoint(b4, false, new Vector3())))
+    boxes.push(box3FromTwoVector3(b4, l41.closestPointToPoint(b1, false, new Vector3())))
 
     return boxes
 }
@@ -284,14 +298,12 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
 
         if (a.intersectsBox(b)) {
             const bb = a.clone().intersect(b)
-            const size = bb.getSize(new Vector3())
             const center = bb.getCenter(new Vector3())
 
             // if size of overlapping shape is match this pattern
             // [X, 0, 0], [0, X, 0], [0, 0, X]
             // means overlapping edge only not a polygon
-            const isEdgeOrVertexOverlap = size.toArray().filter(x => x !== 0).length < 2
-            if (!isEdgeOrVertexOverlap) {
+            if (boxHasArea(bb)) {
                 // overlaps.push(box3FromVector3(center, 0.01))
 
                 const { position: positionA, size: sizeA } = pair[0]
@@ -317,7 +329,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                     const [bigBox, smallBox] = sortBox3(a, b)
                     const innerBox = smallBox.intersect(bigBox)
                     for (let box of splitTo9(bigBox, innerBox)) {
-                        if (box.isEmpty()) {
+                        if (!boxHasArea(box)) {
                             continue
                         }
 
@@ -330,17 +342,23 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                             nodes.push(a3)
                             nodes.push(a4)
 
-                            edges.push(new Line3(a1, a2))
-                            edges.push(new Line3(a1, a3))
-                            edges.push(new Line3(a2, a4))
-                            edges.push(new Line3(a3, a4))
+                            // four edges of box A
+                            const l12 = new Line3(a1, a2)
+                            const l23 = new Line3(a2, a3)
+                            const l34 = new Line3(a3, a4)
+                            const l41 = new Line3(a4, a1)
+
+                            edges.push(l12)
+                            edges.push(l23)
+                            edges.push(l34)
+                            edges.push(l41)
                         } catch (error) {
                             console.log("fail", box)
                         }
                     }
 
-                    overlaps.push(a)
-                    overlaps.push(b)
+                    // overlaps.push(a)
+                    // overlaps.push(b)
                     // overlaps.push(sortBox3(a, b)[0])
                     // overlaps.push(bb)
                 }

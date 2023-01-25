@@ -1,5 +1,5 @@
 import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
-import { boxInclusiveIntersect, isIntersects } from "./t"
+import { boxHasArea, boxInclusiveIntersect, isIntersects } from "./t"
 
 describe("three", () => {
     test("no intersection between two adjacent Box3", () => {
@@ -80,6 +80,26 @@ describe("three", () => {
         g.add(c)
 
         expect(isIntersects(a, g)).toBeTruthy()
+    })
+
+    test("hasArea should return true if box is a plane", () => {
+        const box = new Box3(new Vector3(), new Vector3(1, 1, 0))
+        expect(boxHasArea(box)).toBeTruthy()
+    })
+
+    test("hasArea should return true if box is a volume", () => {
+        const box = new Box3(new Vector3(), new Vector3(1, 1, 1))
+        expect(boxHasArea(box)).toBeTruthy()
+    })
+
+    test("hasArea should return false if box is a point", () => {
+        const box = new Box3(new Vector3(), new Vector3())
+        expect(boxHasArea(box)).toBeFalsy()
+    })
+
+    test("hasArea should return false if box is a line", () => {
+        const box = new Box3(new Vector3(), new Vector3(1, 0, 0))
+        expect(boxHasArea(box)).toBeFalsy()
     })
 })
 
