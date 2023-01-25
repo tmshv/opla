@@ -126,6 +126,22 @@ function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
     return box
 }
 
+function boxToVerticies(box: Box3): Vector3[] {
+    const [ax, ay, az] = vectorToAxes(box.getSize(new Vector3()))
+
+    const a1 = box.min.clone()
+    const a2 = box.min.clone().add(ax)
+    const a3 = box.min.clone().add(ay)
+    const a4 = box.max.clone().sub(az)
+
+    const a5 = box.min.clone().add(az)
+    const a6 = box.min.clone().add(az).add(ax)
+    const a7 = box.min.clone().add(az).add(ay)
+    const a8 = box.max.clone()
+
+    return [a1, a2, a4, a3, a5, a6, a7, a8]
+}
+
 function box3ToCorners(box: Box3): [Vector3, Vector3, Vector3, Vector3] {
     const [ax, ay] = vectorToAxes2(box.getSize(new Vector3()))
     const a1 = box.min.clone()
@@ -262,48 +278,44 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     const edges: Line3[] = []
     const overlaps = []
 
+    // transform opla block dto to Box3
+    const boxes = items.map(item => {
+        const [w, h, d] = item.size
+        const b = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+        const [x, y, z] = item.position
+        const pos = new Vector3(x, y, z)
+        b.translate(pos)
+        return b
+    })
+
     // add corners of all boxes
-    for (const box of items) {
-        const [x, y, z] = box.position
-        const [width, height, depth] = box.size
-        const vs = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
-        for (const v of vs) {
-            const i = nodes.findIndex(node => node.equals(v))
-            if (i === -1) {
-                nodes.push(v)
-            }
+    for (const box of boxes) {
+        for (const v of boxToVerticies(box)) {
+            nodes.push(v)
         }
     }
 
     // add extra nodes and edges
-    for (const pair of pairs(items)) {
-        const [a, b] = pair.map(box => {
-            const [w, h, d] = box.size
-            const b = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
-            const [x, y, z] = box.position
-            const pos = new Vector3(x, y, z)
-            b.translate(pos)
-            return b
-        })
-
-        if (a.intersectsBox(b)) {
-            const intersection = a.clone().intersect(b)
+    for (const [aa, bb] of pairs(boxes)) {
+        if (aa.intersectsBox(bb)) {
+            const intersection = aa.clone().intersect(bb)
             const center = intersection.getCenter(new Vector3())
 
             // skip intersection by edge or by vertex
             if (boxHasArea(intersection)) {
                 // overlaps.push(box3FromVector3(center, 0.01))
 
-                const { position: positionA, size: sizeA } = pair[0]
-                const planesA = getPlanes(new Vector3(...positionA), new Vector3(...sizeA))
+                // const { position: positionA, size: sizeA } = a
+                const planesA = getPlanes(aa.getCenter(new Vector3()), aa.getSize(new Vector3()))
                 // for(let p of planesA) {
                 //     overlaps.push(p)
                 // }
                 const a = planesA.find(plane => {
                     return plane.containsPoint(center)
                 })
-                const { position: positionB, size: sizeB } = pair[1]
-                const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
+                // const { position: positionB, size: sizeB } = b
+                // const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
+                const planesB = getPlanes(bb.getCenter(new Vector3()), bb.getSize(new Vector3()))
                 // for (let p of planesB) {
                 //     overlaps.push(p)
                 // }
