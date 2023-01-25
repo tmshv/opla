@@ -72,6 +72,8 @@ const AxisSizeSelector = forwardRef<HTMLDivElement, AxisSizeSelectorProps>((prop
     )
 })
 
+AxisSizeSelector.displayName = "AxisSizeSelector"
+
 function useOpla(ref: MutableRefObject<HTMLDivElement>, options: any) {
     const ctrl = useRef(make())
 
@@ -156,6 +158,8 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
         </div>
     )
 })
+
+AppControls.displayName = "AppControls"
 
 const Page: NextPage = () => {
     const ref = useRef<HTMLDivElement>()

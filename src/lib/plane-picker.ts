@@ -1,6 +1,5 @@
 import { randomColor } from "@/opla"
 import * as THREE from "three"
-import { PickboxBuilder } from "./pickbox-builder"
 
 const normalMatrix = new THREE.Matrix3() // create once and reuse
 const worldNormal = new THREE.Vector3() // create once and reuse
