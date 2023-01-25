@@ -211,12 +211,6 @@ function sum(items: number[], start = 0): number {
     return items.reduce((a, b) => a + b, start)
 }
 
-function choise<T>(values: T[]): T {
-    const i = Math.floor(Math.random() * values.length)
-
-    return values[i]
-}
-
 export function createRandomOplaSystem1(amountOfBlocks: number) {
     const sizeX = 10
     const sizeY = 10
