@@ -760,6 +760,13 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                     )
                 })}
             </group>
+
+            {/* {overlaps.map((box, i) => ( */}
+            {/*     <box3Helper */}
+            {/*         key={i} */}
+            {/*         args={[box, 0xff00ff]} */}
+            {/*     /> */}
+            {/* ))} */}
         </Suspense>
     )
 }
