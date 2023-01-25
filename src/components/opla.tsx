@@ -756,7 +756,7 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                         args={[box, "#ff00ff" as unknown as Color]}
                     />
                 ))}
-            </group> 
+            </group>
         </Suspense>
     )
 }
