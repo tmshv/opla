@@ -315,7 +315,8 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                     console.log("overlap!")
 
                     const [bigBox, smallBox] = sortBox3(a, b)
-                    for (let box of splitTo9(bigBox, smallBox)) {
+                    const innerBox = smallBox.intersect(bigBox)
+                    for (let box of splitTo9(bigBox, innerBox)) {
                         if (box.isEmpty()) {
                             continue
                         }
