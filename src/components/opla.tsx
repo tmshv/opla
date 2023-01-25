@@ -221,6 +221,9 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                     pos.lerpVectors(a, b, 0.5)
                     const dist = a.distanceTo(b)
                     const name = edgeNames.get(dist)
+                    if (!name) {
+                        return null
+                    }
                     const geom = (nodes[name] as Mesh).geometry
                     const r = getRotation(edge)
                     return (
