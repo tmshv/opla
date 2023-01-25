@@ -10,6 +10,7 @@ import { useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
+import { pairs } from "@/lib/array"
 
 type Edge = [Vector3, Vector3]
 
@@ -308,27 +309,6 @@ function boxVerticies(x: number, y: number, z: number, width: number, height: nu
         [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // g
         [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // h
     ]
-}
-
-function pairs<T>(items: readonly T[]): [T, T][] {
-    const pairs = []
-    const visit = new Set<string>()
-    const len = items.length
-    for (let i = 0; i < len; i++) {
-        for (let j = 0; j < len; j++) {
-            if (i === j) {
-                continue
-            }
-            // AB is the same as BA
-            if (visit.has(`${i}-${j}`) || visit.has(`${j}-${i}`)) {
-                continue
-            }
-            pairs.push([items[i], items[j]])
-            visit.add(`${i}-${j}`)
-            visit.add(`${j}-${i}`)
-        }
-    }
-    return pairs
 }
 
 function getPlanes(center: Vector3, size: Vector3): Box3[] {
