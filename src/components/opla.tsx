@@ -456,8 +456,8 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
             // if size of overlapping shape is match this pattern
             // [X, 0, 0], [0, X, 0], [0, 0, X]
             // means overlapping edge only not a polygon
-            const isEdgeOverlap = size.toArray().filter(x => x !== 0).length === 1
-            if (!isEdgeOverlap) {
+            const isEdgeOrVertexOverlap = size.toArray().filter(x => x !== 0).length < 2
+            if (!isEdgeOrVertexOverlap) {
                 // overlaps.push(box3FromVector3(center, 0.01))
 
                 const { position: positionA, size: sizeA } = pair[0]
