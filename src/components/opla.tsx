@@ -177,7 +177,7 @@ function nextPosition(pos: number, size: number, sign: number): number {
 /*
 * Same as intersection check in threejs but allow equals
 */
-function boxIntersect(a: Box3, b: Box3): boolean {
+function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
     // using 6 splitting planes to rule out intersections.
     return a.max.x <= b.min.x
         || a.min.x >= b.max.x
@@ -200,7 +200,7 @@ function isIntersects(block: Object3D, blocks: Group): boolean {
         }
         const o = new THREE.Box3()
         o.setFromObject(other)
-        if (boxIntersect(bbox, o)) {
+        if (boxInclusiveIntersect(bbox, o)) {
             return true
         }
     }
