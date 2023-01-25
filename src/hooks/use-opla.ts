@@ -258,7 +258,7 @@ function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
 
     controls = cleanNodes(controls)
 
-    for (let i = 0; i<controls.length - 1; i++) {
+    for (let i = 0; i < controls.length - 1; i++) {
         const j = i + 1
         parts.push(new Line3(controls[i].clone(), controls[j].clone()))
     }
