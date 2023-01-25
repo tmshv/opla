@@ -7,6 +7,7 @@ import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Object3D, Vector3 } from 
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
 import { proxy, useSnapshot } from "valtio"
+import { useControls } from "leva"
 
 type Edge = [Vector3, Vector3]
 
@@ -664,8 +665,8 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
                     //     overlaps.push(box)
                 }
 
-                // overlaps.push(a)
-                // overlaps.push(b)
+                overlaps.push(a)
+                overlaps.push(b)
                 // overlaps.push(sortBox3(a, b)[0])
                 // overlaps.push(bb)
             }
@@ -700,12 +701,13 @@ type OplaWiresProps = {
 }
 
 const OplaWires: React.FC<OplaWiresProps> = () => {
+    const { showDebug, showMesh } = useControls({ showDebug: false, showMesh: true })
     const [ns, es, overlaps] = useWires()
     const { nodes } = useGLTF("/assets/opla.glb")
 
     return (
         <Suspense fallback={null}>
-            <group>
+            <group visible={showMesh}>
                 {ns.map((pos, i) => {
                     const geom = (nodes.node_25mm as Mesh).geometry
                     return (
@@ -747,12 +749,14 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                 })}
             </group>
 
-            {overlaps.map((box, i) => (
-                <box3Helper
-                    key={i}
-                    args={[box, "#ff00ff" as unknown as Color]}
-                />
-            ))}
+            <group name="debug" visible={showDebug}>
+                {overlaps.map((box, i) => (
+                    <box3Helper
+                        key={i}
+                        args={[box, "#ff00ff" as unknown as Color]}
+                    />
+                ))}
+            </group> 
         </Suspense>
     )
 }
