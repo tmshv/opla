@@ -321,6 +321,8 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                             continue
                         }
 
+                        overlaps.push(box)
+
                         try {
                             const [a1, a2, a3, a4] = box3ToCorners(box)
                             nodes.push(a1)
@@ -335,7 +337,6 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                         } catch (error) {
                             console.log("fail", box)
                         }
-                        //     overlaps.push(box)
                     }
 
                     overlaps.push(a)
