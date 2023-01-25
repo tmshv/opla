@@ -750,6 +750,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
 }
 
 export default function Opla() {
+    const { showWalls } = useControls({ showWalls: true })
     return (
         <Canvas
             dpr={[1, 2]}
@@ -772,7 +773,9 @@ export default function Opla() {
             {/*     position={[10, 10, 10]} */}
             {/* /> */}
 
-            <Walls />
+            {!showWalls ? null : (
+                <Walls />
+            )}
         </Canvas>
     )
 }
