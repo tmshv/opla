@@ -81,8 +81,11 @@ type BoxProps = MeshProps & {
 }
 
 const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...props }) => {
+    const { showDebug } = useControls({ showDebug: false })
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
+
+    const a = showDebug ? 0.2 : 0
 
     return (
         <mesh {...props}
@@ -95,7 +98,7 @@ const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...prop
             <meshStandardMaterial
                 color={color}
                 transparent
-                opacity={visible ? 0.4 : 0}
+                opacity={visible ? 0.4 : a}
             />
         </mesh>
     )
