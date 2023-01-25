@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from "three"
 
 export type BoxColors = [
     THREE.Color,
@@ -27,7 +27,7 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
         buffer.push(color.r, color.g, color.b)
         buffer.push(color.r, color.g, color.b)
     })
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(buffer, 3))
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(buffer, 3))
 }
 
 export class PickboxBuilder {

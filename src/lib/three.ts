@@ -1,5 +1,5 @@
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
 export function createControls(camera: THREE.Camera, target: HTMLElement) {
     // controls = new TrackballControls(camera, renderer.domElement);

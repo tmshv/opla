@@ -1,8 +1,8 @@
-import * as THREE from 'three'
+import * as THREE from "three"
 
 export const materialLib = new Map([
-    ['open', new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
-    ['closed', new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 })],
+    ["open", new THREE.MeshBasicMaterial({ color: 0x666666, wireframe: true, opacity: 1 })],
+    ["closed", new THREE.MeshPhongMaterial({ color: 0xccccdd, flatShading: true, vertexColors: false, shininess: 0 })],
 ])
 
 export function randomColor() {
@@ -99,7 +99,7 @@ export class OplaBlock {
         // this.size.fromArray(size)
     }
 
-	// even size blocks have a half of grid shift
+    // even size blocks have a half of grid shift
     getCellShift(gridSize: number) {
         const H = gridSize / 2
 
@@ -247,11 +247,11 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
 
         const sizes = [sizeX, sizeY, sizeZ] as BlockSize
         const block = system.createBlock(sizes)
-        block.blockType = 'closed'
+        block.blockType = "closed"
         const cell = block.getCellPosition(pos, GRID)
         block.location.copy(cell)
         // blocks.push(block)
-        system.addBlock(block);
+        system.addBlock(block)
     }
     // const block = new OplaBlock(idGenerator.create(), [400, 400, 400])
     // block.blockType = 'closed'

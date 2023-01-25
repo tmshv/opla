@@ -1,5 +1,5 @@
-import { IAssetLibrary } from '@/app/types'
-import * as THREE from 'three'
+import { IAssetLibrary } from "@/app/types"
+import * as THREE from "three"
 
 export function createBoxVertices(size: THREE.Vector3) {
     const sx = size.x
@@ -24,8 +24,8 @@ export function box(width: number, height: number, depth: number) {
     height = height * 0.5
     depth = depth * 0.5
 
-    var geometry = new THREE.BufferGeometry()
-    var position = []
+    let geometry = new THREE.BufferGeometry()
+    let position = []
 
     position.push(
         - width, - height, - depth,
@@ -65,7 +65,7 @@ export function box(width: number, height: number, depth: number) {
         width, - height, depth
     )
 
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(position, 3))
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(position, 3))
 
     return geometry
 }
@@ -82,14 +82,14 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
     // nodes
 
     createBoxVertices(s).forEach(position => {
-        let n = assetlib.createAsset('node_25mm')
+        let n = assetlib.createAsset("node_25mm")
         n.position.copy(position)
         g.add(n)
     })
 
     // y edges (vertical)
 
-    let asset = assetlib.getAssetNameBySize('edge', scale.y)
+    let asset = assetlib.getAssetNameBySize("edge", scale.y)
     let n = assetlib.createAsset(asset)
     n.position.set(-sx, 0, -sz)
     g.add(n)
@@ -108,7 +108,7 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     // z edges
 
-    asset = assetlib.getAssetNameBySize('edge', scale.z)
+    asset = assetlib.getAssetNameBySize("edge", scale.z)
     n = assetlib.createAsset(asset)
     n.rotateX(Math.PI / 2)
     n.position.set(sx, -sy, 0)
@@ -131,7 +131,7 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     // x edges
 
-    asset = assetlib.getAssetNameBySize('edge', scale.x)
+    asset = assetlib.getAssetNameBySize("edge", scale.x)
     n = assetlib.createAsset(asset)
     n.rotateZ(Math.PI / 2)
     n.position.set(0, -sy, -sz)

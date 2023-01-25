@@ -1,8 +1,8 @@
-import 'src/style.css'
-import 'src/tw.css'
+import "src/style.css"
+import "src/tw.css"
 
-import { AppProps } from 'next/app'
-import Head from 'next/head'
+import { AppProps } from "next/app"
+import Head from "next/head"
 // import { YMetrika } from 'src/components/YMetrika'
 
 export default function MyApp(props: AppProps) {
@@ -13,8 +13,8 @@ export default function MyApp(props: AppProps) {
         <>
             <Head>
                 <meta
-                    name={'viewport'}
-                    content={'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'}
+                    name={"viewport"}
+                    content={"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}
                 />
                 {/* {!metrika ? null : (
                     <YMetrika

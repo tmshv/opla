@@ -1,7 +1,7 @@
-import * as THREE from 'three'
-import { Subject } from 'rxjs'
+import * as THREE from "three"
+import { Subject } from "rxjs"
 import { OplaSystem } from "@/opla"
-import { IAssetLibrary } from './types'
+import { IAssetLibrary } from "./types"
 
 type AssetsLib = Map<string, THREE.Object3D>
 

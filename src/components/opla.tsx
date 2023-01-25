@@ -550,8 +550,8 @@ function cleanEdges(edges: Line3[]): Line3[] {
         const i = result.findIndex(n => isLinesOverlapping(edge, n))
         if (i === -1) {
             result.push(edge)
-        }else {
-            console.log('line overlap', edge, result[i])
+        } else {
+            console.log("line overlap", edge, result[i])
         }
     }
     return result
@@ -690,7 +690,7 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
         // cleanEdges(edges).map(line => [line.start, line.end]),
         edges.map(line => [line.start, line.end]),
         overlaps,
-    ] 
+    ]
 }
 
 function getRotation(edge: Edge): [number, number, number] {

@@ -1,7 +1,7 @@
-import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
+import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader"
 
 export async function loadAssets(files: string[]): Promise<GLTF[]> {
-    const basePath = '/assets/'
+    const basePath = "/assets/"
 
     return Promise.all(files.map(file => loadAsset(basePath, file)))
 }
