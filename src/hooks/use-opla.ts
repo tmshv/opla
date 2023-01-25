@@ -297,82 +297,87 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
 
     // add extra nodes and edges
     for (const [aa, bb] of pairs(boxes)) {
-        if (aa.intersectsBox(bb)) {
-            const intersection = aa.clone().intersect(bb)
-            const center = intersection.getCenter(new Vector3())
+        if (!aa.intersectsBox(bb)) {
+            continue
+        }
+        const intersection = aa.clone().intersect(bb)
 
-            // skip intersection by edge or by vertex
-            if (boxHasArea(intersection)) {
-                // overlaps.push(box3FromVector3(center, 0.01))
+        // skip intersection by edge or by vertex
+        if (!boxHasArea(intersection)) {
+            continue
+        }
 
-                // const { position: positionA, size: sizeA } = a
-                const planesA = getPlanes(aa.getCenter(new Vector3()), aa.getSize(new Vector3()))
-                // for(let p of planesA) {
-                //     overlaps.push(p)
-                // }
-                const a = planesA.find(plane => {
-                    return plane.containsPoint(center)
-                })
-                // const { position: positionB, size: sizeB } = b
-                // const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
-                const planesB = getPlanes(bb.getCenter(new Vector3()), bb.getSize(new Vector3()))
-                // for (let p of planesB) {
-                //     overlaps.push(p)
-                // }
-                const b = planesB.find(plane => {
-                    return plane.containsPoint(center)
-                })
+        const center = intersection.getCenter(new Vector3())
+        // overlaps.push(box3FromVector3(center, 0.01))
 
-                if (a && b) {
-                    console.log("overlap!")
+        // const { position: positionA, size: sizeA } = a
+        const planesA = getPlanes(aa.getCenter(new Vector3()), aa.getSize(new Vector3()))
+        // for(let p of planesA) {
+        //     overlaps.push(p)
+        // }
+        const a = planesA.find(plane => {
+            return plane.containsPoint(center)
+        })
+        // const { position: positionB, size: sizeB } = b
+        // const planesB = getPlanes(new Vector3(...positionB), new Vector3(...sizeB))
+        const planesB = getPlanes(bb.getCenter(new Vector3()), bb.getSize(new Vector3()))
+        // for (let p of planesB) {
+        //     overlaps.push(p)
+        // }
+        const b = planesB.find(plane => {
+            return plane.containsPoint(center)
+        })
 
-                    for (let box of splitTo9(a, intersection)) {
-                        if (!boxHasArea(box)) {
-                            continue
-                        }
+        if (!(a && b)) {
+            continue
+        }
 
-                        const [a1, a2, a3, a4] = box3ToCorners(box)
-                        nodes.push(a1)
-                        nodes.push(a2)
-                        nodes.push(a3)
-                        nodes.push(a4)
+        console.log("overlap!")
 
-                        // four edges of box
-                        const l12 = new Line3(a1, a2)
-                        const l23 = new Line3(a2, a3)
-                        const l34 = new Line3(a3, a4)
-                        const l41 = new Line3(a4, a1)
-
-                        edges.push(l12)
-                        edges.push(l23)
-                        edges.push(l34)
-                        edges.push(l41)
-                    }
-
-                    for (let box of splitTo9(b, intersection)) {
-                        if (!boxHasArea(box)) {
-                            continue
-                        }
-
-                        const [a1, a2, a3, a4] = box3ToCorners(box)
-                        nodes.push(a1)
-                        nodes.push(a2)
-                        nodes.push(a3)
-                        nodes.push(a4)
-
-                        // four edges of box
-                        const l12 = new Line3(a1, a2)
-                        const l23 = new Line3(a2, a3)
-                        const l34 = new Line3(a3, a4)
-                        const l41 = new Line3(a4, a1)
-
-                        edges.push(l12)
-                        edges.push(l23)
-                        edges.push(l34)
-                        edges.push(l41)
-                    }
-                }
+        for (let box of splitTo9(a, intersection)) {
+            if (!boxHasArea(box)) {
+                continue
             }
+
+            const [a1, a2, a3, a4] = box3ToCorners(box)
+            nodes.push(a1)
+            nodes.push(a2)
+            nodes.push(a3)
+            nodes.push(a4)
+
+            // four edges of box
+            const l12 = new Line3(a1, a2)
+            const l23 = new Line3(a2, a3)
+            const l34 = new Line3(a3, a4)
+            const l41 = new Line3(a4, a1)
+
+            edges.push(l12)
+            edges.push(l23)
+            edges.push(l34)
+            edges.push(l41)
+        }
+
+        for (let box of splitTo9(b, intersection)) {
+            if (!boxHasArea(box)) {
+                continue
+            }
+
+            const [a1, a2, a3, a4] = box3ToCorners(box)
+            nodes.push(a1)
+            nodes.push(a2)
+            nodes.push(a3)
+            nodes.push(a4)
+
+            // four edges of box
+            const l12 = new Line3(a1, a2)
+            const l23 = new Line3(a2, a3)
+            const l34 = new Line3(a3, a4)
+            const l41 = new Line3(a4, a1)
+
+            edges.push(l12)
+            edges.push(l23)
+            edges.push(l34)
+            edges.push(l41)
         }
     }
 
