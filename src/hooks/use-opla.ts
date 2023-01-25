@@ -222,15 +222,57 @@ function cleanEdges(edges: Line3[]): Line3[] {
         if (i === -1) {
             result.push(edge)
         } else {
-            console.log("line overlap", edge, result[i])
+            // console.log("line overlap", edge, result[i])
         }
     }
     return result
 }
 
+function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
+    const parts: Line3[] = []
+    // parts.push(line)
+    const vs = verticies
+        // take all verticies who can be projected directly on the line
+        .filter(v => {
+            const parameter = line.closestPointToPointParameter(v, false)
+            return parameter > 0 && parameter < 1
+        })
+        // and than take only whos is lying on the line
+        .filter(v => {
+            const p = line.closestPointToPoint(v, false, new Vector3())
+            // on the line
+            if (p.distanceTo(v) === 0) {
+                return true
+            }
+
+            return false
+        })
+        // sort verticies starting from start of the line
+        .sort((a, b) => {
+            const ad = line.start.distanceTo(a)
+            const bd = line.start.distanceTo(b)
+            return ad - bd
+        })
+    let controls = [line.start, ...vs]
+    controls.push(line.end)
+
+    controls = cleanNodes(controls)
+
+    for (let i = 0; i<controls.length - 1; i++) {
+        const j = i + 1
+        parts.push(new Line3(controls[i].clone(), controls[j].clone()))
+    }
+
+    return parts
+}
+
 export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     const { items } = useSnapshot(state)
-    let nodes: Vector3[] = []
+    const nodes: Vector3[] = []
+    const edges: Line3[] = []
+    const overlaps = []
+
+    // add corners of all boxes
     for (const box of items) {
         const [x, y, z] = box.position
         const [width, height, depth] = box.size
@@ -243,48 +285,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
         }
     }
 
-    let edges: Line3[] = []
-    for (const box of items) {
-        const [x, y, z] = box.position
-        const [width, height, depth] = box.size
-        const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
-        const boxEdges = [
-            [a, b],
-            [a, d],
-            [a, e],
-            [c, d],
-            [c, b],
-            [c, g],
-            [d, h],
-            [b, f],
-            [f, g],
-            [f, e],
-            [e, h],
-            [g, h],
-        ]
-        for (const [start, end] of boxEdges) {
-            // const i = nodes.findIndex(node => eq(node, v))
-            // if (i === -1) {
-            edges.push(new Line3(start, end))
-            // }
-        }
-    }
-
-    // list of all polygons in scene
-    // const polygons = items.flatMap(box => {
-    //     const [x, y, z] = box.position
-    //     const [width, height, depth] = box.size
-    //     const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
-    //     return [
-    //         [a, b, c, d, a],
-    //         [a, b, f, e, a],
-    //         [e, f, g, h, e],
-    //         [h, d, c, g, h],
-    //         [e, a, d, h, e],
-    //         [f, b, c, g, g],
-    //     ]
-    // })
-    const overlaps = []
+    // add extra nodes and edges
     for (const pair of pairs(items)) {
         const [a, b] = pair.map(box => {
             const [w, h, d] = box.size
@@ -296,13 +297,11 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
         })
 
         if (a.intersectsBox(b)) {
-            const bb = a.clone().intersect(b)
-            const center = bb.getCenter(new Vector3())
+            const intersection = a.clone().intersect(b)
+            const center = intersection.getCenter(new Vector3())
 
-            // if size of overlapping shape is match this pattern
-            // [X, 0, 0], [0, X, 0], [0, 0, X]
-            // means overlapping edge only not a polygon
-            if (boxHasArea(bb)) {
+            // skip intersection by edge or by vertex
+            if (boxHasArea(intersection)) {
                 // overlaps.push(box3FromVector3(center, 0.01))
 
                 const { position: positionA, size: sizeA } = pair[0]
@@ -326,13 +325,13 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                     console.log("overlap!")
 
                     const [bigBox, smallBox] = sortBox3(a, b)
-                    const innerBox = smallBox.intersect(bigBox)
-                    for (let box of splitTo9(bigBox, innerBox)) {
+                    const intersectionBox = smallBox.clone().intersect(bigBox)
+                    for (let box of splitTo9(bigBox, intersectionBox)) {
                         if (!boxHasArea(box)) {
                             continue
                         }
 
-                        overlaps.push(box)
+                        // overlaps.push(box)
 
                         try {
                             const [a1, a2, a3, a4] = box3ToCorners(box)
@@ -356,18 +355,43 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                         }
                     }
 
-                    // overlaps.push(a)
-                    // overlaps.push(b)
                     // overlaps.push(sortBox3(a, b)[0])
                     // overlaps.push(bb)
                 }
             }
         }
     }
+
+    // add edges of all boxes
+    for (const box of items) {
+        const [x, y, z] = box.position
+        const [width, height, depth] = box.size
+        const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
+        const boxEdges = [
+            [a, b],
+            [a, d],
+            [a, e],
+            [c, d],
+            [c, b],
+            [c, g],
+            [d, h],
+            [b, f],
+            [f, g],
+            [f, e],
+            [e, h],
+            [g, h],
+        ]
+        for (const [start, end] of boxEdges) {
+            const edge = new Line3(start, end)
+            for (const part of splitLineByVerticies(edge, nodes)) {
+                edges.push(part)
+            }
+        }
+    }
+
     return [
         cleanNodes(nodes).map(v => v.toArray()),
         cleanEdges(edges).map(line => [line.start, line.end]),
-        // edges.map(line => [line.start, line.end]),
         overlaps,
     ]
 }

@@ -1,4 +1,4 @@
-import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
+import { Box3, BoxGeometry, Group, Line3, Mesh, Vector3 } from "three"
 import { boxHasArea, boxInclusiveIntersect, isIntersects } from "./t"
 
 describe("three", () => {
@@ -44,6 +44,17 @@ describe("three", () => {
             new Vector3(-0.5, -0.5, -0.5),
         )
         expect(c.containsBox(d)).toBeTruthy()
+    })
+
+    test("line3 closest point to point parameter should be less than 0 or more than 1 of point not on the line", () => {
+        const line = new Line3(
+            new Vector3(1, 1, 1),
+            new Vector3(5, 1, 1),
+        )
+
+        expect(line.closestPointToPointParameter(new Vector3(4, 1, 1), false)).toBe(0.75)
+        expect(line.closestPointToPointParameter(new Vector3(0, 1, 1), false)).toBe(-0.25)
+        expect(line.closestPointToPointParameter(new Vector3(6, 1, 1), false)).toBe(1.25)
     })
 
     test("should return false if object has no intersection with group", () => {
