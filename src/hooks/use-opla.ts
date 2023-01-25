@@ -106,16 +106,6 @@ function box3FromVector3(v: Vector3, size: number): Box3 {
     return new Box3(min, max)
 }
 
-/**
-* returns two boxes in order [BIGGER, SMALLER]
-*/
-function sortBox3(a: Box3, b: Box3): [Box3, Box3] {
-    if (a.containsBox(b)) {
-        return [a, b]
-    }
-    return [b, a]
-}
-
 function vectorToAxes(v: Vector3): [Vector3, Vector3, Vector3] {
     return [
         new Vector3(v.x, 0, 0),
@@ -324,9 +314,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                 if (a && b) {
                     console.log("overlap!")
 
-                    const [bigBox, smallBox] = sortBox3(a, b)
-                    const intersectionBox = smallBox.clone().intersect(bigBox)
-                    for (let box of splitTo9(bigBox, intersectionBox)) {
+                    for (let box of splitTo9(a, intersection)) {
                         if (!boxHasArea(box)) {
                             continue
                         }
@@ -349,7 +337,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
                         edges.push(l41)
                     }
 
-                    for (let box of splitTo9(smallBox, intersectionBox)) {
+                    for (let box of splitTo9(b, intersection)) {
                         if (!boxHasArea(box)) {
                             continue
                         }
