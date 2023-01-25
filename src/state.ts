@@ -51,7 +51,7 @@ export let state = proxy<State>({
         },
         {
             id: "4x 4y 4z",
-            position: [8, 1, 1],
+            position: [2.5, 1.5, 7.5],
             size: [4, 4, 4],
         },
         {
