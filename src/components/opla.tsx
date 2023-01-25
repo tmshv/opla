@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useRef, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, TransformControls, TransformControlsProps, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
+import { Box3, BoxGeometry, Group, Line3, Mesh, Object3D, Vector3 } from "three"
 import * as THREE from "three"
 import { TransformControls as ThreeTransformControls } from "three/examples/jsm/controls/TransformControls"
 import { proxy, useSnapshot } from "valtio"
@@ -515,22 +515,64 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
     return boxes
 }
 
+function cleanNodes(nodes: Vector3[]): Vector3[] {
+    const result: Vector3[] = []
+    for (const node of nodes) {
+        const i = result.findIndex(n => n.equals(node))
+        if (i === -1) {
+            result.push(node)
+        }
+    }
+    return result
+}
+
+function isLinesOverlapping(a: Line3, b: Line3): boolean {
+    const aa = new Box3()
+    aa.setFromPoints([a.start, a.end])
+    const bb = new Box3()
+    bb.setFromPoints([b.start, b.end])
+    return aa.containsBox(bb)
+}
+
+function cleanEdges(edges: Line3[]): Line3[] {
+    const sorted = edges.sort((a, b) => {
+        const da = a.delta(new Vector3())
+        const db = b.delta(new Vector3())
+        return da.lengthSq() - db.lengthSq()
+    })
+    const result: Line3[] = []
+    for (const edge of sorted) {
+        if (result.length === 0) {
+            result.push(edge)
+            continue
+        }
+        // const i = result.findIndex(n => n.equals(edge) || isLinesOverlapping(edge, n))
+        const i = result.findIndex(n => isLinesOverlapping(edge, n))
+        if (i === -1) {
+            result.push(edge)
+        }else {
+            console.log('line overlap', edge, result[i])
+        }
+    }
+    return result
+}
+
 function useWires(): [[number, number, number][], Edge[], Box3[]] {
     const { items } = useSnapshot(state)
-    let nodes: [number, number, number][] = []
+    let nodes: Vector3[] = []
     for (const box of items) {
         const [x, y, z] = box.position
         const [width, height, depth] = box.size
-        const vs = boxVerticies(x, y, z, width, height, depth)
+        const vs = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
         for (const v of vs) {
-            const i = nodes.findIndex(node => eq(node, v))
+            const i = nodes.findIndex(node => node.equals(v))
             if (i === -1) {
                 nodes.push(v)
             }
         }
     }
 
-    let edges = []
+    let edges: Line3[] = []
     for (const box of items) {
         const [x, y, z] = box.position
         const [width, height, depth] = box.size
@@ -549,10 +591,10 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
             [e, h],
             [g, h],
         ]
-        for (const edge of boxEdges) {
+        for (const [start, end] of boxEdges) {
             // const i = nodes.findIndex(node => eq(node, v))
             // if (i === -1) {
-            edges.push(edge)
+            edges.push(new Line3(start, end))
             // }
         }
     }
@@ -618,17 +660,18 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
                     if (box.isEmpty()) {
                         continue
                     }
+
                     try {
                         const [a1, a2, a3, a4] = box3ToCorners(box)
-                        nodes.push(a1.toArray())
-                        nodes.push(a2.toArray())
-                        nodes.push(a3.toArray())
-                        nodes.push(a4.toArray())
+                        nodes.push(a1)
+                        nodes.push(a2)
+                        nodes.push(a3)
+                        nodes.push(a4)
 
-                        edges.push([a1, a2])
-                        edges.push([a1, a3])
-                        edges.push([a2, a4])
-                        edges.push([a3, a4])
+                        edges.push(new Line3(a1, a2))
+                        edges.push(new Line3(a1, a3))
+                        edges.push(new Line3(a2, a4))
+                        edges.push(new Line3(a3, a4))
                     } catch (error) {
                         console.log("fail", box)
                     }
@@ -642,7 +685,12 @@ function useWires(): [[number, number, number][], Edge[], Box3[]] {
             }
         }
     }
-    return [nodes, edges, overlaps]
+    return [
+        cleanNodes(nodes).map(v => v.toArray()),
+        // cleanEdges(edges).map(line => [line.start, line.end]),
+        edges.map(line => [line.start, line.end]),
+        overlaps,
+    ] 
 }
 
 function getRotation(edge: Edge): [number, number, number] {
