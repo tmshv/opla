@@ -205,7 +205,6 @@ function isLinesOverlapping(a: Line3, b: Line3): boolean {
     return aa.containsBox(bb)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleanEdges(edges: Line3[]): Line3[] {
     const sorted = edges.sort((a, b) => {
         const da = a.delta(new Vector3())
@@ -367,8 +366,8 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     }
     return [
         cleanNodes(nodes).map(v => v.toArray()),
-        // cleanEdges(edges).map(line => [line.start, line.end]),
-        edges.map(line => [line.start, line.end]),
+        cleanEdges(edges).map(line => [line.start, line.end]),
+        // edges.map(line => [line.start, line.end]),
         overlaps,
     ]
 }
