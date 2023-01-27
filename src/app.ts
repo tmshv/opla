@@ -44,6 +44,7 @@ type BlockDef = {
 
 let container, stats
 let camera
+let camera: THREE.Camera
 let renderer: THREE.WebGLRenderer
 let domRenderer
 let scene: THREE.Scene
@@ -272,12 +273,11 @@ function init() {
 }
 
 function onWindowResize() {
-
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
+    const c = camera as THREE.PerspectiveCamera
+    c.aspect = window.innerWidth / window.innerHeight
+    c.updateProjectionMatrix()
 
     renderer.setSize(window.innerWidth, window.innerHeight)
-
 }
 
 function initPlanes(scene: THREE.Scene) {
