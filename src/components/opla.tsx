@@ -57,7 +57,6 @@ type BoxCursorProps = MeshProps & {
     color: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     // const raycaster = useThree(x => x.raycaster)
     const [hovered, setHovered] = useState(false)
@@ -68,7 +67,10 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
 
     useFrame(({ raycaster, camera, pointer, scene }) => {
         // raycaster.setFromCamera(pointer, camera)
-        const w = scene.getObjectByName("walls")!
+        const w = scene.getObjectByName("walls")
+        if (!w) {
+            return
+        }
         // const w = scene.getObjectByName("opla")
         // const w = scene
         const intersects = raycaster.intersectObjects(w.children)
@@ -88,7 +90,7 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
 
             if (isBoxOutOfBounds(box)) {
                 console.log("out")
-                return
+                // return
             }
 
             // pos.add(wall.face.normal)
