@@ -1,4 +1,4 @@
-import { Box3, Line3, Vector3 } from "three"
+import { Vector3 } from "three"
 
 // TODO: reduce complexity
 export function uniqueVectors(vs: Vector3[]): Vector3[] {
