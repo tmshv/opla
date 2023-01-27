@@ -72,7 +72,10 @@ describe("three", () => {
         g.add(b)
         g.add(c)
 
-        expect(isIntersects(a, g)).toBeFalsy()
+        const box = new Box3()
+        box.setFromObject(a)
+
+        expect(isIntersects(box, a, g)).toBeFalsy()
     })
 
     test("should return true if object has intersection with group", () => {
@@ -90,7 +93,10 @@ describe("three", () => {
         g.add(b)
         g.add(c)
 
-        expect(isIntersects(a, g)).toBeTruthy()
+        const box = new Box3()
+        box.setFromObject(a)
+
+        expect(isIntersects(box, a, g)).toBeTruthy()
     })
 
     test("hasArea should return true if box is a plane", () => {
