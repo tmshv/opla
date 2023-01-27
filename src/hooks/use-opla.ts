@@ -68,18 +68,17 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
 }
 
 function cleanEdges(edges: Line3[]): Line3[] {
-    const result: Line3[] = []
-    for (const edge of edges) {
+    return edges.reduce<Line3[]>((result, edge) => {
         if (result.length === 0) {
             result.push(edge)
-            continue
+        } else {
+            const i = result.findIndex(n => isLinesOverlapping(edge, n))
+            if (i === -1) {
+                result.push(edge)
+            }
         }
-        const i = result.findIndex(n => isLinesOverlapping(edge, n))
-        if (i === -1) {
-            result.push(edge)
-        }
-    }
-    return result
+        return result
+    }, [])
 }
 
 function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
@@ -233,14 +232,10 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
         }
     }
 
-    const edges = []
-    for (const edge of edgesToSplit) {
-        for (const part of splitLineByVerticies(edge, nodes)) {
-            edges.push(part)
-        }
-    }
+    // collect final list of edges by spliting collected edges by nodes
+    const edges = edgesToSplit.flatMap(edge => splitLineByVerticies(edge, nodes))
 
-    // add edges of all boxes
+    // add full edges of all boxes
     for (const box of boxes) {
         for (const edge of boxToLines(box)) {
             edges.push(edge)
