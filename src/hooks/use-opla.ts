@@ -1,7 +1,7 @@
 import { Box3, Line3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
-import { state } from "@/state"
+import { OplaBox, state } from "@/state"
 import { boxHasArea } from "@/lib/t"
 import { boxToPlanes, boxToVerticies, boxVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 
@@ -122,21 +122,39 @@ function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
     return parts
 }
 
+function oplaItemToBox3(item: OplaBox) {
+    const [w, h, d] = item.size
+    const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+    const [x, y, z] = item.position
+    const pos = new Vector3(x, y, z)
+    box.translate(pos)
+    return box
+}
+
+function* intersectionsWithArea(boxes: Box3[]) {
+    for (const [a, b] of pairs(boxes)) {
+        if (!a.intersectsBox(b)) {
+            continue
+        }
+        const intersection = a.clone().intersect(b)
+
+        // skip intersection by edge or by vertex
+        if (!boxHasArea(intersection)) {
+            continue
+        }
+
+        yield [a, b, intersection]
+    }
+}
+
 export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     const { items } = useSnapshot(state)
+    // transform opla block dto to Box3
+    const boxes = (items as OplaBox[]).map(oplaItemToBox3)
+
     const nodes: Vector3[] = []
     const edges: Line3[] = []
     const overlaps = []
-
-    // transform opla block dto to Box3
-    const boxes = items.map(item => {
-        const [w, h, d] = item.size
-        const b = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
-        const [x, y, z] = item.position
-        const pos = new Vector3(x, y, z)
-        b.translate(pos)
-        return b
-    })
 
     // add corners of all boxes
     for (const box of boxes) {
@@ -147,18 +165,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
 
     const extraPlanes = []
     // add extra nodes and edges
-    for (const [aa, bb] of pairs(boxes)) {
-        // skip pair if no intersection
-        if (!aa.intersectsBox(bb)) {
-            continue
-        }
-        const intersection = aa.clone().intersect(bb)
-
-        // skip intersection by edge or by vertex
-        if (!boxHasArea(intersection)) {
-            continue
-        }
-
+    for (const [aa, bb, intersection] of intersectionsWithArea(boxes)) {
         const center = intersection.getCenter(new Vector3())
         const a = boxToPlanes(aa).find(plane => plane.containsPoint(center))
         const b = boxToPlanes(bb).find(plane => plane.containsPoint(center))
@@ -200,18 +207,10 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
 
     // check intersection between pairs of splits
     // TODO: optimize this
-    for (const [a, b] of pairs(extraPlanes)) {
-        if (!a.intersectsBox(b)) {
-            continue
-        }
-        const i = a.clone().intersect(b)
-        if (!boxHasArea(i)) {
-            continue
-        }
-
+    for (const [a, b, intersection] of intersectionsWithArea(extraPlanes)) {
         const planes = [a, b]
         for (let plane of planes) {
-            for (let box of splitTo9(plane, i)) {
+            for (let box of splitTo9(plane, intersection)) {
                 if (!boxHasArea(box)) {
                     continue
                 }
