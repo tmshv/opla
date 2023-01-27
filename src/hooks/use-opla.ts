@@ -3,119 +3,9 @@ import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
 import { state } from "@/state"
 import { boxHasArea } from "@/lib/t"
-import { uniqueVectors } from "@/lib/geom"
+import { boxToPlanes, boxToVerticies, boxVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 
 type Edge = [Vector3, Vector3]
-
-/**
-* x: row (+ right)
-* y: column (+ up)
-* z: diagonal (+ screen)
-*    .f------b
-*  .' |    .'|
-* e---+--a'  |
-* |   |  |   |
-* |  ,g--+---c
-* |.'    | .'
-* h------d'
-*
-* faces
-    [a, b, c, d, a],
-    [a, b, f, e, a],
-    [e, f, g, h, e],
-    [h, d, c, g, h],
-    [e, a, d, h, e],
-    [f, b, c, g, g],
-bbox
-    [a, c],
-    [a, f],
-    [e, g],
-    [h, c],
-    [e, d],
-    [f, c],
-* edges:
-*  ab
-*  ad
-*  ae
-*  cd
-*  cb
-*  cg
-*  dh
-*  bf
-*  fg
-*  fe
-*  eh
-*  gh
-* **/
-function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number): [number, number, number][] {
-    return [
-        [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // a
-        [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // b
-        [x + 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // c
-        [x + 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // d
-        [x - 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // e
-        [x - 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // f
-        [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // g
-        [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // h
-    ]
-}
-
-function boxToPlanes(box: Box3): Box3[] {
-    const center = box.getCenter(new Vector3())
-    const size = box.getSize(new Vector3())
-    const planes = []
-    let plane = new Box3()
-
-    plane = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
-    plane.translate(new Vector3(size.x / 2, 0, 0))
-    plane.translate(center)
-    planes.push(plane)
-
-    plane = new Box3(new Vector3(0, -size.y / 2, -size.z / 2), new Vector3(0, size.y / 2, size.z / 2))
-    plane.translate(new Vector3(-size.x / 2, 0, 0))
-    plane.translate(center)
-    planes.push(plane)
-
-    plane = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
-    plane.translate(new Vector3(0, -size.y / 2, 0))
-    plane.translate(center)
-    planes.push(plane)
-
-    plane = new Box3(new Vector3(-size.x / 2, 0, -size.z / 2), new Vector3(size.x / 2, 0, size.z / 2))
-    plane.translate(new Vector3(0, +size.y / 2, 0))
-    plane.translate(center)
-    planes.push(plane)
-
-    plane = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
-    plane.translate(new Vector3(0, 0, -size.z / 2))
-    plane.translate(center)
-    planes.push(plane)
-
-    plane = new Box3(new Vector3(-size.x / 2, -size.y / 2, 0), new Vector3(size.x / 2, size.y / 2, 0))
-    plane.translate(new Vector3(0, 0, size.z / 2))
-    plane.translate(center)
-    planes.push(plane)
-
-    return planes
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function box3FromVector3(v: Vector3, size: number): Box3 {
-    // const s = new Vector3(size, size, size)
-    const min = v.clone()
-    min.subScalar(size)
-    const max = v.clone()
-    max.addScalar(size)
-    return new Box3(min, max)
-}
-
-function vectorToAxes(v: Vector3): [Vector3, Vector3, Vector3] {
-    return [
-        new Vector3(v.x, 0, 0),
-        new Vector3(0, v.y, 0),
-        new Vector3(0, 0, v.z),
-    ]
-}
 
 function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
     const axes = vectorToAxes(v)
@@ -127,22 +17,6 @@ function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
     const box = new Box3()
     box.setFromPoints([a, b])
     return box
-}
-
-function boxToVerticies(box: Box3): Vector3[] {
-    const [ax, ay, az] = vectorToAxes(box.getSize(new Vector3()))
-
-    const a1 = box.min.clone()
-    const a2 = box.min.clone().add(ax)
-    const a3 = box.min.clone().add(ay)
-    const a4 = box.max.clone().sub(az)
-
-    const a5 = box.min.clone().add(az)
-    const a6 = box.min.clone().add(az).add(ax)
-    const a7 = box.min.clone().add(az).add(ay)
-    const a8 = box.max.clone()
-
-    return [a1, a2, a4, a3, a5, a6, a7, a8]
 }
 
 function box3ToCorners(box: Box3): [Vector3, Vector3, Vector3, Vector3] {
@@ -193,14 +67,6 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
     boxes.push(box3FromTwoVector3(b4, l41.closestPointToPoint(b1, false, new Vector3())))
 
     return boxes
-}
-
-function isLinesOverlapping(a: Line3, b: Line3): boolean {
-    const aa = new Box3()
-    aa.setFromPoints([a.start, a.end])
-    const bb = new Box3()
-    bb.setFromPoints([b.start, b.end])
-    return aa.containsBox(bb)
 }
 
 function cleanEdges(edges: Line3[]): Line3[] {
