@@ -487,7 +487,7 @@ function createBlockMesh(block: OplaBlock) {
     return mesh
 
     const g = createOplaModel(block.size, controller)
-    g.position.copy(block.location)
+    g?.position.copy(block.location)
 
     return g
 }
@@ -547,7 +547,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
 
 function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
     const position = block.location.clone()
-    const model = createBlockMesh(block)
+    const model = createBlockMesh(block)!
 
     const scale = block.size
         .clone()

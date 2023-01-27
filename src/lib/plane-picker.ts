@@ -12,6 +12,7 @@ export class PlanePicker {
         private camera: THREE.Camera,
         // private objects: THREE.Object3D[],
     ) {
+        this.objects = []
     }
 
     public getObject() {
@@ -60,7 +61,7 @@ export class PlanePicker {
 
         for (let i = 0; i < intersects.length; i++) {
             const obj = intersects[i]
-            const normal = obj.face.normal.clone()
+            const normal = obj.face!.normal.clone()
 
             normalMatrix.getNormalMatrix(obj.object.matrixWorld)
 

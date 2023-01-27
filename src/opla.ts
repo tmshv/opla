@@ -28,6 +28,12 @@ export class OplaGrid {
     public axisY: number[]
     public axisZ: number[]
 
+    constructor() {
+        this.axisX = []
+        this.axisY = []
+        this.axisZ = []
+    }
+
     public getCellDimensions(cell: THREE.Vector3, v = new THREE.Vector3()) {
         v.set(
             this.axisX[cell.x],

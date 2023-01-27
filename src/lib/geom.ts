@@ -83,6 +83,9 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     createBoxVertices(s).forEach(position => {
         let n = assetlib.createAsset("node_25mm")
+        if (!n) {
+            return
+        }
         n.position.copy(position)
         g.add(n)
     })
@@ -91,18 +94,30 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     let asset = assetlib.getAssetNameBySize("edge", scale.y)
     let n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.position.set(-sx, 0, -sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.position.set(-sx, 0, sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.position.set(sx, 0, -sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.position.set(sx, 0, sz)
     g.add(n)
 
@@ -110,21 +125,34 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     asset = assetlib.getAssetNameBySize("edge", scale.z)
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
+
     n.rotateX(Math.PI / 2)
     n.position.set(sx, -sy, 0)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateX(Math.PI / 2)
     n.position.set(sx, sy, 0)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateX(Math.PI / 2)
     n.position.set(-sx, sy, 0)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateX(Math.PI / 2)
     n.position.set(-sx, -sy, 0)
     g.add(n)
@@ -133,21 +161,33 @@ export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
 
     asset = assetlib.getAssetNameBySize("edge", scale.x)
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateZ(Math.PI / 2)
     n.position.set(0, -sy, -sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateZ(Math.PI / 2)
     n.position.set(0, sy, sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateZ(Math.PI / 2)
     n.position.set(0, -sy, sz)
     g.add(n)
 
     n = assetlib.createAsset(asset)
+    if (!n) {
+        return
+    }
     n.rotateZ(Math.PI / 2)
     n.position.set(0, sy, -sz)
     g.add(n)

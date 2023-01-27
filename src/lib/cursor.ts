@@ -13,7 +13,7 @@ export class OplaCursor {
     constructor({ color, opacity, ...options }: OplaCursorOptions) {
         this.scaleOffset = options.scaleOffset
         this.mesh = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(),
+            new THREE.BoxGeometry(),
             new THREE.MeshBasicMaterial({
                 color,
                 opacity,

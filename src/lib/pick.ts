@@ -10,6 +10,7 @@ export class ScenePicker<T> {
         private renderer: THREE.WebGLRenderer
     ) {
         this.texture = new THREE.WebGLRenderTarget(1, 1)
+        this.scene = new THREE.Scene()
     }
 
     public setScene(scene: THREE.Scene) {
@@ -32,7 +33,7 @@ export class ScenePicker<T> {
             return null
         }
 
-        return this.index.get(id)
+        return this.index.get(id) ?? null
     }
 
     /**

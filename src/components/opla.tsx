@@ -309,7 +309,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
                     object={scene.getObjectByName(target) as any}
                     snap={snap}
                     onSnap={t => {
-                        const obj = t.object
+                        const obj = t.object!
                         const i = state.items.findIndex(x => x.id === obj.name)
                         state.items[i].position = obj.position.toArray()
                     }}

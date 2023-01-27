@@ -37,6 +37,8 @@ export class PickboxBuilder {
 
     constructor() {
         this.side = THREE.FrontSide
+        this.position = new THREE.Vector3()
+        this.scale = new THREE.Vector3()
     }
 
     public setPosition(value: THREE.Vector3) {
@@ -68,7 +70,7 @@ export class PickboxBuilder {
             hex(randomColor()),
             hex(randomColor()),
         ]
-        const box = new THREE.BoxBufferGeometry()
+        const box = new THREE.BoxGeometry()
         applyVertexColorsToBoxFaces(box, colors) // give the geometry's vertices a color corresponding to the "id"
 
         const pickingMaterial = new THREE.MeshBasicMaterial({
