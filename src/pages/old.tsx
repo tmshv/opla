@@ -3,7 +3,7 @@ import { AppController } from "@/app/controller"
 import { createRandomOplaSystem1 } from "@/opla"
 import { Button } from "@/ui/Button"
 import { NextPage } from "next"
-import { forwardRef, memo, MutableRefObject, useCallback, useEffect, useRef, useState } from "react"
+import { forwardRef, memo, RefObject, useCallback, useEffect, useRef, useState } from "react"
 
 function make() {
     const opla = createRandomOplaSystem1(3)
@@ -52,7 +52,7 @@ type AxisSizeSelectorProps = {
 }
 
 const AxisSizeSelector = forwardRef<HTMLDivElement, AxisSizeSelectorProps>((props, ref) => {
-    const onClick = (e) => {
+    const onClick = (e: any) => {
         const v = e.target.name
 
         props.onClick(v)
@@ -74,12 +74,12 @@ const AxisSizeSelector = forwardRef<HTMLDivElement, AxisSizeSelectorProps>((prop
 
 AxisSizeSelector.displayName = "AxisSizeSelector"
 
-function useOpla(ref: MutableRefObject<HTMLDivElement>, options: any) {
+function useOpla(ref: RefObject<HTMLDivElement>, options: any) {
     const ctrl = useRef(make())
 
     useEffect(() => {
         (async () => {
-            ctrl.current = await runApp(ctrl.current, ref.current)
+            ctrl.current = await runApp(ctrl.current, ref.current!)
         })()
     }, [ref.current, ctrl])
 
@@ -96,7 +96,7 @@ function useCellSize(ctrl: AppController) {
             const az = sizesN.get(cell.z)
 
             console.log("upd useCellSize", ax, ay, az)
-            setSize([ax, ay, az])
+            setSize([ax!, ay!, az!])
         })
     }, [ctrl])
 
@@ -106,26 +106,26 @@ function useCellSize(ctrl: AppController) {
 const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
     const [ax, ay, az] = useCellSize(props.ctrl)
 
-    const onClickSelect = useCallback(event => {
+    const onClickSelect = useCallback(() => {
         props.ctrl.setTool("select", {})
     }, [])
-    const onClickAdd = useCallback(event => {
+    const onClickAdd = useCallback(() => {
         props.ctrl.setTool("add", {})
     }, [])
-    const onClickRemove = useCallback(event => {
+    const onClickRemove = useCallback(() => {
         props.ctrl.setTool("remove", {})
     }, [])
 
     const onClickX = useCallback<AxisSizeSelectorOnClick>(name => {
-        const size = sizes.get(name)
+        const size = sizes.get(name)!
         props.ctrl.setCellDimensionX(size)
     }, [])
     const onClickY = useCallback<AxisSizeSelectorOnClick>(name => {
-        const size = sizes.get(name)
+        const size = sizes.get(name)!
         props.ctrl.setCellDimensionY(size)
     }, [])
     const onClickZ = useCallback<AxisSizeSelectorOnClick>(name => {
-        const size = sizes.get(name)
+        const size = sizes.get(name)!
         props.ctrl.setCellDimensionZ(size)
     }, [])
 
@@ -162,7 +162,7 @@ const AppControls: React.FC<{ ctrl: AppController }> = memo(props => {
 AppControls.displayName = "AppControls"
 
 const Page: NextPage = () => {
-    const ref = useRef<HTMLDivElement>()
+    const ref = useRef<HTMLDivElement>(null)
     const refAxisX = useRef<HTMLDivElement>()
     const refAxisY = useRef<HTMLDivElement>()
     const refAxisZ = useRef<HTMLDivElement>()

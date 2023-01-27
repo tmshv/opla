@@ -102,6 +102,7 @@ export class OplaBlock {
         this.colorId = randomColor()
         this.location = new THREE.Vector3(0, 0, 0)
         this.size = new THREE.Vector3(...size)
+        this.blockType = "closed"
         // this.size.fromArray(size)
     }
 
@@ -189,10 +190,11 @@ export class OplaBlock {
 }
 
 export class OplaSystem {
-    public grid: OplaGrid
     public blocks: OplaBlock[]
 
-    constructor() {
+    constructor(
+        public grid: OplaGrid
+    ) {
         this.blocks = []
     }
 
@@ -227,8 +229,7 @@ export function createRandomOplaSystem1(amountOfBlocks: number) {
     grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
     grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
 
-    const system = new OplaSystem()
-    system.grid = grid
+    const system = new OplaSystem(grid)
 
     const GRID = 200
 
@@ -272,10 +273,7 @@ export function createEmptyOplaSystem() {
     grid.axisY = createGrid3(sizeY, 1, 1, (x, y, z, i) => 1)
     grid.axisZ = createGrid3(sizeZ, 1, 1, x => 1)
 
-    const system = new OplaSystem()
-    system.grid = grid
-
-    return system
+    return new OplaSystem(grid)
 }
 
 type GridFactoryFunction3<T> = (x: number, y: number, z: number, i: number) => T | null
