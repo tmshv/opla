@@ -19,23 +19,37 @@ export const SnapTransformControls: React.FC<SnapTransformControlsProps> = ({ sn
             {...props}
             space={"local"}
             onMouseDown={event => {
+                if (!event) {
+                    return
+                }
                 const t = event.target as ThreeTransformControls
-                start.current = t.object.position.clone()
-                last.current = t.object.position.clone()
+                const obj = t.object
+                if (!obj) {
+                    return
+                }
+                start.current = obj.position.clone()
+                last.current = obj.position.clone()
             }}
             onMouseUp={() => {
                 start.current = null
             }}
             onObjectChange={event => {
+                if (!event) {
+                    return
+                }
                 const t = event.target as ThreeTransformControls
-                const coord = snap(t, start.current)
+                const obj = t.object
+                if (!obj) {
+                    return
+                }
+                const coord = snap(t, start.current!)
                 if (!coord) {
-                    t.object.position.copy(last.current)
+                    obj.position.copy(last.current)
                     // t.reset();
                 } else {
                     const posChanged = !last.current.equals(coord)
                     last.current.copy(coord)
-                    t.object.position.copy(coord)
+                    obj.position.copy(coord)
                     if (posChanged) {
                         onSnap(t)
                     }
