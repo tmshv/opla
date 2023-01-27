@@ -1,6 +1,12 @@
 import { choise, pairs } from "./array"
 
 describe("array", () => {
+    test("should get of the value", () => {
+        const result = choise(["a", "b", "c"])
+        const status = result === "a" || result === "b" || result === "c"
+        expect(status).toBeTruthy()
+    })
+
     test("should get one value", () => {
         const result = choise(["a", "b", "c"], () => 1 / 3)
         expect(result).toBe("b")
