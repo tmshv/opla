@@ -124,22 +124,13 @@ function nextPosition(pos: number, size: number, sign: number): number {
     return cell + cellShift * sign
 }
 
-function isNegativePosition(cell: THREE.Vector3): boolean {
-    return cell.x < 0 || cell.y < 0 || cell.z < 0
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
-    const { width: w, height: h, depth: d } = geom.parameters
-    const [x, y, z] = obj.position.toArray()
-    const out = x - w / 2 <= 0
-        || y - h / 2 <= 0
-        || z - d / 2 <= 0
-    // if (out) {
-    //     console.log("out of bounds", x, y, z, x - w / 2, y - h / 2, z - d / 2)
-    // }
-    return out
+    const { width, height, depth } = geom.parameters
+    const { x, y, z } = obj.position
+    return x - width / 2 < -0.5
+        || y - height / 2 < -0.5
+        || z - depth / 2 < -0.5
 }
 
 type BoxesProps = {
@@ -268,11 +259,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
 
     const snap = useCallback<TransformSnap>(t => {
         const obj = t.object as Mesh
-        // if (isOutOfBounds(obj)) {
-        //     return null
-        // }
-
-        if (isNegativePosition(obj.position)) {
+        if (isOutOfBounds(obj)) {
             return null
         }
 
