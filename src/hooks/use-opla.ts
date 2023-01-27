@@ -67,7 +67,7 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
     return boxes
 }
 
-function cleanEdges(edges: Line3[]): Line3[] {
+function noneOverlappingEdges(edges: Line3[]): Line3[] {
     return edges.reduce<Line3[]>((result, edge) => {
         if (result.length === 0) {
             result.push(edge)
@@ -242,18 +242,9 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
     // collect final list of edges by spliting collected edges by nodes
     const edges = edgesToSplit.flatMap(edge => splitLineByVerticies(edge, nodes))
 
-    // add full edges of all boxes
-    // for (const box of boxes) {
-    //     for (const edge of boxToLines(box)) {
-    //         for (const part of splitLineByVerticies(edge, nodes)) {
-    //             edges.push(part)
-    //         }
-    //     }
-    // }
-
     return [
         uniqueVectors(nodes),
-        cleanEdges(edges),
+        noneOverlappingEdges(edges),
         overlaps,
     ]
 }
