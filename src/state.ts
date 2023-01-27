@@ -1,6 +1,6 @@
 import { proxy } from "valtio"
 
-type OplaBox = {
+export type OplaBox = {
     id: string
     position: [number, number, number]
     size: [number, number, number]
