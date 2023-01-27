@@ -5,7 +5,7 @@ import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
 import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
-import { useControls } from "leva"
+import { folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
@@ -68,9 +68,9 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
 
     useFrame(({ raycaster, camera, pointer, scene }) => {
         // raycaster.setFromCamera(pointer, camera)
-        // const w = scene.getObjectByName("walls")
+        const w = scene.getObjectByName("walls")!
         // const w = scene.getObjectByName("opla")
-        const w = scene
+        // const w = scene
         const intersects = raycaster.intersectObjects(w.children)
 
         if (intersects.length > 0) {
@@ -81,6 +81,15 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
             pos.x = floor(pos.x)
             pos.y = floor(pos.y)
             pos.z = floor(pos.z)
+
+            const [w, h, d] = size
+            const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+            box.translate(pos)
+
+            if (isBoxOutOfBounds(box)) {
+                console.log("out")
+                return
+            }
 
             // pos.add(wall.face.normal)
 
@@ -100,9 +109,9 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
             />
             <meshStandardMaterial
                 color={color}
-                // side={THREE.DoubleSide}
-                transparent
-                opacity={0.85}
+            // side={THREE.DoubleSide}
+            // transparent
+            // opacity={0.9}
             // metalness={1}
             // roughness={0.4}
             />
@@ -126,6 +135,15 @@ function isOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
     const { width, height, depth } = geom.parameters
     const { x, y, z } = obj.position
+    return x - width / 2 < -0.5
+        || y - height / 2 < -0.5
+        || z - depth / 2 < -0.5
+}
+
+function isBoxOutOfBounds(box: Box3): boolean {
+    const size = box.getSize(new Vector3())
+    const { x: width, y: height, z: depth } = size
+    const { x, y, z } = box.getCenter(new Vector3())
     return x - width / 2 < -0.5
         || y - height / 2 < -0.5
         || z - depth / 2 < -0.5
@@ -316,7 +334,22 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
 }
 
 export default function Opla() {
-    const { showWalls } = useControls({ showWalls: true })
+    const { showWalls, showCursor, cursorWidth, cursorHeight, cursorDepth } = useControls({
+        showWalls: true,
+        showCursor: true,
+        cursor: folder({
+            cursorWidth: {
+                min: 1, max: 4, step: 1, value: 1,
+            },
+            cursorHeight: {
+                min: 1, max: 4, step: 1, value: 1,
+            },
+            cursorDepth: {
+                min: 1, max: 4, step: 1, value: 1,
+            },
+        }),
+    })
+
     return (
         <Canvas
             dpr={[1, 2]}
@@ -333,11 +366,23 @@ export default function Opla() {
 
             <OplaScene />
 
-            {/* <BoxCursor */}
-            {/*     color="0xff00ff" */}
-            {/*     size={[1, 1, 1]} */}
-            {/*     position={[10, 10, 10]} */}
-            {/* /> */}
+            {!showCursor ? null : (
+                <BoxCursor
+                    color="0x000000"
+                    size={[cursorWidth, cursorHeight, cursorDepth]}
+                    position={[10, 10, 10]}
+                    onClick={(event) => {
+                        const obj = event.object
+                        console.log("cursor", obj.position)
+
+                        state.items.push({
+                            id: Math.random().toString(),
+                            position: obj.position.toArray(),
+                            size: [cursorWidth, cursorHeight, cursorDepth],
+                        })
+                    }}
+                />
+            )}
 
             {!showWalls ? null : (
                 <Walls />
