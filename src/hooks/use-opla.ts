@@ -151,7 +151,7 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
     const boxes = (items as OplaBox[]).map(oplaItemToBox3)
 
     const nodes: Vector3[] = []
-    const edges: Line3[] = []
+    const edgesToSplit: Line3[] = []
     const overlaps = []
 
     // add corners of all boxes
@@ -193,10 +193,10 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
                 const l34 = new Line3(a3, a4)
                 const l41 = new Line3(a4, a1)
 
-                edges.push(l12)
-                edges.push(l23)
-                edges.push(l34)
-                edges.push(l41)
+                edgesToSplit.push(l12)
+                edgesToSplit.push(l23)
+                edgesToSplit.push(l34)
+                edgesToSplit.push(l41)
             }
         }
     }
@@ -225,20 +225,25 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
                 const l34 = new Line3(a3, a4)
                 const l41 = new Line3(a4, a1)
 
-                edges.push(l12)
-                edges.push(l23)
-                edges.push(l34)
-                edges.push(l41)
+                edgesToSplit.push(l12)
+                edgesToSplit.push(l23)
+                edgesToSplit.push(l34)
+                edgesToSplit.push(l41)
             }
+        }
+    }
+
+    const edges = []
+    for (const edge of edgesToSplit) {
+        for (const part of splitLineByVerticies(edge, nodes)) {
+            edges.push(part)
         }
     }
 
     // add edges of all boxes
     for (const box of boxes) {
         for (const edge of boxToLines(box)) {
-            for (const part of splitLineByVerticies(edge, nodes)) {
-                edges.push(part)
-            }
+            edges.push(edge)
         }
     }
 
