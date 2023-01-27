@@ -3,6 +3,7 @@ import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
 import { state } from "@/state"
 import { boxHasArea } from "@/lib/t"
+import { uniqueVectors } from "@/lib/geom"
 
 type Edge = [Vector3, Vector3]
 
@@ -194,17 +195,6 @@ function splitTo9(a: Box3, b: Box3): Box3[] {
     return boxes
 }
 
-function cleanNodes(nodes: Vector3[]): Vector3[] {
-    const result: Vector3[] = []
-    for (const node of nodes) {
-        const i = result.findIndex(n => n.equals(node))
-        if (i === -1) {
-            result.push(node)
-        }
-    }
-    return result
-}
-
 function isLinesOverlapping(a: Line3, b: Line3): boolean {
     const aa = new Box3()
     aa.setFromPoints([a.start, a.end])
@@ -256,7 +246,7 @@ function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
     let controls = [line.start, ...vs]
     controls.push(line.end)
 
-    controls = cleanNodes(controls)
+    controls = uniqueVectors(controls)
 
     for (let i = 0; i < controls.length - 1; i++) {
         const j = i + 1
@@ -410,7 +400,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     }
 
     return [
-        cleanNodes(nodes).map(v => v.toArray()),
+        uniqueVectors(nodes).map(v => v.toArray()),
         cleanEdges(edges).map(line => [line.start, line.end]),
         overlaps,
     ]
