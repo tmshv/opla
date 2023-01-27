@@ -232,15 +232,24 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
         }
     }
 
+    // add full edges of all boxes
+    for (const box of boxes) {
+        for (const edge of boxToLines(box)) {
+            edgesToSplit.push(edge)
+        }
+    }
+
     // collect final list of edges by spliting collected edges by nodes
     const edges = edgesToSplit.flatMap(edge => splitLineByVerticies(edge, nodes))
 
     // add full edges of all boxes
-    for (const box of boxes) {
-        for (const edge of boxToLines(box)) {
-            edges.push(edge)
-        }
-    }
+    // for (const box of boxes) {
+    //     for (const edge of boxToLines(box)) {
+    //         for (const part of splitLineByVerticies(edge, nodes)) {
+    //             edges.push(part)
+    //         }
+    //     }
+    // }
 
     return [
         uniqueVectors(nodes),
