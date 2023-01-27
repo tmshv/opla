@@ -162,6 +162,7 @@ const Boxes: React.FC<BoxesProps> = () => {
                         visible={box.id === target}
                         color={"#aa00aa"}
                         onClick={event => {
+                            event.stopPropagation()
                             state.target = event.object.name
                         }}
                     />
