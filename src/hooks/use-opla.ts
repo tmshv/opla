@@ -214,23 +214,15 @@ function isLinesOverlapping(a: Line3, b: Line3): boolean {
 }
 
 function cleanEdges(edges: Line3[]): Line3[] {
-    const sorted = edges.sort((a, b) => {
-        const da = a.delta(new Vector3())
-        const db = b.delta(new Vector3())
-        return da.lengthSq() - db.lengthSq()
-    })
     const result: Line3[] = []
-    for (const edge of sorted) {
+    for (const edge of edges) {
         if (result.length === 0) {
             result.push(edge)
             continue
         }
-        // const i = result.findIndex(n => n.equals(edge) || isLinesOverlapping(edge, n))
         const i = result.findIndex(n => isLinesOverlapping(edge, n))
         if (i === -1) {
             result.push(edge)
-        } else {
-            // console.log("line overlap", edge, result[i])
         }
     }
     return result
