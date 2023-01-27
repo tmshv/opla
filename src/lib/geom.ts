@@ -19,57 +19,6 @@ export function createBoxVertices(size: THREE.Vector3) {
     ]
 }
 
-export function box(width: number, height: number, depth: number) {
-    width = width * 0.5
-    height = height * 0.5
-    depth = depth * 0.5
-
-    let geometry = new THREE.BufferGeometry()
-    let position = []
-
-    position.push(
-        - width, - height, - depth,
-        - width, height, - depth,
-
-        - width, height, - depth,
-        width, height, - depth,
-
-        width, height, - depth,
-        width, - height, - depth,
-
-        width, - height, - depth,
-        - width, - height, - depth,
-
-        - width, - height, depth,
-        - width, height, depth,
-
-        - width, height, depth,
-        width, height, depth,
-
-        width, height, depth,
-        width, - height, depth,
-
-        width, - height, depth,
-        - width, - height, depth,
-
-        - width, - height, - depth,
-        - width, - height, depth,
-
-        - width, height, - depth,
-        - width, height, depth,
-
-        width, height, - depth,
-        width, height, depth,
-
-        width, - height, - depth,
-        width, - height, depth
-    )
-
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(position, 3))
-
-    return geometry
-}
-
 export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
     let scale = size.clone()
     const s = scale.clone().multiplyScalar(0.5)
