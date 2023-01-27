@@ -171,8 +171,6 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
             continue
         }
 
-        console.log("overlap!")
-
         const planes = [a, b]
         for (const plane of planes) {
             for (let box of splitTo9(plane, intersection)) {
