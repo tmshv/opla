@@ -16,7 +16,6 @@ import { AppController } from "./app/controller"
 import { loadAssets } from "./lib/assets"
 import { OplaCursor } from "./lib/cursor"
 import { createControls } from "./lib/three"
-import { createOplaModel } from "./lib/geom"
 import { PickboxBuilder } from "./lib/pickbox-builder"
 import { PlanePicker } from "./lib/plane-picker"
 
@@ -485,11 +484,6 @@ function applyVertexColorsToBoxFaces(geometry: THREE.BufferGeometry, colors: Box
 function createBlockMesh(block: OplaBlock) {
     const mesh = createDummyBlock(block)
     return mesh
-
-    const g = createOplaModel(block.size, controller)
-    g?.position.copy(block.location)
-
-    return g
 }
 
 function createDummyBlock(block: OplaBlock) {
