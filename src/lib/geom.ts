@@ -40,33 +40,20 @@ bbox
 *  eh
 *  gh
 * **/
-export function boxVerticies(x: number, y: number, z: number, width: number, height: number, depth: number): [number, number, number][] {
-    return [
-        [x + 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // a
-        [x + 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // b
-        [x + 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // c
-        [x + 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // d
-        [x - 0.5 * width, y + 0.5 * height, z + 0.5 * depth], // e
-        [x - 0.5 * width, y + 0.5 * height, z - 0.5 * depth], // f
-        [x - 0.5 * width, y - 0.5 * height, z - 0.5 * depth], // g
-        [x - 0.5 * width, y - 0.5 * height, z + 0.5 * depth], // h
-    ]
-}
-
 export function boxToVerticies(box: Box3): Vector3[] {
     const [ax, ay, az] = vectorToAxes(box.getSize(new Vector3()))
 
-    const a1 = box.min.clone()
-    const a2 = box.min.clone().add(ax)
-    const a3 = box.min.clone().add(ay)
-    const a4 = box.max.clone().sub(az)
+    const g = box.min.clone() // g
+    const c = box.min.clone().add(ax) // c
+    const f = box.min.clone().add(ay) // b
+    const b = box.max.clone().sub(az) // f
 
-    const a5 = box.min.clone().add(az)
-    const a6 = box.min.clone().add(az).add(ax)
-    const a7 = box.min.clone().add(az).add(ay)
-    const a8 = box.max.clone()
+    const h = box.min.clone().add(az) // h
+    const d = box.min.clone().add(az).add(ax) // d
+    const e = box.min.clone().add(az).add(ay) // e
+    const a = box.max.clone() // a
 
-    return [a1, a2, a4, a3, a5, a6, a7, a8]
+    return [a, b, c, d, e, f, g, h]
 }
 
 export function boxToPlanes(box: Box3): Box3[] {

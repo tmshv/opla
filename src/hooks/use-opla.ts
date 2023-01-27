@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
 import { OplaBox, state } from "@/state"
 import { boxHasArea } from "@/lib/t"
-import { boxToPlanes, boxToVerticies, boxVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
+import { boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 
 type Edge = [Vector3, Vector3]
 
@@ -238,10 +238,10 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     }
 
     // add edges of all boxes
-    for (const box of items) {
-        const [x, y, z] = box.position
-        const [width, height, depth] = box.size
-        const [a, b, c, d, e, f, g, h] = boxVerticies(x, y, z, width, height, depth).map(([x, y, z]) => new Vector3(x, y, z))
+    for (const box of boxes) {
+        // const [x, y, z] = box.position
+        // const [width, height, depth] = box.size
+        const [a, b, c, d, e, f, g, h] = boxToVerticies(box)
         const boxEdges = [
             [a, b],
             [a, d],
