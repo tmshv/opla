@@ -499,7 +499,7 @@ function createDummyBlock(block: OplaBlock) {
         .multiplyScalar(GRID_SIZE)
 
     const s = 1
-    const box = new THREE.BoxBufferGeometry(scale.x, scale.y, scale.z, s, s, s)
+    const box = new THREE.BoxGeometry(scale.x, scale.y, scale.z, s, s, s)
 
     const material = new THREE.MeshLambertMaterial({
         color: BLOCK_COLOR,
@@ -530,7 +530,7 @@ function createPickBox(position: THREE.Vector3, scale: THREE.Vector3): [THREE.Ob
         hex(randomColor()),
         hex(randomColor()),
     ]
-    const box = new THREE.BoxBufferGeometry()
+    const box = new THREE.BoxGeometry()
     applyVertexColorsToBoxFaces(box, colors) // give the geometry's vertices a color corresponding to the "id"
 
     const pickingMaterial = new THREE.MeshBasicMaterial({
