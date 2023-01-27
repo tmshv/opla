@@ -1,5 +1,21 @@
+import { useControls } from "leva"
+
 export const Walls: React.FC = () => {
-    const s = 4
+    const s = 400
+    const { metalness, roughness, color } = useControls({
+        metalness: {
+            min: 0,
+            max: 1,
+            value: 0.85,
+        },
+        roughness: {
+            min: 0,
+            max: 1,
+            value: 0.6,
+        },
+        color: "#bebebe",
+    })
+
     return (
         <group name="walls">
             {/* normal to Y */}
@@ -9,9 +25,9 @@ export const Walls: React.FC = () => {
             >
                 <planeGeometry args={[s, s, s]} />
                 <meshStandardMaterial
-                    color={0xaaffaa}
-                    metalness={0.5}
-                    roughness={0.75}
+                    color={color}
+                    metalness={metalness}
+                    roughness={roughness}
                 />
             </mesh>
             {/* normal to X */}
@@ -21,9 +37,9 @@ export const Walls: React.FC = () => {
             >
                 <planeGeometry args={[s, s, s]} />
                 <meshStandardMaterial
-                    color={0xffaaaa}
-                    metalness={0.5}
-                    roughness={0.75}
+                    color={color}
+                    metalness={0.1}
+                    roughness={0.9}
                 />
             </mesh>
             {/* normal to Z */}
@@ -33,9 +49,9 @@ export const Walls: React.FC = () => {
             >
                 <planeGeometry args={[s, s, s]} />
                 <meshStandardMaterial
-                    color={0xaaaaff}
-                    metalness={0.5}
-                    roughness={0.75}
+                    color={color}
+                    metalness={0.1}
+                    roughness={0.9}
                 />
             </mesh>
         </group>
