@@ -162,7 +162,10 @@ const Boxes: React.FC<BoxesProps> = () => {
                         visible={box.id === target}
                         color={"#aa00aa"}
                         onClick={event => {
+                            // nearest object to camera will receive first click event
+                            // stop propagation to prevent click event for other object behind
                             event.stopPropagation()
+
                             state.target = event.object.name
                         }}
                     />
