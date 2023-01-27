@@ -239,25 +239,7 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
 
     // add edges of all boxes
     for (const box of boxes) {
-        // const [x, y, z] = box.position
-        // const [width, height, depth] = box.size
-        const [a, b, c, d, e, f, g, h] = boxToVerticies(box)
-        const boxEdges = [
-            [a, b],
-            [a, d],
-            [a, e],
-            [c, d],
-            [c, b],
-            [c, g],
-            [d, h],
-            [b, f],
-            [f, g],
-            [f, e],
-            [e, h],
-            [g, h],
-        ]
-        for (const [start, end] of boxEdges) {
-            const edge = new Line3(start, end)
+        for (const edge of boxToLines(box)) {
             for (const part of splitLineByVerticies(edge, nodes)) {
                 edges.push(part)
             }

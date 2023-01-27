@@ -56,6 +56,24 @@ export function boxToVerticies(box: Box3): Vector3[] {
     return [a, b, c, d, e, f, g, h]
 }
 
+export function boxToLines(box: Box3): Line3[] {
+    const [a, b, c, d, e, f, g, h] = boxToVerticies(box)
+    return [
+        [a, b],
+        [a, d],
+        [a, e],
+        [c, d],
+        [c, b],
+        [c, g],
+        [d, h],
+        [b, f],
+        [f, g],
+        [f, e],
+        [e, h],
+        [g, h],
+    ].map(([start, end]) => new Line3(start, end))
+}
+
 export function boxToPlanes(box: Box3): Box3[] {
     const center = box.getCenter(new Vector3())
     const size = box.getSize(new Vector3())
