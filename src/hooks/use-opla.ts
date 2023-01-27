@@ -3,9 +3,7 @@ import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
 import { OplaBox, state } from "@/state"
 import { boxHasArea } from "@/lib/t"
-import { boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
-
-type Edge = [Vector3, Vector3]
+import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 
 function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
     const axes = vectorToAxes(v)
@@ -147,7 +145,7 @@ function* intersectionsWithArea(boxes: Box3[]) {
     }
 }
 
-export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
+export function useOpla(): [Vector3[], Line3[], Box3[]] {
     const { items } = useSnapshot(state)
     // transform opla block dto to Box3
     const boxes = (items as OplaBox[]).map(oplaItemToBox3)
@@ -247,8 +245,8 @@ export function useOpla(): [[number, number, number][], Edge[], Box3[]] {
     }
 
     return [
-        uniqueVectors(nodes).map(v => v.toArray()),
-        cleanEdges(edges).map(line => [line.start, line.end]),
+        uniqueVectors(nodes),
+        cleanEdges(edges),
         overlaps,
     ]
 }

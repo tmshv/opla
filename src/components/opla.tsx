@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
-import { Box3, BoxGeometry, Color, Group, Mesh, Vector3 } from "three"
+import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
@@ -13,13 +13,11 @@ import { isIntersects } from "@/lib/t"
 import { state } from "@/state"
 import { useOpla } from "@/hooks/use-opla"
 
-type Edge = [Vector3, Vector3]
-
 const edgeNames = new Map([
-    [1, "edge_200mm"],
-    [2, "edge_400mm"],
-    [3, "edge_600mm"],
-    [4, "edge_800mm"],
+    [1 ** 2, "edge_200mm"],
+    [2 ** 2, "edge_400mm"],
+    [3 ** 2, "edge_600mm"],
+    [4 ** 2, "edge_800mm"],
 ])
 
 type BoxProps = MeshProps & {
@@ -166,8 +164,12 @@ const Boxes: React.FC<BoxesProps> = () => {
     )
 }
 
-function getRotation(edge: Edge): [number, number, number] {
-    const [a, b] = edge
+// get rotation of edge asset
+// according to how it is placed in GLB/blender file
+// (Y axes got 0 rotation)
+function getRotation(edge: Line3): [number, number, number] {
+    // const [a, b] = edge
+    const { start: a, end: b } = edge
 
     // Z
     if (a.x === b.x && a.y === b.y) {
@@ -188,19 +190,19 @@ type OplaWiresProps = {
 
 const OplaWires: React.FC<OplaWiresProps> = () => {
     const { showDebug, showMesh } = useControls({ showDebug: false, showMesh: true })
-    const [ns, es, overlaps] = useOpla()
-    const { nodes } = useGLTF("/assets/opla.glb")
+    const [nodes, edges, overlaps] = useOpla()
+    const { nodes: assets } = useGLTF("/assets/opla.glb")
 
     return (
         <Suspense fallback={null}>
             <group visible={showMesh}>
-                {ns.map((pos, i) => {
-                    const geom = (nodes.node_25mm as Mesh).geometry
+                {nodes.map((position, i) => {
+                    const geometry = (assets.node_25mm as Mesh).geometry
                     return (
                         <mesh
                             key={i}
-                            geometry={geom}
-                            position={pos}
+                            geometry={geometry}
+                            position={position}
                             scale={5}
                         >
                             <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
@@ -210,23 +212,21 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
                         </mesh>
                     )
                 })}
-                {es.map((edge, i) => {
-                    const [a, b] = edge
-                    const pos = new Vector3()
-                    pos.lerpVectors(a, b, 0.5)
-                    const dist = a.distanceTo(b)
+                {edges.map((edge, i) => {
+                    const dist = edge.distanceSq()
                     const name = edgeNames.get(dist)
                     if (!name) {
                         return null
                     }
-                    const geom = (nodes[name] as Mesh).geometry
-                    const r = getRotation(edge)
+                    const geometry = (assets[name] as Mesh).geometry
+                    const position = edge.at(0.5, new Vector3())
+                    const rotation = getRotation(edge)
                     return (
                         <mesh
                             key={i}
-                            geometry={geom}
-                            position={pos}
-                            rotation={r}
+                            geometry={geometry}
+                            position={position}
+                            rotation={rotation}
                             scale={5}
                         >
                             <meshStandardMaterial color={0xcccc99} metalness={1} roughness={0.5} />
