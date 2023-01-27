@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
-import { BoxGeometry, Color, Group, Mesh, Vector3 } from "three"
+import { Box3, BoxGeometry, Color, Group, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
@@ -250,6 +250,14 @@ const OplaWires: React.FC<OplaWiresProps> = () => {
     )
 }
 
+function boxGeometryToBox3(box: BoxGeometry): Box3 {
+    const { width, height, depth } = box.parameters
+    return new Box3(
+        new Vector3(-width / 2, -height / 2, -depth / 2),
+        new Vector3(width / 2, height / 2, depth / 2),
+    )
+}
+
 type OplaSceneProps = {
 }
 
@@ -263,28 +271,25 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
             return null
         }
 
+        const geom = obj.geometry as BoxGeometry
+        const { width, height, depth } = geom.parameters
+        const { x, y, z } = obj.position
+
+        // snap coord
+        const coord = new Vector3(
+            isInt(x) ? x : nextPosition(x, width, 1),
+            isInt(y) ? y : nextPosition(y, height, 1),
+            isInt(z) ? z : nextPosition(z, depth, 1),
+        )
+
+        const bbox = boxGeometryToBox3(geom)
+        bbox.translate(coord)
         const group = scene.getObjectByName("opla") as Group
-        if (isIntersects(obj, group)) {
+        if (isIntersects(bbox, obj, group)) {
             return null
         }
 
-        const geom = obj.geometry as BoxGeometry
-        const p = geom.parameters
-        const { width, height, depth } = p
-        const { x, y, z } = obj.position
-        // const { x: sx, y: sy, z: sz } = start;
-        const [sx, sy, sz] = [0, 0, 0]
-
-        // X - red | width
-        // Y - green | height
-        // Z - blue | depth
-        // console.log(`move x=${x} y=${y} z=${z} [${width} ${height} ${depth}]`);
-
-        return new Vector3(
-            isInt(x) ? x : nextPosition(x, width, x < sx ? -1 : 1),
-            isInt(y) ? y : nextPosition(y, height, y < sy ? -1 : 1),
-            isInt(z) ? z : nextPosition(z, depth, z < sz ? -1 : 1),
-        )
+        return coord
     }, [scene])
 
     return (

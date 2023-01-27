@@ -12,11 +12,7 @@ export function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
         : true
 }
 
-export function isIntersects(block: Object3D, blocks: Group): boolean {
-    // block.updateMatrixWorld()
-    const bbox = new Box3()
-    bbox.setFromObject(block)
-
+export function isIntersects(bbox: Box3, block: Object3D, blocks: Group): boolean {
     for (let other of blocks.children) {
         if (block === other) {
             continue
