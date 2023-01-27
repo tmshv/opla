@@ -233,6 +233,7 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
     }
 
     // add full edges of all boxes
+    // TODO: not necessary to split all full edges
     for (const box of boxes) {
         for (const edge of boxToLines(box)) {
             edgesToSplit.push(edge)
