@@ -42,8 +42,8 @@ type BlockDef = {
     highOff(): void,
 }
 
-let container, stats
-let camera
+let container: any
+// let stats
 let camera: THREE.Camera
 let renderer: THREE.WebGLRenderer
 let domRenderer
@@ -59,7 +59,7 @@ let newBoxCursor: OplaCursor
 // let hoverCursor: OplaCursor
 // let currentCursor: OplaCursor
 let controller: AppController
-let lastHover: BlockDef
+let lastHover: BlockDef | null
 
 let selectedBoxAxisX: CSS2DObject
 let selectedBoxAxisY: CSS2DObject
@@ -71,7 +71,7 @@ let tool = "select"
 let picker: ScenePicker<any>
 let planePicker: PlanePicker
 
-let currentBlock: BlockDef
+let currentBlock: BlockDef | null
 let defs: BlockDef[]
 
 let mouse = new THREE.Vector2()
@@ -291,7 +291,7 @@ function initPlanes(scene: THREE.Scene) {
         .setDoubleSide()
         .build()
 
-    box.userData.colorId.forEach((color, i) => {
+    box.userData.colorId.forEach((color: THREE.Color, i: number) => {
         const id = color.getHex()
         const sideName = directionName[i]
         const normal = directionNorm.get(sideName)
@@ -399,7 +399,7 @@ export function setupTransformControls(control: TransformControls) {
     })
 }
 
-function onTranformControlsChange(event) {
+function onTranformControlsChange(event: THREE.Event) {
     if (!currentBlock) {
         return
     }
@@ -575,6 +575,9 @@ function createBlockDef(opla: OplaSystem, block: OplaBlock): BlockDef {
 
 function cleanScene() {
     const objects = scene.getObjectByName("opla-group")
+    if (!objects) {
+        return
+    }
     scene.remove(objects)
 }
 
@@ -607,7 +610,7 @@ async function loadOplaAssets(files: string[]) {
 
 function createPicker(boxes: BlockDef[]) {
     const scene = new THREE.Scene()
-    const picker = new ScenePicker<[string, BlockDef]>(camera, renderer)
+    const picker = new ScenePicker<[string, BlockDef]>(camera as THREE.PerspectiveCamera, renderer)
     boxes.forEach(item => {
         item.pickColors.forEach((color, i) => {
             picker.setItem(color.getHex(), [directionName[i], item])
@@ -693,7 +696,7 @@ function addBlockAtCell(x: number, y: number) {
     const [dir, def] = selected
     const b = def.block
     const attr = directionAttr.get(dir)
-    let s = b.size[attr] as number
+    let s = b.size[attr!] as number
     let shift = s * 200
     const cell = nextBlockCell(sys.grid, dir, def, shift)
     if (!cell) {
@@ -760,10 +763,12 @@ function handleClickSelect(x: number, y: number) {
     // currentCursor.show()
 
     currentBlock = selected[1]
-    currentBlock.highOn()
-    control.attach(currentBlock.pick)
-    control.enabled = true
-    control.visible = true
+    if (currentBlock) {
+        currentBlock.highOn()
+        control.attach(currentBlock.pick)
+        control.enabled = true
+        control.visible = true
+    }
 
     // const dim = sys.grid.getCellDimensions(cell)
     // controller.setCellDimension(dim.x, dim.y, dim.z)
@@ -791,7 +796,7 @@ function animate() {
 
 function nextBlockCell(grid: OplaGrid, dir: string, def: BlockDef, shiftMultiplier: number) {
     const v = directionNorm
-        .get(dir)
+        .get(dir)!
         .clone()
         .multiplyScalar(shiftMultiplier)
     const cell = def.block.location

@@ -29,6 +29,7 @@ export class AppController implements IAssetLibrary {
         private model: OplaSystem
     ) {
         this.ready = false
+        this.tool = "select"
         this.lib = new Map()
         this.cellDimension = new THREE.Vector3()
         this.subjects = {
