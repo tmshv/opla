@@ -4,7 +4,7 @@ export function isInt(value: number): boolean {
 }
 
 /*
-* Almost native Math.floor but with difference for negative numbers
+* Almost the same as Math.floor but with difference for negative numbers
 * works this way: -1.53 -> 1 (not 2)
 */
 export function floor(value: number): number {
