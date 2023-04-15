@@ -76,24 +76,25 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
         const intersects = raycaster.intersectObjects(w.children)
 
         if (intersects.length > 0) {
-            const wall = intersects[0]
-            // console.log("frame", wall.object.name, wall.face.normal, wall.point)
-
-            const pos = wall.point.clone()
-            pos.x = floor(pos.x)
-            pos.y = floor(pos.y)
-            pos.z = floor(pos.z)
-
             const [w, h, d] = size
-            const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+            const wall = intersects[0]
+            const pos = wall.point.clone()
+            pos.set(
+                nextPosition(pos.x, w, 1),
+                nextPosition(pos.y, h, 1),
+                nextPosition(pos.z, d, 1),
+            )
+
+            // creates Box3 with center at mouse intersection
+            const box = new Box3(
+                new Vector3(-w / 2, -h / 2, -d / 2),
+                new Vector3(w / 2, h / 2, d / 2),
+            )
             box.translate(pos)
 
             if (isBoxOutOfBounds(box)) {
                 console.log("out")
-                // return
             }
-
-            // pos.add(wall.face.normal)
 
             setPos(pos)
         }
