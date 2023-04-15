@@ -50,13 +50,28 @@ export let state = proxy<State>({
             size: [3, 3, 3],
         },
         {
-            id: "4x 4y 4z",
-            position: [2.5, 1.5, 7.5],
+            id: "4x4x4",
+            position: [1.5, 1.5, 7.5],
             size: [4, 4, 4],
         },
         {
             id: "cube",
             position: [0, 4, 0],
+            size: [1, 1, 1],
+        },
+        {
+            id: "cube-2",
+            position: [1, 4, 0],
+            size: [1, 1, 1],
+        },
+        {
+            id: "cube-3",
+            position: [2, 4, 0],
+            size: [1, 1, 1],
+        },
+        {
+            id: "cube-4",
+            position: [3, 4, 0],
             size: [1, 1, 1],
         },
     ],
