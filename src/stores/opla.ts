@@ -7,12 +7,12 @@ export type OplaBox = {
 }
 
 export type State = {
-    target: string | null,
+    // target: string | null,
     items: OplaBox[],
 }
 
 export let state = proxy<State>({
-    target: null,
+    // target: null,
     items: [
         {
             id: "1x 1y 1z",
@@ -76,4 +76,3 @@ export let state = proxy<State>({
         },
     ],
 })
-

@@ -10,7 +10,8 @@ import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
 import { isIntersects } from "@/lib/t"
-import { state } from "@/state"
+import { state } from "@/stores/opla"
+import appState from "@/stores/app"
 import { useOpla } from "@/hooks/use-opla"
 
 const edgeNames = new Map([
@@ -156,7 +157,8 @@ type BoxesProps = {
 }
 
 const Boxes: React.FC<BoxesProps> = () => {
-    const { target, items } = useSnapshot(state)
+    const { items } = useSnapshot(state)
+    const { target } = useSnapshot(appState)
     return (
         <group name="opla">
             {items.map(box => {
@@ -176,7 +178,7 @@ const Boxes: React.FC<BoxesProps> = () => {
                             // stop propagation to prevent click event for other object behind
                             event.stopPropagation()
 
-                            state.target = event.object.name
+                            appState.target = event.object.name
                         }}
                     />
                 )
@@ -284,7 +286,7 @@ type OplaSceneProps = {
 
 const OplaScene: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
-    const { target } = useSnapshot(state)
+    const { target } = useSnapshot(appState)
 
     const snap = useCallback<TransformSnap>(t => {
         const obj = t.object as Mesh
@@ -357,7 +359,7 @@ export default function Opla() {
         <Canvas
             dpr={[1, 2]}
             onPointerMissed={() => {
-                state.target = null
+                appState.target = null
             }}
             camera={{
                 position: [5.5, 2.5, 12.0],

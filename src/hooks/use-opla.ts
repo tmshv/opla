@@ -1,7 +1,7 @@
 import { Box3, Line3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
-import { OplaBox, state } from "@/state"
+import { OplaBox, state } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 
@@ -249,4 +249,3 @@ export function useOpla(): [Vector3[], Line3[], Box3[]] {
         overlaps,
     ]
 }
-
