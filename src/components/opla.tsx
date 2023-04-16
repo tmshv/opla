@@ -391,7 +391,7 @@ export default function Opla() {
                 <BoxCursor
                     color="0x000000"
                     size={[cursorWidth, cursorHeight, cursorDepth]}
-                    position={[10, 10, 10]}
+                    position={[0, 0, 0]}
                     onPointerDown={() => {
                         appState.orbitEnabled = false
                     }}
@@ -417,4 +417,3 @@ export default function Opla() {
         </Canvas>
     )
 }
-
