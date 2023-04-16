@@ -6,7 +6,7 @@ import { useCursor } from "@react-three/drei"
 import { useSnapshot } from "valtio"
 import { useControls } from "leva"
 import { state } from "@/stores/opla"
-import appState from "@/stores/app"
+import appState, { Tool } from "@/stores/app"
 
 type BoxProps = MeshProps & {
     width: number
@@ -46,7 +46,8 @@ export type BoxesProps = {
 
 export const Boxes: React.FC<BoxesProps> = ({ onClick }) => {
     const { items } = useSnapshot(state)
-    const { target } = useSnapshot(appState)
+    const { target, tool } = useSnapshot(appState)
+
     return (
         <group name="opla">
             {items.map(box => {
@@ -59,7 +60,7 @@ export const Boxes: React.FC<BoxesProps> = ({ onClick }) => {
                         width={width}
                         height={height}
                         depth={depth}
-                        visible={box.id === target}
+                        visible={(tool === Tool.SELECT && box.id === target)}
                         color={"#aa00aa"}
                         onClick={event => {
                             // nearest object to camera will receive first click event

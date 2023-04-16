@@ -5,13 +5,13 @@ import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
-import { folder, useControls } from "leva"
+import { buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
 import { isIntersects } from "@/lib/t"
 import { state } from "@/stores/opla"
-import appState from "@/stores/app"
+import appState, { Tool } from "@/stores/app"
 import { Boxes } from "./boxes"
 import { OplaWires } from "./opla-wires"
 
@@ -143,7 +143,7 @@ type OplaSceneProps = {
 
 const OplaScene: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
-    const { orbitEnabled, target } = useSnapshot(appState)
+    const { orbitEnabled, target, tool } = useSnapshot(appState)
 
     const snap = useCallback<TransformSnap>(t => {
         const obj = t.object as Mesh
@@ -176,7 +176,11 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
         <>
             <Boxes
                 onClick={boxId => {
-                    appState.target = boxId
+                    if (tool === Tool.SELECT) {
+                        appState.target = boxId
+                    } else {
+                        appState.target = null
+                    }
                 }}
             />
             <OplaWires />
@@ -185,7 +189,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
                 makeDefault
                 dampingFactor={0.25}
             />
-            {!target ? null : (
+            {(!target || tool !== Tool.SELECT) ? null : (
                 <SnapTransformControls
                     object={scene.getObjectByName(target) as any}
                     snap={snap}
@@ -214,6 +218,10 @@ export default function Opla() {
             cursorDepth: {
                 min: 1, max: 4, step: 1, value: 1,
             },
+        }),
+        tool: buttonGroup({
+            Select: () => { appState.tool = Tool.SELECT },
+            Add: () => { appState.tool = Tool.ADD },
         }),
     })
 
