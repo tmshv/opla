@@ -60,11 +60,7 @@ type BoxCursorProps = MeshProps & {
 
 const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     // const raycaster = useThree(x => x.raycaster)
-    const [hovered, setHovered] = useState(false)
     const [pos, setPos] = useState(new Vector3(0, 0, 0))
-    useCursor(hovered)
-
-    // raycaster.intersectObjects()
 
     useFrame(({ raycaster, camera, pointer, scene }) => {
         // raycaster.setFromCamera(pointer, camera)
@@ -104,8 +100,8 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     return (
         <mesh {...props}
             position={pos}
-            onPointerOver={() => setHovered(true)}
-            onPointerOut={() => setHovered(false)}
+        //onPointerOver={() => setHovered(true)}
+        //onPointerOut={() => setHovered(false)}
         // scale={0.99}
         >
             <boxGeometry
