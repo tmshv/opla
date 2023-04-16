@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
-import { Edges, Environment, OrbitControls, useCursor, useGLTF } from "@react-three/drei"
+import { Edges, Environment, OrbitControls, useGLTF } from "@react-three/drei"
 import { Box3, BoxGeometry, Color, Group, Line3, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { folder, useControls } from "leva"
@@ -13,6 +13,7 @@ import { isIntersects } from "@/lib/t"
 import { state } from "@/stores/opla"
 import appState from "@/stores/app"
 import { useOpla } from "@/hooks/use-opla"
+import { Boxes } from "./boxes"
 
 const edgeNames = new Map([
     [1 ** 2, "edge_200mm"],
@@ -20,38 +21,6 @@ const edgeNames = new Map([
     [3 ** 2, "edge_600mm"],
     [4 ** 2, "edge_800mm"],
 ])
-
-type BoxProps = MeshProps & {
-    width: number
-    height: number
-    depth: number
-    color: string
-    visible: boolean
-}
-
-const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...props }) => {
-    const { showDebug } = useControls({ showDebug: false })
-    const [hovered, setHovered] = useState(false)
-    useCursor(hovered)
-
-    const a = showDebug ? 0.2 : 0
-
-    return (
-        <mesh {...props}
-            onPointerOver={() => setHovered(true)}
-            onPointerOut={() => setHovered(false)}
-        >
-            <boxGeometry
-                args={[width, height, depth]}
-            />
-            <meshStandardMaterial
-                color={color}
-                transparent
-                opacity={visible ? 0.4 : a}
-            />
-        </mesh>
-    )
-}
 
 type BoxCursorProps = MeshProps & {
     size: [number, number, number]
@@ -166,40 +135,6 @@ function isBoxOutOfBounds(box: Box3): boolean {
     return x - width / 2 < -0.5
         || y - height / 2 < -0.5
         || z - depth / 2 < -0.5
-}
-
-type BoxesProps = {
-}
-
-const Boxes: React.FC<BoxesProps> = () => {
-    const { items } = useSnapshot(state)
-    const { target } = useSnapshot(appState)
-    return (
-        <group name="opla">
-            {items.map(box => {
-                const [width, height, depth] = box.size
-                return (
-                    <Box
-                        key={box.id}
-                        name={box.id}
-                        position={box.position}
-                        width={width}
-                        height={height}
-                        depth={depth}
-                        visible={box.id === target}
-                        color={"#aa00aa"}
-                        onClick={event => {
-                            // nearest object to camera will receive first click event
-                            // stop propagation to prevent click event for other object behind
-                            event.stopPropagation()
-
-                            appState.target = event.object.name
-                        }}
-                    />
-                )
-            })}
-        </group>
-    )
 }
 
 // get rotation of edge asset
@@ -332,7 +267,11 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
 
     return (
         <>
-            <Boxes />
+            <Boxes
+                onClick={boxId => {
+                    appState.target = boxId
+                }}
+            />
             <OplaWires />
             <OrbitControls
                 enabled={orbitEnabled}
