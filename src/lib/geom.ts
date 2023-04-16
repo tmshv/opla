@@ -112,20 +112,6 @@ export function boxToPlanes(box: Box3): Box3[] {
     return planes
 }
 
-export function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
-    const box = new Box3()
-    box.setFromPoints([a, b])
-    return box
-}
-
-export function vectorToBox(v: Vector3, size: number): Box3 {
-    const min = v.clone()
-    min.subScalar(size)
-    const max = v.clone()
-    max.addScalar(size)
-    return new Box3(min, max)
-}
-
 export function vectorToAxes(v: Vector3): [Vector3, Vector3, Vector3] {
     return [
         new Vector3(v.x, 0, 0),
@@ -192,4 +178,3 @@ export function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[]
 
     return parts
 }
-
