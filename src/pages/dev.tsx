@@ -5,7 +5,7 @@ const Page = () => {
     return (
         <>
             <Opla />
-            <Leva flat collapsed />
+            <Leva collapsed />
         </>
     )
 }
