@@ -81,9 +81,9 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
             const wall = intersects[0]
             const pos = wall.point.clone()
             pos.set(
-                nextPosition(pos.x, w, 1),
-                nextPosition(pos.y, h, 1),
-                nextPosition(pos.z, d, 1),
+                snapCursorPosition(pos.x, w, 1),
+                snapCursorPosition(pos.y, h, 1),
+                snapCursorPosition(pos.z, d, 1),
             )
 
             // creates Box3 with center at mouse intersection
@@ -128,6 +128,25 @@ function nextPosition(pos: number, size: number, sign: number): number {
     let cellShift = 0
 
     // move by half cell
+    if (size % 2 === 0) {
+        cellShift = 0.5
+    }
+
+    return cell + cellShift * sign
+}
+
+function snapCursorPosition(pos: number, size: number, sign: number): number {
+    // TODO: this check works for wall snapping only
+    // but works bad on wall corners
+    // adopt for box snapping later
+
+    let cell = Math.round(pos)
+    if (cell < 0) {
+        cell = Math.round(size / 2) - 1
+    }
+
+    // move by half cell
+    let cellShift = 0
     if (size % 2 === 0) {
         cellShift = 0.5
     }
