@@ -205,9 +205,9 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
 }
 
 export default function Opla() {
-    const { showWalls, showCursor, cursorWidth, cursorHeight, cursorDepth } = useControls({
+    const { tool } = useSnapshot(appState)
+    const { showWalls, cursorWidth, cursorHeight, cursorDepth } = useControls({
         showWalls: true,
-        showCursor: true,
         cursor: folder({
             cursorWidth: {
                 min: 1, max: 4, step: 1, value: 1,
@@ -242,7 +242,7 @@ export default function Opla() {
 
             <OplaScene />
 
-            {!showCursor ? null : (
+            {tool !== Tool.ADD ? null : (
                 <BoxCursor
                     color="0x000000"
                     size={[cursorWidth, cursorHeight, cursorDepth]}
