@@ -222,6 +222,7 @@ export default function Opla() {
             dpr={[1, 2]}
             onPointerMissed={() => {
                 appState.target = null
+                appState.orbitEnabled = true
             }}
             camera={{
                 position: [5.5, 2.5, 12.0],
