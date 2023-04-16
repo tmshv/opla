@@ -301,7 +301,7 @@ type OplaSceneProps = {
 
 const OplaScene: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
-    const { target } = useSnapshot(appState)
+    const { orbitEnabled, target } = useSnapshot(appState)
 
     const snap = useCallback<TransformSnap>(t => {
         const obj = t.object as Mesh
@@ -335,6 +335,7 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
             <Boxes />
             <OplaWires />
             <OrbitControls
+                enabled={orbitEnabled}
                 makeDefault
                 dampingFactor={0.25}
             />
@@ -391,6 +392,12 @@ export default function Opla() {
                     color="0x000000"
                     size={[cursorWidth, cursorHeight, cursorDepth]}
                     position={[10, 10, 10]}
+                    onPointerDown={() => {
+                        appState.orbitEnabled = false
+                    }}
+                    onPointerUp={() => {
+                        appState.orbitEnabled = true
+                    }}
                     onClick={(event) => {
                         const obj = event.object
                         console.log("cursor", obj.position)
