@@ -5,10 +5,9 @@ const Page = () => {
     return (
         <>
             <Opla />
-            <Leva collapsed />
+            <Leva />
         </>
     )
 }
 
 export default Page
-
