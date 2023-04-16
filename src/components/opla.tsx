@@ -5,7 +5,7 @@ import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
 import { useSnapshot } from "valtio"
-import { buttonGroup, folder, useControls } from "leva"
+import { button, buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
@@ -222,6 +222,9 @@ export default function Opla() {
         tool: buttonGroup({
             Select: () => { appState.tool = Tool.SELECT },
             Add: () => { appState.tool = Tool.ADD },
+        }),
+        clear: button(() => {
+            state.items = []
         }),
     })
 
