@@ -1,5 +1,16 @@
 import { IAssetLibrary } from "@/app/types"
+import { OplaBox } from "@/stores/opla"
+import { Vector3, Box3 } from "three"
 import * as THREE from "three"
+
+export function oplaItemToBox3(item: OplaBox) {
+    const [w, h, d] = item.size
+    const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
+    const [x, y, z] = item.position
+    const pos = new Vector3(x, y, z)
+    box.translate(pos)
+    return box
+}
 
 export function createBoxVertices(size: THREE.Vector3) {
     const sx = size.x

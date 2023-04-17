@@ -4,6 +4,7 @@ import { pairs } from "@/lib/array"
 import { OplaBox, state } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
+import { oplaItemToBox3 } from "@/lib/opla-geom"
 
 function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
     const axes = vectorToAxes(v)
@@ -117,15 +118,6 @@ function splitLineByVerticies(line: Line3, verticies: Vector3[]): Line3[] {
     }
 
     return parts
-}
-
-function oplaItemToBox3(item: OplaBox) {
-    const [w, h, d] = item.size
-    const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
-    const [x, y, z] = item.position
-    const pos = new Vector3(x, y, z)
-    box.translate(pos)
-    return box
 }
 
 function* intersectionsWithArea(boxes: Box3[]) {
