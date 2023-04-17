@@ -10,7 +10,7 @@ import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
 import { isIntersects, unionBoxes } from "@/lib/t"
-import { OplaBox, OplaId, V3, state } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
 import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
@@ -245,6 +245,36 @@ export default function Opla() {
         clear: button(() => {
             // clear scene mutation
             state.scene = []
+        }),
+        explode: button(() => {
+            const groupIds = state.scene.filter(id => {
+                const obj = state.items[id]
+                return obj.type === "group"
+            })
+            for (const id of groupIds) {
+                const group = state.items[id] as OplaGroup
+                group.children.forEach(id => {
+                    const obj = state.items[id]
+                    obj.position[0] += group.position[0]
+                    obj.position[1] += group.position[1]
+                    obj.position[2] += group.position[2]
+                })
+            }
+
+            state.scene = state.scene.flatMap(id => {
+                const obj = state.items[id]
+                switch (obj.type) {
+                    case "box": {
+                        return [id]
+                    }
+                    case "group": {
+                        return obj.children
+                    }
+                    default: {
+                        throw new Error("Unreachable")
+                    }
+                }
+            })
         }),
     })
 
