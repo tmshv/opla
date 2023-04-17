@@ -136,8 +136,15 @@ function* intersectionsWithArea(boxes: Box3[]) {
     }
 }
 
+function useFlatOpla(): OplaBox[] {
+    const { groups, boxes } = useSnapshot(state)
+    const ids = groups.flatMap(group => group.boxIds)
+
+    return ids.map(id => boxes[id]) as any
+}
+
 export function useOpla(): [Vector3[], Line3[], Box3[]] {
-    const { items } = useSnapshot(state)
+    const items = useFlatOpla()
     // transform opla block dto to Box3
     const boxes = (items as OplaBox[]).map(oplaItemToBox3)
 

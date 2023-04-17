@@ -1,4 +1,4 @@
-import { Box3, Line3, Vector3 } from "three"
+import { Box3, Line3, Vector3, Group, Mesh } from "three"
 
 /**
 * x: row (+ right)
