@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
-import { Environment, OrbitControls, TransformControls } from "@react-three/drei"
+import { Environment, OrbitControls } from "@react-three/drei"
 import { Scene, Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, buttonGroup, folder, useControls } from "leva"
