@@ -1,14 +1,11 @@
 "use client"
 
-import { oplaItemToBox3 } from "@/lib/opla-geom"
-import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"
 import { OplaBox, OplaId, state } from "@/stores/opla"
 import { useCursor } from "@react-three/drei"
 import { MeshProps } from "@react-three/fiber"
 import { useControls } from "leva"
 import { useState } from "react"
-import { Box3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 
 // export function wrapGroup(objects: Mesh[]): Group {
@@ -171,9 +168,10 @@ export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick }) => {
                                 key={id}
                                 id={id}
                                 name={id}
-                                children={obj.children as OplaId[]}
                                 onClick={onClick}
-                            />
+                            >
+                                {obj.children as OplaId[]}
+                            </BoxGroup>
                         )
                     }
                     default: {
