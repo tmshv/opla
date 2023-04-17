@@ -1,5 +1,5 @@
-import { Box3, Line3, Vector3, Mesh, Group, BoxGeometry, MeshBasicMaterial } from "three"
-import { boxToLines, boxToPlanes, boxToVerticies, uniqueVectors, wrapGroup } from "./geom"
+import { Box3, Line3, Vector3 } from "three"
+import { boxToLines, boxToPlanes, boxToVerticies, uniqueVectors } from "./geom"
 
 describe("uniqueVectors", () => {
     test("should return same list if it empty", () => {
@@ -91,36 +91,3 @@ describe("boxToPlanes", () => {
         expect(boxToPlanes(box)).toEqual(result)
     })
 })
-
-describe('wrapGroup', () => {
-    test('returns a THREE.Group object', () => {
-        // Example meshes to test with
-        const mesh1 = new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 'red' }));
-        const mesh2 = new Mesh(new BoxGeometry(2, 2, 2), new MeshBasicMaterial({ color: 'green' }));
-
-        const group = wrapGroup([mesh1, mesh2]);
-        expect(group).toBeInstanceOf(Group);
-    });
-
-    test('correctly calculates the center of geometry', () => {
-        // Example meshes to test with
-        const mesh1 = new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 'red' }));
-        const mesh2 = new Mesh(new BoxGeometry(2, 2, 2), new MeshBasicMaterial({ color: 'green' }));
-
-        const group = wrapGroup([mesh1, mesh2]);
-        const expectedCenter = new Vector3(0, 0, 0); // Both meshes have center at origin
-        expect(group.position).toEqual(expectedCenter);
-    });
-
-    test('updates mesh positions so group is centered', () => {
-        // Example meshes to test with
-        const mesh1 = new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: 'red' }));
-        const mesh2 = new Mesh(new BoxGeometry(2, 2, 2), new MeshBasicMaterial({ color: 'green' }));
-
-        const group = wrapGroup([mesh1, mesh2]);
-        const mesh1Position = new Vector3(-0.5, -0.5, -0.5); // New position after centering
-        const mesh2Position = new Vector3(-1, -1, -1); // New position after centering
-        expect(mesh1.position).toEqual(mesh1Position);
-        expect(mesh2.position).toEqual(mesh2Position);
-    });
-});

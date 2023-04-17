@@ -32,22 +32,3 @@ export function boxHasArea(box: Box3): boolean {
     return size.toArray().filter(x => x !== 0).length >= 2
 }
 
-export function box3FromTwoVector3(a: Vector3, b: Vector3): Box3 {
-    const box = new Box3()
-    box.setFromPoints([a, b])
-    return box
-}
-
-export function unionBoxes(boxes: Box3[]): Box3 {
-    if (boxes.length === 0) {
-        return new Box3()
-    }
-    if (boxes.length === 1) {
-        return boxes[0].clone()
-    }
-    let result = boxes[0].clone()
-    for (let i = 1; i < boxes.length; i++) {
-        result = result.union(boxes[i])
-    }
-    return result
-}
