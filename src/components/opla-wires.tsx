@@ -34,7 +34,6 @@ function getRotation(edge: Line3): [number, number, number] {
     return [0, 0, Math.PI / 2]
 }
 
-
 export type OplaWiresProps = {
 }
 
