@@ -6,6 +6,7 @@ describe("oplaItemToBox3", () => {
     test("should return correct Box3", () => {
         const item: OplaBox = {
             id: "cube",
+            type: "box",
             position: [0, 4, 0],
             size: [1, 1, 1],
         }
