@@ -2,18 +2,19 @@
 
 import { useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
-import { Environment, OrbitControls } from "@react-three/drei"
-import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
+import { Environment, OrbitControls, TransformControls } from "@react-three/drei"
+import { Scene, Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
-import { isIntersects } from "@/lib/t"
-import { state } from "@/stores/opla"
+import { isIntersects, unionBoxes } from "@/lib/t"
+import { OplaBox, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
-import { Boxes } from "./boxes"
+import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
+import { oplaItemToBox3 } from "@/lib/opla-geom"
 
 type BoxCursorProps = MeshProps & {
     size: [number, number, number]
@@ -138,43 +139,61 @@ function boxGeometryToBox3(box: BoxGeometry): Box3 {
     )
 }
 
+function snapBox(scene: Scene, obj: Mesh): Vector3 | null {
+    if (isOutOfBounds(obj)) {
+        return null
+    }
+
+    const geom = (obj as Mesh).geometry as BoxGeometry
+    const { width, height, depth } = geom.parameters
+    const { x, y, z } = obj.position
+
+    // snap coord
+    const coord = new Vector3(
+        isInt(x) ? x : nextPosition(x, width, 1),
+        isInt(y) ? y : nextPosition(y, height, 1),
+        isInt(z) ? z : nextPosition(z, depth, 1),
+    )
+
+    const bbox = boxGeometryToBox3(geom)
+    bbox.translate(coord)
+    const group = scene.getObjectByName("opla") as Group
+    if (isIntersects(bbox, obj, group)) {
+        return null
+    }
+    return coord
+}
+
 type OplaSceneProps = {
 }
 
-const OplaScene: React.FC<OplaSceneProps> = () => {
+const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
-
     const snap = useCallback<TransformSnap>(t => {
-        const obj = t.object as Mesh
-        if (isOutOfBounds(obj)) {
-            return null
+        const snapObj = t.object as Object3D
+        const objId = snapObj.name as OplaId
+        const obj = state.items[objId] // TODO: not sure it is right way to access object
+        if (obj.type === "group") {
+            const boxes = obj.children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+            const bbox = unionBoxes(boxes)
+            const size = bbox.getSize(new Vector3()).toArray()
+            const [width, height, depth] = size
+            const { x, y, z } = snapObj.position
+            const coord = new Vector3(
+                isInt(x) ? x : nextPosition(x, width, 1),
+                isInt(y) ? y : nextPosition(y, height, 1),
+                isInt(z) ? z : nextPosition(z, depth, 1),
+            )
+            return coord
         }
-
-        const geom = obj.geometry as BoxGeometry
-        const { width, height, depth } = geom.parameters
-        const { x, y, z } = obj.position
-
-        // snap coord
-        const coord = new Vector3(
-            isInt(x) ? x : nextPosition(x, width, 1),
-            isInt(y) ? y : nextPosition(y, height, 1),
-            isInt(z) ? z : nextPosition(z, depth, 1),
-        )
-
-        const bbox = boxGeometryToBox3(geom)
-        bbox.translate(coord)
-        const group = scene.getObjectByName("opla") as Group
-        if (isIntersects(bbox, obj, group)) {
-            return null
-        }
-
-        return coord
+        return snapBox(scene, snapObj as Mesh)
     }, [scene])
 
     return (
         <>
-            <Boxes
+            <OplaScene
+                name={"opla"}
                 onClick={boxId => {
                     if (tool === Tool.SELECT) {
                         appState.target = boxId
@@ -195,8 +214,8 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
                     snap={snap}
                     onSnap={t => {
                         const obj = t.object!
-                        const i = state.items.findIndex(x => x.id === obj.name)
-                        state.items[i].position = obj.position.toArray()
+                        const boxId = obj.name
+                        state.items[boxId].position = obj.position.toArray()
                     }}
                 />
             )}
@@ -224,7 +243,8 @@ export default function Opla() {
             Add: () => { appState.tool = Tool.ADD },
         }),
         clear: button(() => {
-            state.items = []
+            // clear scene mutation
+            state.scene = []
         }),
     })
 
@@ -243,7 +263,7 @@ export default function Opla() {
             <pointLight position={[5, 5, 5]} />
             <Environment preset="lobby" />
 
-            <OplaScene />
+            <Main />
 
             {tool !== Tool.ADD ? null : (
                 <BoxCursor
@@ -260,11 +280,18 @@ export default function Opla() {
                         const obj = event.object
                         console.log("cursor", obj.position)
 
-                        state.items.push({
-                            id: Math.random().toString(),
-                            position: obj.position.toArray(),
-                            size: [cursorWidth, cursorHeight, cursorDepth],
-                        })
+                        const id = `${Date.now()}`
+                        const position = obj.position.toArray() as V3
+                        const size = [cursorWidth, cursorHeight, cursorDepth] as V3
+
+                        // add new box mutation
+                        state.items[id] = {
+                            id,
+                            type: "box",
+                            position,
+                            size,
+                        }
+                        state.scene.push(id)
                     }}
                 />
             )}
