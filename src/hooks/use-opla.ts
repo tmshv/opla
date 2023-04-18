@@ -1,7 +1,7 @@
 import { Box3, Line3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
-import { OplaBox, state } from "@/stores/opla"
+import { OplaBox, OplaId, state } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
@@ -136,10 +136,46 @@ function* intersectionsWithArea(boxes: Box3[]) {
     }
 }
 
+function useFlat(): Box3[] {
+    const { scene, items } = useSnapshot(state)
+    const boxes = scene
+        .flatMap((id: OplaId) => {
+            const obj = items[id]
+            switch (obj.type) {
+                case "box": {
+                    const o = items[id] as OplaBox
+                    const box: OplaBox = {
+                        ...o,
+                        position: [...o.position],
+                        size: [...o.size],
+                    }
+                    return [box]
+                }
+                case "group": {
+                    return obj.children.map(id => {
+                        const o = items[id] as OplaBox
+                        const box: OplaBox = {
+                            ...o,
+                            position: [...o.position],
+                            size: [...o.size],
+                        }
+                        box.position[0] += obj.position[0]
+                        box.position[1] += obj.position[1]
+                        box.position[2] += obj.position[2]
+                        return box
+                    })
+                }
+                default: {
+                    throw new Error("Unreachable")
+                }
+            }
+        })
+        .map(oplaItemToBox3)
+    return boxes
+}
+
 export function useOpla(): [Vector3[], Line3[], Box3[]] {
-    const { items } = useSnapshot(state)
-    // transform opla block dto to Box3
-    const boxes = (items as OplaBox[]).map(oplaItemToBox3)
+    const boxes = useFlat()
 
     const nodes: Vector3[] = []
     const edgesToSplit: Line3[] = []

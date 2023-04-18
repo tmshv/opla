@@ -3,17 +3,121 @@
 import { useCallback, useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three"
+import { Scene, Box3, BoxGeometry, Group, Mesh, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { floor, isInt } from "@/lib/math"
 import { Walls } from "./walls"
-import { isIntersects } from "@/lib/t"
-import { state } from "@/stores/opla"
+import { isIntersects, unionBoxes } from "@/lib/t"
+import { OplaBox, OplaGroup, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
-import { Boxes } from "./boxes"
+import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
+import { oplaItemToBox3 } from "@/lib/opla-geom"
+import { Graph } from "@/lib/graph"
+import { v4 as uuidv4 } from "uuid"
+
+function explode() {
+    const groupIds = state.scene.filter(id => {
+        const obj = state.items[id]
+        return obj.type === "group"
+    })
+    for (const id of groupIds) {
+        const group = state.items[id] as OplaGroup
+        group.children.forEach(id => {
+            const obj = state.items[id]
+            obj.position[0] += group.position[0]
+            obj.position[1] += group.position[1]
+            obj.position[2] += group.position[2]
+        })
+    }
+
+    state.scene = state.scene.flatMap(id => {
+        const obj = state.items[id]
+        switch (obj.type) {
+            case "box": {
+                return [id]
+            }
+            case "group": {
+                return obj.children
+            }
+            default: {
+                throw new Error("Unreachable")
+            }
+        }
+    })
+
+    for (const id of groupIds) {
+        delete state.items[id]
+    }
+}
+
+function join() {
+    explode()
+
+    // take all single boxes from scene
+    const boxes = state.scene
+        .filter(id => state.items[id].type === "box")
+        .map(id => state.items[id] as OplaBox)
+
+    const newScene: OplaId[] = []
+    const graph = new Graph<OplaId, OplaBox>()
+    for (const box of boxes) {
+        graph.addNode(box.id, box)
+    }
+    console.log(graph)
+    for (const a of boxes) {
+        for (const b of boxes) {
+            // skip self intersection
+            if (a.id === b.id) {
+                continue
+            }
+            // skip no intersecion
+            const bboxA = oplaItemToBox3(a)
+            const bboxB = oplaItemToBox3(b)
+            if (!bboxA.intersectsBox(bboxB)) {
+                continue
+            }
+            graph.addEdge(a.id, b.id)
+        }
+    }
+
+    const islands = graph.findAllIslands()
+    for (const island of islands) {
+        const children = [...island]
+
+        // add single box back
+        if (children.length === 1) {
+            newScene.push(children[0])
+            continue
+        }
+
+        // find center of children
+        const groupBbox = unionBoxes(
+            children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+        )
+        const center = groupBbox.getCenter(new Vector3)
+        for (const boxId of children) {
+            const box = state.items[boxId] as OplaBox
+            const localPosition = new Vector3()
+            localPosition.fromArray(box.position)
+            localPosition.sub(center)
+            box.position = localPosition.toArray()
+        }
+
+        const groupId = uuidv4()
+        state.items[groupId] = {
+            id: groupId,
+            type: "group",
+            position: center.toArray(),
+            children,
+        }
+        newScene.push(groupId)
+    }
+
+    state.scene = newScene
+}
 
 type BoxCursorProps = MeshProps & {
     size: [number, number, number]
@@ -138,43 +242,61 @@ function boxGeometryToBox3(box: BoxGeometry): Box3 {
     )
 }
 
+function snapBox(scene: Scene, obj: Mesh): Vector3 | null {
+    if (isOutOfBounds(obj)) {
+        return null
+    }
+
+    const geom = (obj as Mesh).geometry as BoxGeometry
+    const { width, height, depth } = geom.parameters
+    const { x, y, z } = obj.position
+
+    // snap coord
+    const coord = new Vector3(
+        isInt(x) ? x : nextPosition(x, width, 1),
+        isInt(y) ? y : nextPosition(y, height, 1),
+        isInt(z) ? z : nextPosition(z, depth, 1),
+    )
+
+    const bbox = boxGeometryToBox3(geom)
+    bbox.translate(coord)
+    const group = scene.getObjectByName("opla") as Group
+    if (isIntersects(bbox, obj, group)) {
+        return null
+    }
+    return coord
+}
+
 type OplaSceneProps = {
 }
 
-const OplaScene: React.FC<OplaSceneProps> = () => {
+const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
-
     const snap = useCallback<TransformSnap>(t => {
-        const obj = t.object as Mesh
-        if (isOutOfBounds(obj)) {
-            return null
+        const snapObj = t.object as Object3D
+        const objId = snapObj.name as OplaId
+        const obj = state.items[objId] // TODO: not sure it is right way to access object
+        if (obj.type === "group") {
+            const boxes = obj.children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+            const bbox = unionBoxes(boxes)
+            const size = bbox.getSize(new Vector3()).toArray()
+            const [width, height, depth] = size
+            const { x, y, z } = snapObj.position
+            const coord = new Vector3(
+                isInt(x) ? x : nextPosition(x, width, 1),
+                isInt(y) ? y : nextPosition(y, height, 1),
+                isInt(z) ? z : nextPosition(z, depth, 1),
+            )
+            return coord
         }
-
-        const geom = obj.geometry as BoxGeometry
-        const { width, height, depth } = geom.parameters
-        const { x, y, z } = obj.position
-
-        // snap coord
-        const coord = new Vector3(
-            isInt(x) ? x : nextPosition(x, width, 1),
-            isInt(y) ? y : nextPosition(y, height, 1),
-            isInt(z) ? z : nextPosition(z, depth, 1),
-        )
-
-        const bbox = boxGeometryToBox3(geom)
-        bbox.translate(coord)
-        const group = scene.getObjectByName("opla") as Group
-        if (isIntersects(bbox, obj, group)) {
-            return null
-        }
-
-        return coord
+        return snapBox(scene, snapObj as Mesh)
     }, [scene])
 
     return (
         <>
-            <Boxes
+            <OplaScene
+                name={"opla"}
                 onClick={boxId => {
                     if (tool === Tool.SELECT) {
                         appState.target = boxId
@@ -189,14 +311,14 @@ const OplaScene: React.FC<OplaSceneProps> = () => {
                 makeDefault
                 dampingFactor={0.25}
             />
-            {(!target || tool !== Tool.SELECT) ? null : (
+            {(!target || tool !== Tool.SELECT || scene.getObjectByName(target) === null) ? null : (
                 <SnapTransformControls
                     object={scene.getObjectByName(target) as any}
                     snap={snap}
                     onSnap={t => {
                         const obj = t.object!
-                        const i = state.items.findIndex(x => x.id === obj.name)
-                        state.items[i].position = obj.position.toArray()
+                        const boxId = obj.name
+                        state.items[boxId].position = obj.position.toArray()
                     }}
                 />
             )}
@@ -224,7 +346,13 @@ export default function Opla() {
             Add: () => { appState.tool = Tool.ADD },
         }),
         clear: button(() => {
-            state.items = []
+            // clear scene mutation
+            state.scene = []
+            state.items = {}
+        }),
+        explode: button(explode),
+        join: button(() => {
+            join()
         }),
     })
 
@@ -243,7 +371,7 @@ export default function Opla() {
             <pointLight position={[5, 5, 5]} />
             <Environment preset="lobby" />
 
-            <OplaScene />
+            <Main />
 
             {tool !== Tool.ADD ? null : (
                 <BoxCursor
@@ -260,11 +388,18 @@ export default function Opla() {
                         const obj = event.object
                         console.log("cursor", obj.position)
 
-                        state.items.push({
-                            id: Math.random().toString(),
-                            position: obj.position.toArray(),
-                            size: [cursorWidth, cursorHeight, cursorDepth],
-                        })
+                        const id = `${Date.now()}`
+                        const position = obj.position.toArray() as V3
+                        const size = [cursorWidth, cursorHeight, cursorDepth] as V3
+
+                        // add new box mutation
+                        state.items[id] = {
+                            id,
+                            type: "box",
+                            position,
+                            size,
+                        }
+                        state.scene.push(id)
                     }}
                 />
             )}
