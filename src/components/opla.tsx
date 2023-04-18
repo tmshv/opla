@@ -16,10 +16,7 @@ import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
 import { Graph } from "@/lib/graph"
-
-function uuid() {
-    return `${Math.random()}`
-}
+import { v4 as uuidv4 } from "uuid"
 
 function explode() {
     const groupIds = state.scene.filter(id => {
@@ -109,7 +106,7 @@ function join() {
             box.position = localPosition.toArray()
         }
 
-        const groupId = uuid()
+        const groupId = uuidv4()
         state.items[groupId] = {
             id: groupId,
             type: "group",
