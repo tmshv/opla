@@ -352,6 +352,7 @@ export default function Opla() {
         clear: button(() => {
             // clear scene mutation
             state.scene = []
+            state.items = {}
         }),
         explode: button(explode),
         join: button(() => {
