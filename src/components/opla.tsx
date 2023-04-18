@@ -15,6 +15,7 @@ import appState, { Tool } from "@/stores/app"
 import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
+import { Graph } from "@/lib/graph"
 
 function explode() {
     const groupIds = state.scene.filter(id => {
@@ -52,75 +53,80 @@ function explode() {
 }
 
 function join() {
-    const visit = new Set<OplaId>()
-    const boxes = Object
-        .keys(state.items)
+    explode()
+
+    // take all single boxes from scene
+    const boxes = state.scene
         .filter(id => state.items[id].type === "box")
         .map(id => state.items[id] as OplaBox)
 
-    state.scene = []
+    const newScene: OplaId[] = []
+    const graph = new Graph<OplaId, OplaBox>()
+    for (const box of boxes) {
+        graph.addNode(box.id, box)
+    }
+    console.log(graph)
     for (const a of boxes) {
-        if (visit.has(a.id)) {
-            continue
-        }
-
-        const group = new Set<OplaId>()
         for (const b of boxes) {
+            // skip self intersection
             if (a.id === b.id) {
                 continue
             }
-            if (visit.has(b.id)) {
+            // skip no intersecion
+            const bboxA = oplaItemToBox3(a)
+            const bboxB = oplaItemToBox3(b)
+            if (!bboxA.intersectsBox(bboxB)) {
                 continue
             }
-            const boxA = oplaItemToBox3(a)
-            const boxB = oplaItemToBox3(b)
-            if (boxA.intersectsBox(boxB)) {
-                group.add(a.id)
-                group.add(b.id)
-                visit.add(a.id)
-                visit.add(b.id)
-            }
+            graph.addEdge(a.id, b.id)
+        }
+    }
+
+    const islands = graph.findAllIslands()
+    for (const island of islands) {
+        const children = [...island]
+
+        // add single box back
+        if (children.length === 1) {
+            newScene.push(children[0])
+            continue
         }
 
-        const gid = `${Math.random()}`
-        state.items[gid] = {
-            id: gid,
+        const groupId = `${Math.random()}`
+        state.items[groupId] = {
+            id: groupId,
             type: "group",
             position: [0, 0, 0],
-            children: [...group],
+            children,
         }
-        state.scene.push(gid)
+        newScene.push(groupId)
     }
 
-    // world to local boxes in groups
-    const groups = Object
-        .keys(state.items)
-        .filter(id => state.items[id].type === "group")
-        .map(id => state.items[id] as OplaGroup)
-    for (const g of groups) {
-        let center = new Vector3()
-        for (const child of g.children) {
-            const box = state.items[child] as OplaBox
-            const pos = new Vector3()
-            pos.fromArray(box.position)
-            center.add(pos)
-        }
-        center.divideScalar(g.children.length)
-        g.position = center.toArray()
-        // for (const child of g.children) {
-        //     const box = state.items[child] as OplaBox
-        //     box.position[0] -= center.x
-        //     box.position[1] -= center.y
-        //     box.position[2] -= center.z
-        // }
-    }
+    // // const group = new Set<OplaId>()
+    // // world to local boxes in groups
+    // const groups = Object
+    //     .keys(state.items)
+    //     .filter(id => state.items[id].type === "group")
+    //     .map(id => state.items[id] as OplaGroup)
+    // for (const g of edges) {
+    //     let center = new Vector3()
+    //     for (const child of g.children) {
+    //         const box = state.items[child] as OplaBox
+    //         const pos = new Vector3()
+    //         pos.fromArray(box.position)
+    //         center.add(pos)
+    //     }
+    //     center.divideScalar(g.children.length)
+    //     g.position = center.toArray()
+    //     // for (const child of g.children) {
+    //     //     const box = state.items[child] as OplaBox
+    //     //     box.position[0] -= center.x
+    //     //     box.position[1] -= center.y
+    //     //     box.position[2] -= center.z
+    //     // }
+    // }
 
-    // add all separate boxes
-    for (const box of boxes) {
-        if (!visit.has(box.id)) {
-            state.scene.push(box.id)
-        }
-    }
+    state.scene = newScene
 }
 
 type BoxCursorProps = MeshProps & {
@@ -356,7 +362,6 @@ export default function Opla() {
         }),
         explode: button(explode),
         join: button(() => {
-            explode()
             join()
         }),
     })
