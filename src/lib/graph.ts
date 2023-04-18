@@ -7,12 +7,15 @@ export class Graph<Id, P> {
         this.edges = new Map()
     }
 
-    addNode(id: Id, payload: P) {
+    addNode(id: Id, payload: P): this {
         this.nodes.set(id, payload)
         return this
     }
 
-    addEdge(sourceId: any, targetId: any) {
+    addEdge(sourceId: Id, targetId: Id): this {
+        if (!this.nodes.has(sourceId) || !this.nodes.has(targetId)) {
+            throw new Error("sourceId or targetId not found")
+        }
         if (!this.edges.has(sourceId)) {
             this.edges.set(sourceId, [])
         }
