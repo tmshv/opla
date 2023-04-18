@@ -16,6 +16,113 @@ import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
 
+function explode() {
+    const groupIds = state.scene.filter(id => {
+        const obj = state.items[id]
+        return obj.type === "group"
+    })
+    for (const id of groupIds) {
+        const group = state.items[id] as OplaGroup
+        group.children.forEach(id => {
+            const obj = state.items[id]
+            obj.position[0] += group.position[0]
+            obj.position[1] += group.position[1]
+            obj.position[2] += group.position[2]
+        })
+    }
+
+    state.scene = state.scene.flatMap(id => {
+        const obj = state.items[id]
+        switch (obj.type) {
+            case "box": {
+                return [id]
+            }
+            case "group": {
+                return obj.children
+            }
+            default: {
+                throw new Error("Unreachable")
+            }
+        }
+    })
+
+    for (const id of groupIds) {
+        delete state.items[id]
+    }
+}
+
+function join() {
+    const visit = new Set<OplaId>()
+    const boxes = Object
+        .keys(state.items)
+        .filter(id => state.items[id].type === "box")
+        .map(id => state.items[id] as OplaBox)
+
+    state.scene = []
+    for (const a of boxes) {
+        if (visit.has(a.id)) {
+            continue
+        }
+
+        const group = new Set<OplaId>()
+        for (const b of boxes) {
+            if (a.id === b.id) {
+                continue
+            }
+            if (visit.has(b.id)) {
+                continue
+            }
+            const boxA = oplaItemToBox3(a)
+            const boxB = oplaItemToBox3(b)
+            if (boxA.intersectsBox(boxB)) {
+                group.add(a.id)
+                group.add(b.id)
+                visit.add(a.id)
+                visit.add(b.id)
+            }
+        }
+
+        const gid = `${Math.random()}`
+        state.items[gid] = {
+            id: gid,
+            type: "group",
+            position: [0, 0, 0],
+            children: [...group],
+        }
+        state.scene.push(gid)
+    }
+
+    // world to local boxes in groups
+    const groups = Object
+        .keys(state.items)
+        .filter(id => state.items[id].type === "group")
+        .map(id => state.items[id] as OplaGroup)
+    for (const g of groups) {
+        let center = new Vector3()
+        for (const child of g.children) {
+            const box = state.items[child] as OplaBox
+            const pos = new Vector3()
+            pos.fromArray(box.position)
+            center.add(pos)
+        }
+        center.divideScalar(g.children.length)
+        g.position = center.toArray()
+        // for (const child of g.children) {
+        //     const box = state.items[child] as OplaBox
+        //     box.position[0] -= center.x
+        //     box.position[1] -= center.y
+        //     box.position[2] -= center.z
+        // }
+    }
+
+    // add all separate boxes
+    for (const box of boxes) {
+        if (!visit.has(box.id)) {
+            state.scene.push(box.id)
+        }
+    }
+}
+
 type BoxCursorProps = MeshProps & {
     size: [number, number, number]
     color: string
@@ -208,7 +315,7 @@ const Main: React.FC<OplaSceneProps> = () => {
                 makeDefault
                 dampingFactor={0.25}
             />
-            {(!target || tool !== Tool.SELECT) ? null : (
+            {(!target || tool !== Tool.SELECT || scene.getObjectByName(target) === null) ? null : (
                 <SnapTransformControls
                     object={scene.getObjectByName(target) as any}
                     snap={snap}
@@ -246,35 +353,10 @@ export default function Opla() {
             // clear scene mutation
             state.scene = []
         }),
-        explode: button(() => {
-            const groupIds = state.scene.filter(id => {
-                const obj = state.items[id]
-                return obj.type === "group"
-            })
-            for (const id of groupIds) {
-                const group = state.items[id] as OplaGroup
-                group.children.forEach(id => {
-                    const obj = state.items[id]
-                    obj.position[0] += group.position[0]
-                    obj.position[1] += group.position[1]
-                    obj.position[2] += group.position[2]
-                })
-            }
-
-            state.scene = state.scene.flatMap(id => {
-                const obj = state.items[id]
-                switch (obj.type) {
-                    case "box": {
-                        return [id]
-                    }
-                    case "group": {
-                        return obj.children
-                    }
-                    default: {
-                        throw new Error("Unreachable")
-                    }
-                }
-            })
+        explode: button(explode),
+        join: button(() => {
+            explode()
+            join()
         }),
     })
 
