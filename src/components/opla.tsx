@@ -17,6 +17,10 @@ import { OplaWires } from "./opla-wires"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
 import { Graph } from "@/lib/graph"
 
+function uuid() {
+    return `${Math.random()}`
+}
+
 function explode() {
     const groupIds = state.scene.filter(id => {
         const obj = state.items[id]
@@ -92,39 +96,28 @@ function join() {
             continue
         }
 
-        const groupId = `${Math.random()}`
+        // find center of children
+        const groupBbox = unionBoxes(
+            children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+        )
+        const center = groupBbox.getCenter(new Vector3)
+        for (const boxId of children) {
+            const box = state.items[boxId] as OplaBox
+            const localPosition = new Vector3()
+            localPosition.fromArray(box.position)
+            localPosition.sub(center)
+            box.position = localPosition.toArray()
+        }
+
+        const groupId = uuid()
         state.items[groupId] = {
             id: groupId,
             type: "group",
-            position: [0, 0, 0],
+            position: center.toArray(),
             children,
         }
         newScene.push(groupId)
     }
-
-    // // const group = new Set<OplaId>()
-    // // world to local boxes in groups
-    // const groups = Object
-    //     .keys(state.items)
-    //     .filter(id => state.items[id].type === "group")
-    //     .map(id => state.items[id] as OplaGroup)
-    // for (const g of edges) {
-    //     let center = new Vector3()
-    //     for (const child of g.children) {
-    //         const box = state.items[child] as OplaBox
-    //         const pos = new Vector3()
-    //         pos.fromArray(box.position)
-    //         center.add(pos)
-    //     }
-    //     center.divideScalar(g.children.length)
-    //     g.position = center.toArray()
-    //     // for (const child of g.children) {
-    //     //     const box = state.items[child] as OplaBox
-    //     //     box.position[0] -= center.x
-    //     //     box.position[1] -= center.y
-    //     //     box.position[2] -= center.z
-    //     // }
-    // }
 
     state.scene = newScene
 }
