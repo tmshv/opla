@@ -349,10 +349,12 @@ export default function Opla() {
             // clear scene mutation
             state.scene = []
             state.items = {}
+            appState.target = null
         }),
         explode: button(explode),
         join: button(() => {
             join()
+            appState.target = null
         }),
     })
 
