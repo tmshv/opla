@@ -351,7 +351,10 @@ export default function Opla() {
             state.items = {}
             appState.target = null
         }),
-        explode: button(explode),
+        explode: button(() => {
+            explode()
+            appState.target = null
+        }),
         join: button(() => {
             join()
             appState.target = null
