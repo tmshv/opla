@@ -12,6 +12,7 @@ export function oplaItemToBox3(item: OplaBox) {
     return box
 }
 
+// TODO: deprecated
 export function createBoxVertices(size: THREE.Vector3) {
     const sx = size.x
     const sy = size.y
@@ -30,6 +31,7 @@ export function createBoxVertices(size: THREE.Vector3) {
     ]
 }
 
+// TODO: deprecated
 export function createOplaModel(size: THREE.Vector3, assetlib: IAssetLibrary) {
     let scale = size.clone()
     const s = scale.clone().multiplyScalar(0.5)
