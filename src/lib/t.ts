@@ -14,7 +14,7 @@ export function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
 
 export function isIntersects(bbox: Box3, block: Object3D, blocks: Group): boolean {
     for (let other of blocks.children) {
-        if (block === other) {
+        if (other === block) {
             continue
         }
         const o = new Box3()
