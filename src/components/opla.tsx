@@ -230,7 +230,7 @@ function snapCursorPosition(pos: number, size: number, sign: number): number {
     return cell + cellShift * sign
 }
 
-function isOutOfBounds(obj: Mesh): boolean {
+function isMeshOutOfBounds(obj: Mesh): boolean {
     const geom = obj.geometry as BoxGeometry
     const { width, height, depth } = geom.parameters
     const { x, y, z } = obj.position
@@ -257,7 +257,7 @@ function boxGeometryToBox3(box: BoxGeometry): Box3 {
 }
 
 function snapBox(scene: Scene, obj: Mesh): Vector3 | null {
-    if (isOutOfBounds(obj)) {
+    if (isMeshOutOfBounds(obj)) {
         return null
     }
 
