@@ -294,8 +294,12 @@ const Main: React.FC<OplaSceneProps> = () => {
         if (obj.type === "group") {
             const boxes = obj.children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
             const bbox = unionBoxes(boxes)
-            const size = bbox.getSize(new Vector3()).toArray()
-            const [width, height, depth] = size
+            bbox.translate(snapObj.position) // TODO or (new Vector()).fromArray(obj.position). Also research why need to translate bbox after union and oplaItemToBox3
+            if (isBoxOutOfBounds(bbox)) {
+                return null
+            }
+            const size = bbox.getSize(new Vector3())
+            const [width, height, depth] = size.toArray()
             const { x, y, z } = snapObj.position
             const coord = new Vector3(
                 isInt(x) ? x : nextPosition(x, width, 1),
