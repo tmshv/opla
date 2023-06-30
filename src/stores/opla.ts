@@ -21,9 +21,11 @@ export type OplaObject =
     | OplaBox
     | OplaGroup
 
+export type OplaObjectCollection = Record<OplaId, OplaObject>
+
 export type State = {
     version: string
-    items: Record<OplaId, OplaObject>
+    items: OplaObjectCollection
     scene: OplaId[]
 }
 
