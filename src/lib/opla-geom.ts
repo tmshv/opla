@@ -1,7 +1,8 @@
 import { IAssetLibrary } from "@/app/types"
-import { OplaBox } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, OplaObject, OplaObjectCollection, state } from "@/stores/opla"
 import { Vector3, Box3 } from "three"
 import * as THREE from "three"
+import { boxInclusiveIntersect } from "./t"
 
 export function oplaItemToBox3(item: OplaBox) {
     const [w, h, d] = item.size
@@ -10,6 +11,51 @@ export function oplaItemToBox3(item: OplaBox) {
     const pos = new Vector3(x, y, z)
     box.translate(pos)
     return box
+}
+
+export function flatOplaGroup(group: OplaGroup, items: OplaObjectCollection): OplaBox[] {
+    return group.children
+        .map(id => {
+            const o = items[id] as OplaBox
+            const box: OplaBox = {
+                ...o,
+                position: [...o.position],
+                size: [...o.size],
+            }
+            box.position[0] += group.position[0]
+            box.position[1] += group.position[1]
+            box.position[2] += group.position[2]
+            return box
+        })
+}
+
+// function hasIntersection(item: OplaObject, scene: OplaId[], items: OplaObjectCollection): boolean {
+export function hasIntersection(boxes: Box3[], skipItemId: OplaId, scene: OplaId[], items: OplaObjectCollection): boolean {
+    // const currentBoxes = item.type === "box" ? [item] : flatOplaGroup(item, items)
+    // const bboxes = currentBoxes.map(oplaItemToBox3)
+
+    for (const otherId of scene) {
+        const other = items[otherId]
+        if (other.id === skipItemId) {
+            continue
+        }
+
+        const otherBoxes = other.type === "box"
+            ? [other]
+            : flatOplaGroup(other, items)
+        const otherBboxes = otherBoxes.map(oplaItemToBox3)
+
+        // Cross check for inclusive intersection between two box3
+        for (const a of boxes) {
+            for (const b of otherBboxes) {
+                if (boxInclusiveIntersect(a, b)) {
+                    return true
+                }
+            }
+        }
+    }
+
+    return false
 }
 
 // TODO: deprecated
