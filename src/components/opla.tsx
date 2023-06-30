@@ -199,16 +199,12 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     )
 }
 
-function nextPosition(pos: number, size: number, sign: number): number {
+function nextPosition(pos: number, size: number): number {
     const cell = floor(pos)
-    let cellShift = 0
-
-    // move by half cell
-    if (size % 2 === 0) {
-        cellShift = 0.5
-    }
-
-    return cell + cellShift * sign
+    const cellShift = size % 2 === 0
+        ? 0
+        : 0.5 // move by half cell
+    return cell + cellShift
 }
 
 function snapCursorPosition(pos: number, size: number, sign: number): number {
