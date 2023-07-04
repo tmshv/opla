@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Scene, Box3, BoxGeometry, Mesh, Object3D, Vector3, Raycaster, Intersection } from "three"
+import { Scene, Box3, Object3D, Vector3, Raycaster, Intersection } from "three"
 import { useSnapshot } from "valtio"
 import { button, buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
@@ -199,8 +199,7 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     )
 }
 
-// TODO rm temp_sign
-function nextPosition(pos: number, size: number, temp_sign: number = 1): number {
+function nextPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
     const cellShift = size % 2 === 0
         ? 0.5 // move by half cell
@@ -227,29 +226,12 @@ function snapCursorPosition(pos: number, size: number, sign: number): number {
     return cell + cellShift * sign
 }
 
-function isMeshOutOfBounds(obj: Mesh): boolean {
-    const geom = obj.geometry as BoxGeometry
-    const { width, height, depth } = geom.parameters
-    const { x, y, z } = obj.position
-    return x - width / 2 < -0.5
-        || y - height / 2 < -0.5
-        || z - depth / 2 < -0.5
-}
-
 function isBoxOutOfBounds(box: Box3): boolean {
     const [width, height, depth] = box.getSize(new Vector3()).toArray()
     const { x, y, z } = box.getCenter(new Vector3())
     return x - width / 2 < -0.5
         || y - height / 2 < -0.5
         || z - depth / 2 < -0.5
-}
-
-function boxGeometryToBox3(box: BoxGeometry): Box3 {
-    const { width, height, depth } = box.parameters
-    return new Box3(
-        new Vector3(-width / 2, -height / 2, -depth / 2),
-        new Vector3(width / 2, height / 2, depth / 2),
-    )
 }
 
 const snap: TransformSnap = t => {
