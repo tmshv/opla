@@ -199,7 +199,8 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     )
 }
 
-function nextPosition(pos: number, size: number): number {
+// TODO rm temp_sign
+function nextPosition(pos: number, size: number, temp_sign: number = 1): number {
     const cell = floor(pos)
     const cellShift = size % 2 === 0
         ? 0
