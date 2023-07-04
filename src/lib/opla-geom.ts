@@ -1,5 +1,5 @@
 import { IAssetLibrary } from "@/app/types"
-import { OplaBox, OplaGroup, OplaId, OplaObject, OplaObjectCollection, state } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, OplaObjectCollection } from "@/stores/opla"
 import { Vector3, Box3 } from "three"
 import * as THREE from "three"
 import { boxInclusiveIntersect } from "./t"

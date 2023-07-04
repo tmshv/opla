@@ -1,10 +1,10 @@
 import { Box3, Line3, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
-import { OplaBox, OplaId, state } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, OplaObjectCollection, state } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
-import { oplaItemToBox3 } from "@/lib/opla-geom"
+import { flatOplaGroup, oplaItemToBox3 } from "@/lib/opla-geom"
 
 function vectorToAxes2(v: Vector3): [Vector3, Vector3] {
     const axes = vectorToAxes(v)
@@ -152,18 +152,7 @@ function useFlat(): Box3[] {
                     return [box]
                 }
                 case "group": {
-                    return obj.children.map(id => {
-                        const o = items[id] as OplaBox
-                        const box: OplaBox = {
-                            ...o,
-                            position: [...o.position],
-                            size: [...o.size],
-                        }
-                        box.position[0] += obj.position[0]
-                        box.position[1] += obj.position[1]
-                        box.position[2] += obj.position[2]
-                        return box
-                    })
+                    return flatOplaGroup(obj as OplaGroup, items as OplaObjectCollection)
                 }
                 default: {
                     throw new Error("Unreachable")
