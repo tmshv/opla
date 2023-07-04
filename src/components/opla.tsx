@@ -1,20 +1,20 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Scene, Box3, BoxGeometry, Group, Mesh, Object3D, Vector3, Raycaster, Intersection } from "three"
+import { Scene, Box3, BoxGeometry, Mesh, Object3D, Vector3, Raycaster, Intersection } from "three"
 import { useSnapshot } from "valtio"
 import { button, buttonGroup, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
-import { floor, isInt } from "@/lib/math"
+import { isInt } from "@/lib/math"
 import { Walls } from "./walls"
-import { isIntersects, unionBoxes } from "@/lib/t"
+import { unionBoxes } from "@/lib/t"
 import { OplaBox, OplaGroup, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
 import { OplaScene } from "./opla-scene"
 import { OplaWires } from "./opla-wires"
-import { oplaItemToBox3 } from "@/lib/opla-geom"
+import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { Graph } from "@/lib/graph"
 import { v4 as uuidv4 } from "uuid"
 
@@ -66,7 +66,7 @@ function join() {
     for (const box of boxes) {
         graph.addNode(box.id, box)
     }
-    console.log(graph)
+
     for (const a of boxes) {
         for (const b of boxes) {
             // skip self intersection
@@ -201,10 +201,10 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
 
 // TODO rm temp_sign
 function nextPosition(pos: number, size: number, temp_sign: number = 1): number {
-    const cell = floor(pos)
+    const cell = Math.floor(pos)
     const cellShift = size % 2 === 0
-        ? 0
-        : 0.5 // move by half cell
+        ? 0.5 // move by half cell
+        : 0
     return cell + cellShift
 }
 
@@ -237,8 +237,7 @@ function isMeshOutOfBounds(obj: Mesh): boolean {
 }
 
 function isBoxOutOfBounds(box: Box3): boolean {
-    const size = box.getSize(new Vector3())
-    const { x: width, y: height, z: depth } = size
+    const [width, height, depth] = box.getSize(new Vector3()).toArray()
     const { x, y, z } = box.getCenter(new Vector3())
     return x - width / 2 < -0.5
         || y - height / 2 < -0.5
@@ -253,28 +252,40 @@ function boxGeometryToBox3(box: BoxGeometry): Box3 {
     )
 }
 
-function snapBox(scene: Scene, obj: Mesh): Vector3 | null {
-    if (isMeshOutOfBounds(obj)) {
-        return null
-    }
+const snap: TransformSnap = t => {
+    const snapObj = t.object as Object3D
+    const objId = snapObj.name as OplaId
+    const oplaObj = state.items[objId] // TODO: not sure it is right way to access object
 
-    const geom = (obj as Mesh).geometry as BoxGeometry
-    const { width, height, depth } = geom.parameters
-    const { x, y, z } = obj.position
+    // Bboxes in [0; 0; 0] coord
+    const boxes = oplaObj.type === "box"
+        ? [sizeToBox3(oplaObj.size)]
+        : oplaObj.children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+    const bbox = unionBoxes(boxes)
 
-    // snap coord
+    // New coord after move
+    const [width, height, depth] = bbox.getSize(new Vector3()).toArray()
+    const { x, y, z } = snapObj.position
     const coord = new Vector3(
-        isInt(x) ? x : nextPosition(x, width, 1),
-        isInt(y) ? y : nextPosition(y, height, 1),
-        isInt(z) ? z : nextPosition(z, depth, 1),
+        isInt(x) ? x : nextPosition(x, width),
+        isInt(y) ? y : nextPosition(y, height),
+        isInt(z) ? z : nextPosition(z, depth),
     )
 
-    const bbox = boxGeometryToBox3(geom)
+    // Check out walls intersection with object in new position
     bbox.translate(coord)
-    const group = scene.getObjectByName("opla") as Group
-    if (isIntersects(bbox, obj, group)) {
+    if (isBoxOutOfBounds(bbox)) {
         return null
     }
+
+    // Check out scene intersection with object in new position
+    for (const b of boxes) {
+        b.translate(coord)
+    }
+    if (hasIntersection(boxes, objId, state.scene, state.items)) {
+        return null
+    }
+
     return coord
 }
 
@@ -284,29 +295,6 @@ type OplaSceneProps = {
 const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
-    const snap = useCallback<TransformSnap>(t => {
-        const snapObj = t.object as Object3D
-        const objId = snapObj.name as OplaId
-        const obj = state.items[objId] // TODO: not sure it is right way to access object
-        if (obj.type === "group") {
-            const boxes = obj.children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
-            const bbox = unionBoxes(boxes)
-            bbox.translate(snapObj.position) // TODO or (new Vector()).fromArray(obj.position). Also research why need to translate bbox after union and oplaItemToBox3
-            if (isBoxOutOfBounds(bbox)) {
-                return null
-            }
-            const size = bbox.getSize(new Vector3())
-            const [width, height, depth] = size.toArray()
-            const { x, y, z } = snapObj.position
-            const coord = new Vector3(
-                isInt(x) ? x : nextPosition(x, width, 1),
-                isInt(y) ? y : nextPosition(y, height, 1),
-                isInt(z) ? z : nextPosition(z, depth, 1),
-            )
-            return coord
-        }
-        return snapBox(scene, snapObj as Mesh)
-    }, [scene])
 
     return (
         <>
@@ -331,8 +319,9 @@ const Main: React.FC<OplaSceneProps> = () => {
                     object={scene.getObjectByName(target) as any}
                     snap={snap}
                     onSnap={t => {
+                        // Transforming opla definition from three model are here
                         const obj = t.object!
-                        const boxId = obj.name
+                        const boxId = obj.name as OplaId
                         state.items[boxId].position = obj.position.toArray()
                     }}
                 />
@@ -406,7 +395,6 @@ export default function Opla() {
                     }}
                     onClick={(event) => {
                         const obj = event.object
-                        console.log("cursor", obj.position)
 
                         const id = `${Date.now()}`
                         const position = obj.position.toArray() as V3

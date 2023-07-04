@@ -1,16 +1,21 @@
 import { IAssetLibrary } from "@/app/types"
-import { OplaBox, OplaGroup, OplaId, OplaObjectCollection } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, OplaObjectCollection, V3 } from "@/stores/opla"
 import { Vector3, Box3 } from "three"
 import * as THREE from "three"
 import { boxInclusiveIntersect } from "./t"
 
-export function oplaItemToBox3(item: OplaBox) {
+export function oplaItemToBox3(item: OplaBox): Box3 {
     const [w, h, d] = item.size
     const box = new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
     const [x, y, z] = item.position
     const pos = new Vector3(x, y, z)
     box.translate(pos)
     return box
+}
+
+export function sizeToBox3(size: V3): Box3 {
+    const [w, h, d] = size
+    return new Box3(new Vector3(-w / 2, -h / 2, -d / 2), new Vector3(w / 2, h / 2, d / 2))
 }
 
 export function flatOplaGroup(group: OplaGroup, items: OplaObjectCollection): OplaBox[] {

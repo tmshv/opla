@@ -3,6 +3,7 @@ export function isInt(value: number): boolean {
     return n === value
 }
 
+// TODO rm this not in use anymore
 /*
 * Almost the same as Math.floor but with difference for negative numbers
 * works this way: -1.53 -> 1 (not 2)
