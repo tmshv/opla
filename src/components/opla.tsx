@@ -264,6 +264,7 @@ const snap: TransformSnap = t => {
     for (const b of boxes) {
         b.translate(coord)
     }
+    // TODO create cache for scene and items data
     if (hasIntersection(boxes, objId, state.scene, state.items)) {
         return null
     }

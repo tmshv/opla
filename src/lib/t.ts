@@ -12,7 +12,7 @@ export function boxInclusiveIntersect(a: Box3, b: Box3): boolean {
         : true
 }
 
-// todo rm no usage of this
+// TODO rm no usage of this
 export function isIntersects(bbox: Box3, block: Object3D, blocks: Group): boolean {
     for (let other of blocks.children) {
         if (other === block) {

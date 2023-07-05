@@ -34,11 +34,7 @@ export function flatOplaGroup(group: OplaGroup, items: OplaObjectCollection): Op
         })
 }
 
-// function hasIntersection(item: OplaObject, scene: OplaId[], items: OplaObjectCollection): boolean {
 export function hasIntersection(boxes: Box3[], skipItemId: OplaId, scene: OplaId[], items: OplaObjectCollection): boolean {
-    // const currentBoxes = item.type === "box" ? [item] : flatOplaGroup(item, items)
-    // const bboxes = currentBoxes.map(oplaItemToBox3)
-
     for (const otherId of scene) {
         const other = items[otherId]
         if (other.id === skipItemId) {
