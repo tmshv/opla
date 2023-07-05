@@ -199,7 +199,7 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
     )
 }
 
-function nextPosition(pos: number, size: number): number {
+function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
     const cellShift = size % 2 === 0
         ? 0.5 // move by half cell
@@ -249,9 +249,9 @@ const snap: TransformSnap = t => {
     const [width, height, depth] = bbox.getSize(new Vector3()).toArray()
     const { x, y, z } = snapObj.position
     const coord = new Vector3(
-        isInt(x) ? x : nextPosition(x, width),
-        isInt(y) ? y : nextPosition(y, height),
-        isInt(z) ? z : nextPosition(z, depth),
+        snapPosition(x, width),
+        snapPosition(y, height),
+        snapPosition(z, depth),
     )
 
     // Check out walls intersection with object in new position
