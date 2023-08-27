@@ -2,10 +2,11 @@
 
 import { Suspense } from "react"
 import { Edges, useGLTF } from "@react-three/drei"
-import { Color, Line3, Mesh, Vector3 } from "three"
+import { Color, HexColorString, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
 import { useControls } from "leva"
 import { useOpla } from "@/hooks/use-opla"
 
+const NODE = "node2_25mm"
 const edgeNames = new Map([
     [1 ** 2, "edge_200mm"],
     [2 ** 2, "edge_400mm"],
@@ -17,48 +18,63 @@ const edgeNames = new Map([
 // according to how it is placed in GLB/blender file
 // (Y axes got 0 rotation)
 function getRotation(edge: Line3): [number, number, number] {
-    // const [a, b] = edge
+    const pi2 = Math.PI / 2
+    const rotations = pi2 * 0
     const { start: a, end: b } = edge
 
     // Z
     if (a.x === b.x && a.y === b.y) {
-        return [Math.PI / 2, 0, 0]
+        return [pi2, rotations, 0]
     }
 
     // Y
     if (a.x === b.x && a.z === b.z) {
-        return [0, 0, 0]
+        return [0, rotations, 0]
     }
 
     // X
-    return [0, 0, Math.PI / 2]
+    return [rotations, 0, pi2]
 }
 
 export type OplaWiresProps = {
 }
 
 export const OplaWires: React.FC<OplaWiresProps> = () => {
-    const { showDebug, showMesh } = useControls({ showDebug: false, showMesh: true })
+    const { showDebug, showMesh, nodeColor, edgeColor } = useControls({
+        showDebug: false,
+        showMesh: true,
+        nodeColor: "#e58a27",
+        edgeColor: "#4b4949",
+    })
     const [nodes, edges, overlaps] = useOpla()
-    const { nodes: assets } = useGLTF("/assets/opla.glb")
+    const { nodes: assets, materials } = useGLTF("/assets/opla.glb")
+
+    const plastic = materials["plastic"] as MeshStandardMaterial
+    const wood = materials["wood"] as MeshStandardMaterial
+    plastic.color.set(nodeColor as HexColorString)
+    wood.color.set(edgeColor as HexColorString)
+
+    const scale = 5 // first variant
+    // const scale = 5 * (2/3) * 2 // 150mm variant
+    // const scale = 5 * 0.96 // new =200mm
 
     return (
         <Suspense fallback={null}>
             <group visible={showMesh}>
                 {nodes.map((position, i) => {
-                    const geometry = (assets.node_25mm as Mesh).geometry
+                    const asset = (assets[NODE] as Mesh)
+                    if (!asset) {
+                        return null
+                    }
+                    const geometry = asset.geometry
                     return (
                         <mesh
                             key={i}
                             geometry={geometry}
                             position={position}
-                            scale={5}
-                        >
-                            <meshStandardMaterial color={0xcccccc} metalness={0.9} roughness={0.1} />
-                            <Edges
-                                color={0x111111}
-                            />
-                        </mesh>
+                            material={plastic}
+                            scale={scale}
+                        />
                     )
                 })}
                 {edges.map((edge, i) => {
@@ -67,22 +83,33 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
                     if (!name) {
                         return null
                     }
-                    const geometry = (assets[name] as Mesh).geometry
+                    const asset = (assets[name] as Mesh)
+                    if (!asset) {
+                        return null
+                    }
+                    const geometry = asset.geometry
                     const position = edge.at(0.5, new Vector3())
                     const rotation = getRotation(edge)
+
                     return (
-                        <mesh
+                        <group
                             key={i}
-                            geometry={geometry}
                             position={position}
                             rotation={rotation}
-                            scale={5}
+                            scale={scale}
                         >
-                            <meshStandardMaterial color={0xcccc99} metalness={1} roughness={0.5} />
-                            <Edges
-                                color={0x111111}
+                            <mesh
+                                geometry={geometry}
+                                material={wood}
                             />
-                        </mesh>
+                            {/* <mesh */}
+                            {/*     // castShadow */}
+                            {/*     // receiveShadow */}
+                            {/*     geometry={assets["opla_edge_400mm_1"].geometry} */}
+                            {/*     material={materials.opla_label} */}
+                            {/*     // material={materials.node} */}
+                            {/* /> */}
+                        </group>
                     )
                 })}
             </group>
