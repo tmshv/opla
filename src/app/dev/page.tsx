@@ -1,3 +1,5 @@
+"use client"
+
 import Opla from "@/components/opla"
 import { Leva } from "leva"
 
