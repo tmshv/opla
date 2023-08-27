@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense } from "react"
-import { Edges, useGLTF } from "@react-three/drei"
+import { useGLTF } from "@react-three/drei"
 import { Color, HexColorString, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
 import { useControls } from "leva"
 import { useOpla } from "@/hooks/use-opla"
