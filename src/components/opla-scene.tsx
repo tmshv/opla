@@ -43,7 +43,7 @@ type BoxProps = MeshProps & {
 }
 
 const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...props }) => {
-    const { showDebug } = useControls({ showDebug: true })
+    const { showDebug } = useControls({ showDebug: false })
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
 

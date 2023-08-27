@@ -1,5 +1,6 @@
-import "src/style.css"
-import "src/tw.css"
+import "@/style.css"
+
+import { Providers } from "@/components/providers"
 
 export type RootLayoutProps = {
     children: React.ReactNode
@@ -16,7 +17,9 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
                 />
             </head>
             <body>
-                {children}
+                <Providers>
+                    {children}
+                </Providers>
             </body>
         </html>
     )

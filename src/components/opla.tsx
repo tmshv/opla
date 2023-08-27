@@ -5,7 +5,7 @@ import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Scene, Box3, Object3D, Vector3, Raycaster, Intersection } from "three"
 import { useSnapshot } from "valtio"
-import { button, buttonGroup, folder, useControls } from "leva"
+import { button, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { unionBoxes } from "@/lib/t"
@@ -326,16 +326,6 @@ export default function Opla() {
             cursorDepth: {
                 min: 1, max: 4, step: 1, value: 1,
             },
-        }),
-        tool: buttonGroup({
-            Select: () => { appState.tool = Tool.SELECT },
-            Add: () => { appState.tool = Tool.ADD },
-        }),
-        clear: button(() => {
-            // clear scene mutation
-            state.scene = []
-            state.items = {}
-            appState.target = null
         }),
         explode: button(() => {
             explode()
