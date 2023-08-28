@@ -53,8 +53,10 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
     const { showDebug, showMesh, nodeColor, edgeColor } = useControls({
         showDebug: false,
         showMesh: true,
-        nodeColor: "#e58a27",
-        edgeColor: "#4b4949",
+        // nodeColor: "#e58a27",
+        // edgeColor: "#4b4949",
+        nodeColor: "#454545",
+        edgeColor: "#9d877c",
     })
     const [nodes, edges, overlaps] = useOpla()
     const { nodes: assets, materials } = useGLTF("/assets/opla.glb")
