@@ -20,6 +20,13 @@ const edgeNames = new Map([
     [5 ** 2, "edge_750mm"],
 ])
 
+const labelNames = new Map([
+    [2 ** 2, "label_300mm"],
+    [3 ** 2, "label_450mm"],
+    [4 ** 2, "label_600mm"],
+    [5 ** 2, "label_750mm"],
+])
+
 const blankEdgeNames = new Map([
     [1 ** 2, "blank_150mm"],
 ])
@@ -65,9 +72,10 @@ function useAssets(href: string): [Group, Record<string, MeshStandardMaterial>] 
 }
 
 export type OplaWiresProps = {
+    scale: number
 }
 
-export const OplaWires: React.FC<OplaWiresProps> = () => {
+export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
     const { showDebug, showMesh, nodeColor, edgeColor } = useControls({
         showDebug: false,
         showMesh: true,
@@ -94,9 +102,6 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
         warn.opacity = 0.2
         warn.side = FrontSide
     }
-
-    // const scale = 5 // first variant
-    const scale = 5 * (4 / 3) // 150mm variant
 
     return (
         <Suspense fallback={null}>
@@ -136,6 +141,21 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
                     const position = edge.at(0.5, new Vector3())
                     const rotation = getRotation(edge)
 
+                    let label = null
+                    if (labelNames.has(dist)) {
+                        const name = labelNames.get(dist)!
+                        const asset = (scene.getObjectByName(name) as Mesh)
+                        const geometry = asset.geometry
+                        label = (
+                            <mesh
+                                // {/*     // castShadow */}
+                                // {/*     // receiveShadow */}
+                                geometry={geometry}
+                                material={plastic}
+                            />
+                        )
+                    }
+
                     return (
                         <group
                             key={i}
@@ -147,13 +167,7 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
                                 geometry={geometry}
                                 material={mat}
                             />
-                            {/* <mesh */}
-                            {/*     // castShadow */}
-                            {/*     // receiveShadow */}
-                            {/*     geometry={assets["opla_edge_400mm_1"].geometry} */}
-                            {/*     material={materials.opla_label} */}
-                            {/*     // material={materials.node} */}
-                            {/* /> */}
+                            {label}
                         </group>
                     )
                 })}

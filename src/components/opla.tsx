@@ -289,7 +289,10 @@ const Main: React.FC<OplaSceneProps> = () => {
                     }
                 }}
             />
-            <OplaWires />
+            <OplaWires
+                // scale={5} // first variant
+                scale={5 * (4 / 3)} // 150mm variant
+            />
             <OrbitControls
                 enabled={orbitEnabled}
                 makeDefault
