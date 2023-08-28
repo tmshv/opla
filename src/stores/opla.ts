@@ -31,31 +31,42 @@ export type State = {
 
 export let state = proxy<State>({
     version: "1",
-    scene: ["group-1", "3x3x3"],
+    scene: [
+        "2x2x2-0",
+        "2x2x2-1",
+        "2x2x2-2",
+        // "3x3x3",
+    ],
     items: {
-        "1x 1y 1z": {
-            id: "1x 1y 1z",
+        "2x2x2-0": {
+            id: "2x2x2-0",
             type: "box",
-            position: [-0.5, -0.5, 0],
-            size: [1, 1, 1],
+            position: [0.5, 0.5, 0.5],
+            size: [2, 2, 2],
         },
-        "2x 1y 1z": {
-            id: "2x 1y 1z",
+        "2x2x2-1": {
+            id: "2x2x2-1",
             type: "box",
-            position: [0, 0.5, 0],
-            size: [2, 1, 1],
+            position: [0.5, 2.5, 0.5],
+            size: [2, 2, 2],
+        },
+        "2x2x2-2": {
+            id: "2x2x2-2",
+            type: "box",
+            position: [0.5, 4.5, 0.5],
+            size: [2, 2, 2],
         },
         "3x3x3": {
             id: "3x3x3",
             type: "box",
-            position: [8, 1, 2],
+            position: [6, 1, 1],
             size: [3, 3, 3],
         },
-        "group-1": {
-            id: "group-1",
-            type: "group",
-            position: [0.5, 0.5, 0],
-            children: ["1x 1y 1z", "2x 1y 1z"],
-        },
+        // "group-1": {
+        //     id: "group-1",
+        //     type: "group",
+        //     position: [0, 0, 0],
+        //     children: ["2x2x2-0"],
+        // },
     },
 })
