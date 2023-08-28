@@ -72,9 +72,10 @@ export type BoxGroupProps = {
     name: string
     id: OplaId
     children: OplaId[]
+    highlightColor: string
 }
 
-export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name }) => {
+export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name, highlightColor }) => {
     const { items } = useSnapshot(state)
     const { target, tool } = useSnapshot(appState)
     const obj = items[id]
@@ -120,7 +121,8 @@ export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name 
                         height={height}
                         depth={depth}
                         visible={(tool === Tool.SELECT && obj.id === target)}
-                        color={"#ff0064"}
+                        color={highlightColor}
+                        opacity={0.5}
                     />
                 )
             })}
@@ -172,6 +174,7 @@ export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick, highlightCo
                                 id={id}
                                 name={id}
                                 onClick={onClick}
+                                highlightColor={highlightColor}
                             >
                                 {obj.children as OplaId[]}
                             </BoxGroup>
