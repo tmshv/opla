@@ -39,10 +39,11 @@ type BoxProps = MeshProps & {
     height: number
     depth: number
     color: string
+    opacity: number
     visible: boolean
 }
 
-const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...props }) => {
+const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, opacity, ...props }) => {
     const { showDebug } = useControls({ showDebug: false })
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
@@ -60,7 +61,7 @@ const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, ...prop
             <meshStandardMaterial
                 color={color}
                 transparent
-                opacity={visible ? 0.4 : a}
+                opacity={visible ? opacity : a}
             />
         </mesh>
     )
@@ -130,9 +131,10 @@ export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name 
 export type OplaSceneProps = {
     name: string
     onClick: (box: OplaId) => void
+    highLightcolor: string
 }
 
-export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick }) => {
+export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick, highLightcolor }) => {
     const { scene, items } = useSnapshot(state)
     const { target, tool } = useSnapshot(appState)
 
@@ -152,7 +154,8 @@ export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick }) => {
                                 height={height}
                                 depth={depth}
                                 visible={(tool === Tool.SELECT && obj.id === target)}
-                                color={"#ff0064"}
+                                color={highLightcolor}
+                                opacity={0.5}
                                 onClick={event => {
                                     // nearest object to camera will receive first click event
                                     // stop propagation to prevent click event for other object behind

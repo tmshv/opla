@@ -281,6 +281,8 @@ const Main: React.FC<OplaSceneProps> = () => {
         <>
             <OplaScene
                 name={"opla"}
+                // highLightcolor={"#ff0064"}
+                highLightcolor={"#C67700"}
                 onClick={boxId => {
                     if (tool === Tool.SELECT) {
                         appState.target = boxId
