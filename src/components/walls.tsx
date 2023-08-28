@@ -18,7 +18,7 @@ export const Walls: React.FC = () => {
             value: 0.9,
         },
         color: dark ? "#131517" : "#d3dbe2",
-        gridColor: dark ? "#5d6265" : "#d3dbe2",
+        gridColor: dark ? "#5d6265" : "#979ea3",
     })
     const gc = gridColor as ColorRepresentation
     const shift = 0.07
