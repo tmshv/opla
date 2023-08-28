@@ -21,7 +21,7 @@
         "three": "^0.152.0",
         "typescript": "^5.0.4",
         "uuid": "^9.0.0",
-        "valtio": "^1.10.0"
+        "valtio": "^1.11.2"
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",
