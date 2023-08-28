@@ -5,7 +5,7 @@
     "main": "index.js",
     "dependencies": {
         "@nextui-org/react": "^2.1.7",
-        "@react-three/drei": "^9.56.0",
+        "@react-three/drei": "^9.80.0",
         "@react-three/fiber": "^8.13.0",
         "autoprefixer": "^10.4.2",
         "framer-motion": "^10.16.1",
@@ -18,7 +18,7 @@
         "react-use": "^17.4.0",
         "rxjs": "^6.6.3",
         "tailwindcss": "^3.3.1",
-        "three": "^0.152.0",
+        "three": "^0.155.0",
         "typescript": "^5.0.4",
         "uuid": "^9.0.0",
         "valtio": "^1.11.2"
@@ -27,7 +27,7 @@
         "@types/jest": "^29.5.0",
         "@types/node": "^20.3.2",
         "@types/react": "^18.0.0",
-        "@types/three": "^0.150.0",
+        "@types/three": "^0.155.0",
         "@types/uuid": "^9.0.1",
         "@typescript-eslint/eslint-plugin": "^5.48.2",
         "eslint": "^8.38.0",
