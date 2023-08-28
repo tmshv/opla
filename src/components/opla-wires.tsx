@@ -99,7 +99,7 @@ export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
     }
     if (warn) {
         warn.transparent = true
-        warn.opacity = 0.2
+        warn.opacity = 0.8
         warn.side = FrontSide
     }
 
