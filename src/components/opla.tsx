@@ -170,7 +170,6 @@ const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
         box.translate(pos)
 
         if (isBoxOutOfBounds(box)) {
-            console.log("out")
         }
 
         setPos(pos)
