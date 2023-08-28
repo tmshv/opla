@@ -24,7 +24,7 @@ const Page = () => {
             <Opla />
             <Leva />
             <div className="absolute inset-x-0 bottom-8 flex justify-center">
-                <ButtonGroup variant="ghost" color="default" disableRipple disableAnimation>
+                <ButtonGroup variant="ghost" color="primary" disableRipple disableAnimation>
                     <Button
                         isIconOnly
                         aria-label="Select"
