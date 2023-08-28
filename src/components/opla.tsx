@@ -318,13 +318,13 @@ export default function Opla() {
         showWalls: true,
         cursor: folder({
             cursorWidth: {
-                min: 1, max: 4, step: 1, value: 1,
+                min: 2, max: 5, step: 1, value: 2,
             },
             cursorHeight: {
-                min: 1, max: 4, step: 1, value: 1,
+                min: 2, max: 5, step: 1, value: 2,
             },
             cursorDepth: {
-                min: 1, max: 4, step: 1, value: 1,
+                min: 2, max: 5, step: 1, value: 2,
             },
         }),
         explode: button(() => {
