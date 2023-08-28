@@ -1,8 +1,8 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useGLTF } from "@react-three/drei"
-import { Color, FrontSide, HexColorString, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
+import { Color, FrontSide, Group, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
 import { useControls } from "leva"
 import { useOpla } from "@/hooks/use-opla"
 
@@ -46,6 +46,24 @@ function getRotation(edge: Line3): [number, number, number] {
     return [rotations, 0, pi2]
 }
 
+function useAssets(href: string): [Group, Record<string, MeshStandardMaterial>] {
+    // const { nodes: assets, materials } = useGLTF("/assets/opla.glb")
+    const gltf = useGLTF(href)
+    const [materials, setMaterials] = useState<Record<string, MeshStandardMaterial>>({})
+
+    useEffect(() => {
+        gltf.parser.getDependencies("material").then((materials: MeshStandardMaterial[]) => {
+            const mat = materials.reduce<Record<string, MeshStandardMaterial>>((acc, m) => {
+                acc[m.name] = m
+                return acc
+            }, {})
+            setMaterials(mat)
+        })
+    }, [gltf])
+
+    return [gltf.scene, materials]
+}
+
 export type OplaWiresProps = {
 }
 
@@ -59,26 +77,32 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
         edgeColor: "#9d877c",
     })
     const [nodes, edges, overlaps] = useOpla()
-    const { nodes: assets, materials } = useGLTF("/assets/opla.glb")
+    const [scene, materials] = useAssets("/assets/opla.glb")
 
-    const plastic = materials["plastic"] as MeshStandardMaterial
-    const wood = materials["wood"] as MeshStandardMaterial
-    const warn = materials["warn"] as MeshStandardMaterial
-    plastic.color.set(nodeColor as HexColorString)
-    wood.color.set(edgeColor as HexColorString)
-    warn.transparent = true
-    warn.opacity = 0.2
-    warn.side = FrontSide
+    const plastic = materials["plastic"]
+    const wood = materials["wood"]
+    const warn = materials["warn"]
+
+    if (plastic) {
+        plastic.color.set(nodeColor)
+    }
+    if (wood) {
+        wood.color.set(edgeColor)
+    }
+    if (warn) {
+        warn.transparent = true
+        warn.opacity = 0.2
+        warn.side = FrontSide
+    }
 
     // const scale = 5 // first variant
-    const scale = 5 * (2/3) * 2 // 150mm variant
-    // const scale = 5 * 0.96 // new =200mm
+    const scale = 5 * (4 / 3) // 150mm variant
 
     return (
         <Suspense fallback={null}>
             <group visible={showMesh}>
                 {nodes.map((position, i) => {
-                    const asset = (assets[NODE] as Mesh)
+                    const asset = (scene.getObjectByName(NODE) as Mesh)
                     if (!asset) {
                         return null
                     }
@@ -104,7 +128,7 @@ export const OplaWires: React.FC<OplaWiresProps> = () => {
                     if (!name) {
                         return null
                     }
-                    const asset = (assets[name] as Mesh)
+                    const asset = (scene.getObjectByName(name) as Mesh)
                     if (!asset) {
                         return null
                     }
