@@ -31,4 +31,3 @@ export const Toolbar: React.FC<ToolbarProps> = ({ items, value, onChange }) => (
         ))}
     </ButtonGroup>
 )
-
