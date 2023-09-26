@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { Canvas, MeshProps, useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Scene, Box3, Object3D, Vector3, Raycaster, Intersection } from "three"
 import { useSnapshot } from "valtio"
@@ -16,6 +15,7 @@ import { OplaWires } from "./opla-wires"
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { Graph } from "@/lib/graph"
 import { v4 as uuidv4 } from "uuid"
+import { BoxCursor } from "./box-cursor"
 
 function explode() {
     const groupIds = state.scene.filter(id => {
@@ -118,110 +118,12 @@ function join() {
     state.scene = newScene
 }
 
-function getIntersectionPlane(raycaster: Raycaster, scene: Scene): Intersection | null {
-    // First check intersection with Opla Blocks
-    const boxes = scene.getObjectByName("opla")
-    if (boxes) {
-        const intersects = raycaster.intersectObjects(boxes.children)
-        if (intersects.length > 0) {
-            return intersects[0]
-        }
-    }
-
-    // Fallback check for intersection with walls
-    const walls = scene.getObjectByName("walls")
-    if (walls) {
-        const intersects = raycaster.intersectObjects(walls.children)
-        if (intersects.length > 0) {
-            return intersects[0]
-        }
-    }
-
-    // No intersection found
-    return null
-}
-
-type BoxCursorProps = MeshProps & {
-    size: [number, number, number]
-    color: string
-}
-
-const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) => {
-    const [pos, setPos] = useState(new Vector3(0, 0, 0))
-
-    useFrame(({ raycaster, camera, pointer, scene }) => {
-        const wall = getIntersectionPlane(raycaster, scene)
-        if (!wall) {
-            return
-        }
-        const [w, h, d] = size
-        const pos = wall.point.clone()
-        pos.set(
-            snapCursorPosition(pos.x, w, 1),
-            snapCursorPosition(pos.y, h, 1),
-            snapCursorPosition(pos.z, d, 1),
-        )
-
-        // creates Box3 with center at mouse intersection
-        const box = new Box3(
-            new Vector3(-w / 2, -h / 2, -d / 2),
-            new Vector3(w / 2, h / 2, d / 2),
-        )
-        box.translate(pos)
-
-        if (isBoxOutOfBounds(box)) {
-        }
-
-        setPos(pos)
-    })
-
-    return (
-        <mesh {...props}
-            position={pos}
-        //onPointerOver={() => setHovered(true)}
-        //onPointerOut={() => setHovered(false)}
-        // scale={0.99}
-        >
-            <boxGeometry
-                args={size}
-            />
-            <meshStandardMaterial
-                color={color}
-            // side={THREE.DoubleSide}
-            // transparent
-            // opacity={0.9}
-            // metalness={1}
-            // roughness={0.4}
-            />
-        </mesh>
-    )
-}
-
 function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
     const cellShift = size % 2 === 0
         ? 0.5 // move by half cell
         : 0
     return cell + cellShift
-}
-
-function snapCursorPosition(pos: number, size: number, sign: number): number {
-    // TODO: this check works for wall snapping only
-    // but works bad on wall corners
-    // adopt for box snapping later
-
-    let cell = Math.round(pos)
-    if (cell < 0) {
-        cell = Math.round(size / 2) - 1
-    }
-
-    // move by half cell
-    let cellShift = 0
-    if (size % 2 === 0) {
-        cellShift = 0.5
-    }
-
-    return cell + cellShift * sign
 }
 
 function isBoxOutOfBounds(box: Box3): boolean {
