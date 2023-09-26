@@ -6,8 +6,6 @@ export const Tool = {
     DELETE: "DELETE",
 }
 
-// export type ToolType = typeof Tool
-
 export type AppState = {
     tool: string,
     orbitEnabled: boolean
