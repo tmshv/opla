@@ -2,7 +2,7 @@
 
 import { Canvas, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Scene, Box3, Object3D, Vector3, Raycaster, Intersection } from "three"
+import { Box3, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
