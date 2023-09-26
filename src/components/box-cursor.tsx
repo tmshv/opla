@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { MeshProps, useFrame } from "@react-three/fiber"
+import { Edges } from "@react-three/drei"
 import { Scene, Box3, Vector3, Raycaster, Intersection } from "three"
 
 function getIntersectionPlane(raycaster: Raycaster, scene: Scene): Intersection | null {
@@ -91,20 +92,17 @@ export const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) =
     return (
         <mesh {...props}
             position={pos}
-        //onPointerOver={() => setHovered(true)}
-        //onPointerOut={() => setHovered(false)}
-        // scale={0.99}
         >
             <boxGeometry
                 args={size}
             />
-            <meshStandardMaterial
+            <Edges
                 color={color}
-            // side={THREE.DoubleSide}
-            // transparent
-            // opacity={0.9}
-            // metalness={1}
-            // roughness={0.4}
+            />
+            <meshStandardMaterial
+                transparent
+                opacity={0.75}
+                color={color}
             />
         </mesh>
     )

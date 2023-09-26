@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
-import { useGLTF } from "@react-three/drei"
+import { useGLTF, Edges } from "@react-three/drei"
 import { Color, FrontSide, Group, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
 import { useControls } from "leva"
 import { useOpla } from "@/hooks/use-opla"
@@ -123,12 +123,14 @@ export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
                     )
                 })}
                 {edges.map((edge, i) => {
+                    let drawEdges = true
                     const dist = edge.distanceSq()
                     let mat = wood
                     let name = edgeNames.get(dist)
                     if (!name) {
                         name = blankEdgeNames.get(dist)
                         mat = warn
+                        drawEdges = false
                     }
                     if (!name) {
                         return null
@@ -166,7 +168,9 @@ export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
                             <mesh
                                 geometry={geometry}
                                 material={mat}
-                            />
+                            >
+                                <Edges visible={drawEdges} color={0x222222} />
+                            </mesh>
                             {label}
                         </group>
                     )
