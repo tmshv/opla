@@ -28,6 +28,7 @@ export const Walls: React.FC = () => {
             <group
                 name="walls"
                 position={[-0.5 - shift, -0.5 - shift, -0.5 - shift]}
+                visible={false}
             >
                 {/* normal to Y */}
                 <mesh
@@ -96,4 +97,3 @@ export const Walls: React.FC = () => {
         </>
     )
 }
-

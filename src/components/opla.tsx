@@ -255,7 +255,11 @@ export default function Opla() {
         >
             <ambientLight />
             <pointLight position={[5, 5, 5]} />
-            <Environment files={"/st_fagans_interior_1k.hdr"} />
+            <Environment
+                background
+                blur={1}
+                files={"/assets/potsdamer_platz_1k.hdr"}
+            />
 
             <Main />
 
