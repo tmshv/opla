@@ -1,13 +1,15 @@
 import { proxy } from "valtio"
 
-export enum Tool {
-    SELECT,
-    ADD,
-    DELETE,
+export const Tool = {
+    SELECT: "SELECT",
+    ADD: "ADD",
+    DELETE: "DELETE",
 }
 
+// export type ToolType = typeof Tool
+
 export type AppState = {
-    tool: Tool,
+    tool: string,
     orbitEnabled: boolean
     target: string | null
 }
