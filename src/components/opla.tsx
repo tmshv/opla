@@ -293,9 +293,10 @@ export default function Opla() {
                 />
             )}
 
-            {!showWalls ? null : (
-                <Walls />
-            )}
+            <Walls
+                showGrid={true}
+                showWalls={showWalls}
+            />
         </Canvas>
     )
 }

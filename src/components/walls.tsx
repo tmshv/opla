@@ -2,7 +2,12 @@ import { useDarkTheme } from "@/hooks/use-dark-theme"
 import { useControls } from "leva"
 import type { ColorRepresentation } from "three"
 
-export const Walls: React.FC = () => {
+export type WallsProps = {
+    showWalls: boolean
+    showGrid: boolean
+}
+
+export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid }) => {
     const dark = useDarkTheme()
     const S = 200
     const S2 = S / 2
@@ -28,7 +33,7 @@ export const Walls: React.FC = () => {
             <group
                 name="walls"
                 position={[-0.5 - shift, -0.5 - shift, -0.5 - shift]}
-                visible={false}
+                visible={showWalls}
             >
                 {/* normal to Y */}
                 <mesh
@@ -74,6 +79,7 @@ export const Walls: React.FC = () => {
             <group
                 name="walls-grid"
                 position={[-0.5, -0.5, -0.5]}
+                visible={showGrid}
             >
                 {/* normal to Y */}
                 <gridHelper
