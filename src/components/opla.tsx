@@ -258,7 +258,7 @@ export default function Opla() {
             <Environment
                 background
                 blur={1}
-                files={"/assets/potsdamer_platz_1k.hdr"}
+                files={"/assets/00309_OpenfootageNET_Snowland_low.hdr"}
             />
 
             <Main />
