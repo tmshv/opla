@@ -8,32 +8,6 @@ import { useControls } from "leva"
 import { useState } from "react"
 import { useSnapshot } from "valtio"
 
-// export function wrapGroup(objects: Mesh[]): Group {
-//     // Create a new group to contain the meshes
-//     const group = new Group()
-
-//     // Calculate the total center of all the meshes
-//     const center = new Vector3()
-//     for (let i = 0; i < objects.length; i++) {
-//         // const pos = objects[i].geometry.center()
-//         const pos = objects[i].geometry.boundingBox?.getCenter(new Vector3())
-//         if (pos) {
-//             center.add(pos);
-//         }
-//     }
-//     center.divideScalar(objects.length);
-
-//     // Update the position of each mesh so that it's centered on the new origin
-//     for (let i = 0; i < objects.length; i++) {
-//         const mesh = objects[i];
-//         mesh.position.sub(center);
-//         group.add(mesh);
-//     }
-
-//     // Return the new group object
-//     return group;
-// }
-
 type BoxProps = MeshProps & {
     width: number
     height: number
@@ -130,13 +104,13 @@ export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name,
     )
 }
 
-export type OplaSceneProps = {
+export type OplaInteractiveProps = {
     name: string
     onClick: (box: OplaId) => void
     highlightColor: string
 }
 
-export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick, highlightColor }) => {
+export const OplaInteractive: React.FC<OplaInteractiveProps> = ({ name, onClick, highlightColor }) => {
     const { scene, items } = useSnapshot(state)
     const { target, tool } = useSnapshot(appState)
 
@@ -144,6 +118,7 @@ export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick, highlightCo
         <group name={name}>
             {scene.map(id => {
                 const obj = items[id]
+                const visible = tool === Tool.SELECT && obj.id === target
                 switch (obj.type) {
                     case "box": {
                         const [width, height, depth] = obj.size
@@ -155,7 +130,7 @@ export const OplaScene: React.FC<OplaSceneProps> = ({ name, onClick, highlightCo
                                 width={width}
                                 height={height}
                                 depth={depth}
-                                visible={(tool === Tool.SELECT && obj.id === target)}
+                                visible={visible}
                                 color={highlightColor}
                                 opacity={0.5}
                                 onClick={event => {

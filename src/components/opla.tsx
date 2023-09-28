@@ -10,7 +10,7 @@ import { Walls } from "./walls"
 import { unionBoxes } from "@/lib/t"
 import { OplaBox, OplaGroup, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
-import { OplaScene } from "./opla-scene"
+import { OplaInteractive } from "./opla-interactive"
 import { OplaWires } from "./opla-wires"
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { Graph } from "@/lib/graph"
@@ -181,7 +181,7 @@ const Main: React.FC<OplaSceneProps> = () => {
 
     return (
         <>
-            <OplaScene
+            <OplaInteractive
                 name={"opla"}
                 highlightColor={"#FE4C04"}
                 onClick={boxId => {
