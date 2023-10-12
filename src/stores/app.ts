@@ -4,6 +4,7 @@ export const Tool = {
     SELECT: "SELECT",
     ADD: "ADD",
     DELETE: "DELETE",
+    EXPORT: "EXPORT",
 }
 
 export type AppState = {

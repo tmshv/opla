@@ -1,22 +1,30 @@
 "use client"
 
 import Opla from "@/components/opla"
-import { MousePointer, Plus, Trash } from "react-feather"
+import { MousePointer, Plus, Trash, Share } from "react-feather"
 import { Leva } from "leva"
+import * as THREE from "three"
+
+import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 
 import appState, { Tool } from "@/stores/app"
 import { state } from "@/stores/opla"
 import { useSnapshot } from "valtio"
 import { Toolbar } from "@/ui/toolbar"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 
 import type { ToolbarOnChange } from "@/ui/toolbar"
+import { downloadBlob } from "@/lib/download"
 
 const Page = () => {
+    const threeScene = useMemo(() => {
+        return new THREE.Scene()
+    }, [])
+
     const { tool, target } = useSnapshot(appState)
     const { scene } = useSnapshot(state)
 
-    const onToolbarChange = useCallback<ToolbarOnChange>(value => {
+    const onToolbarChange = useCallback<ToolbarOnChange>(async value => {
         switch (value) {
             case Tool.SELECT: {
                 appState.tool = Tool.SELECT
@@ -34,16 +42,27 @@ const Page = () => {
                 }
                 break
             }
+            case Tool.EXPORT: {
+                const e = new USDZExporter()
+                const opla = threeScene
+                // const opla = threeScene.getObjectByName("opla")
+                if (opla) {
+                    const blob = await e.parse(opla)
+                    await downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
+                }
+                break
+            }
             default: {
                 break
             }
         }
-    }, [target, scene])
+    }, [target, scene, threeScene])
 
     return (
         <>
-            <Opla />
+            <Opla scene={threeScene} />
             <Leva />
+
             <div className="absolute inset-x-0 bottom-8 flex justify-center">
                 <Toolbar
                     value={tool}
@@ -69,6 +88,13 @@ const Page = () => {
                                 <Trash size={15} />
                             ),
                         },
+                        //{
+                        //    label: "Export",
+                        //   value: Tool.EXPORT,
+                        //    icon: (
+                        //        <Share size={15} />
+                        //    ),
+                        //},
                     ]}
                     onChange={onToolbarChange}
                 />

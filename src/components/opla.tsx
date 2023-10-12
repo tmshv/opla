@@ -1,8 +1,8 @@
 "use client"
 
 import { Canvas, useThree } from "@react-three/fiber"
-import { Environment, OrbitControls } from "@react-three/drei"
-import { Box3, Object3D, Vector3 } from "three"
+import { Text, Environment, OrbitControls } from "@react-three/drei"
+import { MOUSE, TOUCH, Box3, Scene, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
@@ -178,6 +178,7 @@ type OplaSceneProps = {
 const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
+    const touch = !target || tool !== Tool.SELECT
 
     return (
         <>
@@ -193,12 +194,26 @@ const Main: React.FC<OplaSceneProps> = () => {
                 }}
             />
             <OplaWires
+                name="opla-model"
                 // scale={5} // first variant
                 scale={5 * (4 / 3)} // 150mm variant
             />
             <OrbitControls
                 enabled={orbitEnabled}
                 makeDefault
+                maxPolarAngle={Math.PI / 2}
+                minPolarAngle={0}
+                mouseButtons={{
+                    // LEFT: MOUSE.ROTATE,
+                    // MIDDLE: MOUSE.DOLLY,
+                    // RIGHT: MOUSE.PAN,
+                    RIGHT: MOUSE.ROTATE,
+                    //MIDDLE: MOUSE.ROTATE,
+                }}
+                touches={!touch ? undefined : {
+                    ONE: TOUCH.ROTATE,
+                    TWO: TOUCH.DOLLY_PAN,
+                }}
                 dampingFactor={0.25}
             />
             {(!target || tool !== Tool.SELECT || scene.getObjectByName(target) === null) ? null : (
@@ -217,7 +232,11 @@ const Main: React.FC<OplaSceneProps> = () => {
     )
 }
 
-export default function Opla() {
+export type OplaProps = {
+    scene: Scene
+}
+
+const Opla: React.FC<OplaProps> = ({ scene }) => {
     const { tool } = useSnapshot(appState)
     const { showWalls, cursorWidth, cursorHeight, cursorDepth } = useControls({
         showWalls: true,
@@ -244,6 +263,7 @@ export default function Opla() {
 
     return (
         <Canvas
+            scene={scene}
             dpr={[1, 2]}
             onPointerMissed={() => {
                 appState.target = null
@@ -300,3 +320,5 @@ export default function Opla() {
         </Canvas>
     )
 }
+
+export default Opla

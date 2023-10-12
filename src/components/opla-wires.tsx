@@ -73,9 +73,10 @@ function useAssets(href: string): [Group, Record<string, MeshStandardMaterial>] 
 
 export type OplaWiresProps = {
     scale: number
+    name: string
 }
 
-export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
+export const OplaWires: React.FC<OplaWiresProps> = ({ scale, name }) => {
     const { showDebug, showMesh, nodeColor, edgeColor } = useControls({
         showDebug: false,
         showMesh: true,
@@ -105,7 +106,7 @@ export const OplaWires: React.FC<OplaWiresProps> = ({ scale }) => {
 
     return (
         <Suspense fallback={null}>
-            <group visible={showMesh}>
+            <group visible={showMesh} name={name}>
                 {nodes.map((position, i) => {
                     const asset = (scene.getObjectByName(NODE) as Mesh)
                     if (!asset) {
