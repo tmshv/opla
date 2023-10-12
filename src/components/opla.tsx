@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas, useThree } from "@react-three/fiber"
-import { Text, Environment, OrbitControls } from "@react-three/drei"
+import { Environment, OrbitControls } from "@react-three/drei"
 import { MOUSE, TOUCH, Box3, Scene, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { button, folder, useControls } from "leva"
