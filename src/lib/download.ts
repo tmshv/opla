@@ -2,7 +2,7 @@ import { sleep } from "./sleep"
 
 export async function downloadBlob(data: Uint8Array, fileName: string, mimeType: string) {
     const blob = new Blob([data], {
-        type: mimeType
+        type: mimeType,
     })
     const url = window.URL.createObjectURL(blob)
     downloadURL(url, fileName)
@@ -22,7 +22,7 @@ export function downloadURL(data: string, fileName: string) {
     a.href = data
     a.download = fileName
     document.body.appendChild(a)
-    a.style = "display: none"
+    a.setAttribute("style", "display: none")
     a.click()
     a.remove()
 }
