@@ -4,6 +4,7 @@ export type ToolbarItem = {
     label: string
     value: string
     icon: React.ReactNode
+    visible?: boolean
 }
 
 export type ToolbarOnChange = (value: string) => void
@@ -16,7 +17,7 @@ export type ToolbarProps = {
 
 export const Toolbar: React.FC<ToolbarProps> = ({ items, value, onChange }) => (
     <ButtonGroup variant="ghost" color="primary" disableRipple disableAnimation>
-        {items.map(({ label, icon, value: itemValue }, i) => (
+        {items.filter(({ visible }) => visible ?? true).map(({ label, icon, value: itemValue }, i) => (
             <Button
                 key={i}
                 isIconOnly

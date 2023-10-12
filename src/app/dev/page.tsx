@@ -88,13 +88,14 @@ const Page = () => {
                                 <Trash size={15} />
                             ),
                         },
-                        //{
-                        //    label: "Export",
-                        //   value: Tool.EXPORT,
-                        //    icon: (
-                        //        <Share size={15} />
-                        //    ),
-                        //},
+                        {
+                            label: "Export",
+                            value: Tool.EXPORT,
+                            icon: (
+                                <Share size={15} />
+                            ),
+                            visible: false,
+                        },
                     ]}
                     onChange={onToolbarChange}
                 />
