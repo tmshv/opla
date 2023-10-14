@@ -1,6 +1,6 @@
 import { choise, pairs } from "./array"
 
-describe("array", () => {
+describe("array::choise", () => {
     test("should get of the value", () => {
         const result = choise(["a", "b", "c"])
         const status = result === "a" || result === "b" || result === "c"
@@ -11,7 +11,9 @@ describe("array", () => {
         const result = choise(["a", "b", "c"], () => 1 / 3)
         expect(result).toBe("b")
     })
+})
 
+describe("array::pair", () => {
     test("should create unique pairs", () => {
         const items = [1, 2, 3, 4, 5]
         expect(pairs(items)).toEqual([
@@ -28,4 +30,3 @@ describe("array", () => {
         ])
     })
 })
-
