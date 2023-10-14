@@ -1,4 +1,4 @@
-import { choise, pairs } from "./array"
+import { choise, pairs, groupBy } from "./array"
 
 describe("array::choise", () => {
     test("should get of the value", () => {
@@ -28,5 +28,17 @@ describe("array::pair", () => {
             [3, 5],
             [4, 5],
         ])
+    })
+})
+
+describe("array::groupBy", () => {
+    test("should group items", () => {
+        const items = [1, 2, 3, 4, 5, 6]
+        const result = groupBy(items, i => i % 2)
+        const answer = new Map([
+            [0, [2, 4, 6]],
+            [1, [1, 3, 5]],
+        ])
+        expect(result).toEqual(answer)
     })
 })

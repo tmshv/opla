@@ -18,3 +18,16 @@ export function pairs<T>(items: readonly T[]): [T, T][] {
     return pairs
 }
 
+/*
+* Group list of items to hashmap of lists by key
+*/
+export function groupBy<T, K>(items: T[], key: (item: T) => K): Map<K, T[]> {
+    const groups = new Map()
+    for (const item of items) {
+        const k = key(item)
+        const group = groups.get(k) ?? []
+        group.push(item)
+        groups.set(k, group)
+    }
+    return groups
+}
