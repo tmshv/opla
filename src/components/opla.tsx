@@ -201,14 +201,14 @@ const Main: React.FC<OplaSceneProps> = () => {
             <OrbitControls
                 enabled={orbitEnabled}
                 makeDefault
+                //autoRotate
+                //autoRotateSpeed={0.5}
                 maxPolarAngle={Math.PI / 2}
                 minPolarAngle={0}
+                maxDistance={100}
+                minDistance={1}
                 mouseButtons={{
-                    // LEFT: MOUSE.ROTATE,
-                    // MIDDLE: MOUSE.DOLLY,
-                    // RIGHT: MOUSE.PAN,
                     RIGHT: MOUSE.ROTATE,
-                    //MIDDLE: MOUSE.ROTATE,
                 }}
                 touches={!touch ? undefined : {
                     ONE: TOUCH.ROTATE,
@@ -274,12 +274,13 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
             }}
         >
             <ambientLight
-                intensity={2}
+                intensity={4}
             />
             <pointLight position={[5, 5, 5]} />
             <Environment
                 background
-                blur={1}
+                far={10}
+                blur={0.5}
                 files={"/assets/00309_OpenfootageNET_Snowland_low.hdr"}
             />
 
@@ -290,12 +291,8 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                     color="0x000000"
                     size={[cursorWidth, cursorHeight, cursorDepth]}
                     position={[0, 0, 0]}
-                    onPointerDown={() => {
-                        appState.orbitEnabled = false
-                    }}
-                    onPointerUp={() => {
-                        appState.orbitEnabled = true
-                    }}
+                    onPointerDown={() => { }}
+                    onPointerUp={() => { }}
                     onClick={(event) => {
                         const obj = event.object
 
