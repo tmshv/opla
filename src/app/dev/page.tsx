@@ -15,6 +15,7 @@ import { useCallback, useMemo } from "react"
 
 import type { ToolbarOnChange } from "@/ui/toolbar"
 import { downloadBlob } from "@/lib/download"
+import { OplaStat } from "@/components/opla-stat"
 
 const Page = () => {
     const threeScene = useMemo(() => {
@@ -62,6 +63,10 @@ const Page = () => {
         <>
             <Opla scene={threeScene} />
             <Leva />
+
+            <div className="absolute left-2 bottom-2 flex justify-center">
+                <OplaStat />
+            </div>
 
             <div className="absolute inset-x-0 bottom-8 flex justify-center">
                 <Toolbar
