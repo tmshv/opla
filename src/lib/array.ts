@@ -11,7 +11,7 @@ export function pairs<T>(items: readonly T[]): [T, T][] {
     const pairs: [T, T][] = []
     const len = items.length
     for (let i = 0; i < len; i++) {
-        for (let j = i+1; j < len; j++) {
+        for (let j = i + 1; j < len; j++) {
             pairs.push([items[i], items[j]])
         }
     }
