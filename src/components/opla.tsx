@@ -4,119 +4,17 @@ import { Canvas, useThree } from "@react-three/fiber"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { MOUSE, TOUCH, Box3, Scene, Object3D, Vector3 } from "three"
 import { useSnapshot } from "valtio"
-import { button, folder, useControls } from "leva"
+import { folder, useControls } from "leva"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { unionBoxes } from "@/lib/t"
-import { OplaBox, OplaGroup, OplaId, V3, state } from "@/stores/opla"
+import { OplaBox, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
 import { OplaInteractive } from "./opla-interactive"
 import { OplaWires } from "./opla-wires"
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
-import { Graph } from "@/lib/graph"
-import { v4 as uuidv4 } from "uuid"
 import { BoxCursor } from "./box-cursor"
-
-function explode() {
-    const groupIds = state.scene.filter(id => {
-        const obj = state.items[id]
-        return obj.type === "group"
-    })
-    for (const id of groupIds) {
-        const group = state.items[id] as OplaGroup
-        group.children.forEach(id => {
-            const obj = state.items[id]
-            obj.position[0] += group.position[0]
-            obj.position[1] += group.position[1]
-            obj.position[2] += group.position[2]
-        })
-    }
-
-    state.scene = state.scene.flatMap(id => {
-        const obj = state.items[id]
-        switch (obj.type) {
-            case "box": {
-                return [id]
-            }
-            case "group": {
-                return obj.children
-            }
-            default: {
-                throw new Error("Unreachable")
-            }
-        }
-    })
-
-    for (const id of groupIds) {
-        delete state.items[id]
-    }
-}
-
-function join() {
-    explode()
-
-    // take all single boxes from scene
-    const boxes = state.scene
-        .filter(id => state.items[id].type === "box")
-        .map(id => state.items[id] as OplaBox)
-
-    const newScene: OplaId[] = []
-    const graph = new Graph<OplaId, OplaBox>()
-    for (const box of boxes) {
-        graph.addNode(box.id, box)
-    }
-
-    for (const a of boxes) {
-        for (const b of boxes) {
-            // skip self intersection
-            if (a.id === b.id) {
-                continue
-            }
-            // skip no intersecion
-            const bboxA = oplaItemToBox3(a)
-            const bboxB = oplaItemToBox3(b)
-            if (!bboxA.intersectsBox(bboxB)) {
-                continue
-            }
-            graph.addEdge(a.id, b.id)
-        }
-    }
-
-    const islands = graph.findAllIslands()
-    for (const island of islands) {
-        const children = [...island]
-
-        // add single box back
-        if (children.length === 1) {
-            newScene.push(children[0])
-            continue
-        }
-
-        // find center of children
-        const groupBbox = unionBoxes(
-            children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
-        )
-        const center = groupBbox.getCenter(new Vector3)
-        for (const boxId of children) {
-            const box = state.items[boxId] as OplaBox
-            const localPosition = new Vector3()
-            localPosition.fromArray(box.position)
-            localPosition.sub(center)
-            box.position = localPosition.toArray()
-        }
-
-        const groupId = uuidv4()
-        state.items[groupId] = {
-            id: groupId,
-            type: "group",
-            position: center.toArray(),
-            children,
-        }
-        newScene.push(groupId)
-    }
-
-    state.scene = newScene
-}
+import { Dimension } from "./dimension"
 
 function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
@@ -250,14 +148,6 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
             cursorDepth: {
                 min: 2, max: 5, step: 1, value: 2,
             },
-        }),
-        explode: button(() => {
-            explode()
-            appState.target = null
-        }),
-        join: button(() => {
-            join()
-            appState.target = null
         }),
     })
 

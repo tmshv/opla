@@ -1,7 +1,7 @@
 "use client"
 
 import Opla from "@/components/opla"
-import { MousePointer, Plus, Trash, Share } from "react-feather"
+import { MousePointer, Plus, Trash, FolderPlus, FolderMinus, Share } from "react-feather"
 import { Leva } from "leva"
 import * as THREE from "three"
 
@@ -16,6 +16,8 @@ import { useCallback, useMemo } from "react"
 import type { ToolbarOnChange } from "@/ui/toolbar"
 import { downloadBlob } from "@/lib/download"
 import { OplaStat } from "@/components/opla-stat"
+import { join } from "@/core/join"
+import { explode } from "@/core/explode"
 
 const Page = () => {
     const threeScene = useMemo(() => {
@@ -51,6 +53,16 @@ const Page = () => {
                     const blob = await e.parse(opla)
                     await downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
                 }
+                break
+            }
+            case "Group": {
+                join()
+                appState.target = null
+                break
+            }
+            case "Ungroup": {
+                explode()
+                appState.target = null
                 break
             }
             default: {
@@ -91,6 +103,20 @@ const Page = () => {
                             value: Tool.DELETE,
                             icon: (
                                 <Trash size={15} />
+                            ),
+                        },
+                        {
+                            label: "Group",
+                            value: "Group",
+                            icon: (
+                                <FolderPlus size={15} />
+                            ),
+                        },
+                        {
+                            label: "Ungroup",
+                            value: "Ungroup",
+                            icon: (
+                                <FolderMinus size={15} />
                             ),
                         },
                         {
