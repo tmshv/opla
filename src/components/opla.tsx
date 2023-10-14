@@ -273,7 +273,9 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                 position: [5.5, 2.5, 12.0],
             }}
         >
-            <ambientLight />
+            <ambientLight
+                intensity={2}
+            />
             <pointLight position={[5, 5, 5]} />
             <Environment
                 background
