@@ -1,4 +1,4 @@
-import { choise, pairs, groupBy } from "./array"
+import { choise, pairs, groupBy, grid } from "./array"
 
 describe("array::choise", () => {
     test("should get of the value", () => {
@@ -40,5 +40,22 @@ describe("array::groupBy", () => {
             [1, [1, 3, 5]],
         ])
         expect(result).toEqual(answer)
+    })
+})
+
+describe("array::grid", () => {
+    test("should create list of pairs", () => {
+        const result = grid(3, 3)
+        expect(result).toEqual([
+            [0, 0],
+            [0, 1],
+            [0, 2],
+            [1, 0],
+            [1, 1],
+            [1, 2],
+            [2, 0],
+            [2, 1],
+            [2, 2],
+        ])
     })
 })
