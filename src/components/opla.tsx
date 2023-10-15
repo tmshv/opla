@@ -1,20 +1,21 @@
 "use client"
 
-import { Canvas, useThree } from "@react-three/fiber"
-import { Environment, OrbitControls } from "@react-three/drei"
-import { MOUSE, TOUCH, Box3, Scene, Object3D, Vector3 } from "three"
-import { useSnapshot } from "valtio"
-import { folder, useControls } from "leva"
-import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
-import { Walls } from "./walls"
+import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
-import { OplaBox, OplaId, V3, state } from "@/stores/opla"
 import appState, { Tool } from "@/stores/app"
+import { OplaBox, OplaId, V3, state } from "@/stores/opla"
+import { Environment, OrbitControls } from "@react-three/drei"
+import { Canvas, useThree } from "@react-three/fiber"
+import { folder, useControls } from "leva"
+import { Box3, MOUSE, Object3D, Scene, TOUCH, Vector3 } from "three"
+import { useSnapshot } from "valtio"
+import { BoxCursor } from "./box-cursor"
 import { OplaInteractive } from "./opla-interactive"
 import { OplaWires } from "./opla-wires"
-import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
-import { BoxCursor } from "./box-cursor"
-import { Dimension } from "./dimension"
+import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
+import { Walls } from "./walls"
+import { Grid } from "./grid"
+import { useDarkTheme } from "@/hooks/use-dark-theme"
 
 function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
@@ -135,8 +136,9 @@ export type OplaProps = {
 }
 
 const Opla: React.FC<OplaProps> = ({ scene }) => {
+    const dark = useDarkTheme()
     const { tool } = useSnapshot(appState)
-    const { showWalls, cursorWidth, cursorHeight, cursorDepth } = useControls({
+    const { showWalls, wallsColor, gridColor, cursorWidth, cursorHeight, cursorDepth } = useControls({
         showWalls: true,
         cursor: folder({
             cursorWidth: {
@@ -149,6 +151,8 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                 min: 2, max: 5, step: 1, value: 2,
             },
         }),
+        wallsColor: dark ? "#131517" : "#d3dbe2",
+        gridColor: dark ? "#5d6265" : "#979ea3",
     })
 
     return (
@@ -205,6 +209,14 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
             <Walls
                 showGrid={true}
                 showWalls={showWalls}
+                color={wallsColor}
+                gridColor={gridColor}
+            />
+            <Grid
+                color={gridColor}
+                number={10}
+                lineWidth={0.03}
+                height={0.25}
             />
         </Canvas>
     )

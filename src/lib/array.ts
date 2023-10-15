@@ -31,3 +31,13 @@ export function groupBy<T, K>(items: T[], key: (item: T) => K): Map<K, T[]> {
     }
     return groups
 }
+
+export function grid(x: number, y: number): [number, number][] {
+    const items: [number, number][] = []
+    for (let i = 0; i < x; i++) {
+        for (let j = 0; j < y; j++) {
+            items.push([i, j])
+        }
+    }
+    return items
+}

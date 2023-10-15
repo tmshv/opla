@@ -1,17 +1,17 @@
-import { useDarkTheme } from "@/hooks/use-dark-theme"
 import { useControls } from "leva"
 import type { ColorRepresentation } from "three"
 
 export type WallsProps = {
     showWalls: boolean
     showGrid: boolean
+    color: ColorRepresentation
+    gridColor: ColorRepresentation
 }
 
-export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid }) => {
-    const dark = useDarkTheme()
-    const S = 200
+export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid, color, gridColor }) => {
+    const S = 100
     const S2 = S / 2
-    const { metalness, roughness, color, gridColor } = useControls({
+    const { metalness, roughness } = useControls({
         metalness: {
             min: 0,
             max: 1,
@@ -22,10 +22,7 @@ export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid }) => {
             max: 1,
             value: 0.9,
         },
-        color: dark ? "#131517" : "#d3dbe2",
-        gridColor: dark ? "#5d6265" : "#979ea3",
     })
-    const gc = gridColor as ColorRepresentation
     const shift = 0.1
 
     return (
@@ -85,19 +82,19 @@ export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid }) => {
                 <gridHelper
                     rotation={[-Math.PI / 2, 0, 0]}
                     position={[S2, S2, 0]}
-                    args={[S, S, gc, gc]}
+                    args={[S, S, gridColor, gridColor]}
                 />
                 {/* normal to X */}
                 <gridHelper
                     rotation={[0, Math.PI / 2, 0]}
                     position={[S2, 0, S2]}
-                    args={[S, S, gc, gc]}
+                    args={[S, S, gridColor, gridColor]}
                 />
                 {/* normal to Z */}
                 <gridHelper
                     rotation={[0, 0, Math.PI / 2]}
                     position={[0, S2, S2]}
-                    args={[S, S, gc, gc]}
+                    args={[S, S, gridColor, gridColor]}
                 />
             </group>
         </>
