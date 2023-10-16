@@ -9,7 +9,9 @@ export const OplaStat = () => {
 
     return (
         <div className="pointer-events-none select-none">
-            <pre>nodes = {nodes.length}</pre>
+            {nodes.length === 0 ? null : (
+                <pre>nodes = {nodes.length}</pre>
+            )}
             {[...e.entries()]
                 .filter(([length, _]) => length > 1) // to skip 150mm small edges
                 .map(([length, items]) => (
