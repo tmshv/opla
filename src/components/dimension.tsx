@@ -10,7 +10,6 @@ function lerpV3(a: V3, b: V3, ratio: number): V3 {
     ]
 }
 
-
 function dist(a: V3, b: V3): number {
     const dx = a[0] - b[0]
     const dy = a[1] - b[1]
