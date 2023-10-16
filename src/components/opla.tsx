@@ -16,6 +16,7 @@ import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { Grid } from "./grid"
 import { useDarkTheme } from "@/hooks/use-dark-theme"
+import { Dimension } from "./dimension"
 
 function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
@@ -217,6 +218,30 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                 number={10}
                 lineWidth={0.03}
                 height={0.25}
+            />
+
+            <Dimension
+                start={[1.5, -0.5, -0.5]}
+                end={[1.5, -0.5, 1.5]}
+                ext={[1, 0, 0]}
+                label="300mm"
+                visible={false}
+            />
+            <Dimension
+                start={[-0.5, -0.5, 2.5]}
+                end={[3.5, -0.5, 2.5]}
+                //ext={[0, 1, 0]}
+                ext={[1, 0, 0]}
+                label="600mm"
+                visible={false}
+            />
+            <Dimension
+                start={[1.5, -0.5, 1.5]}
+                end={[1.5, 5.5, 1.5]}
+                //ext={[0, 0, 1]}
+                ext={[1, 0, 0]}
+                label="900mm"
+                visible={false}
             />
         </Canvas>
     )
