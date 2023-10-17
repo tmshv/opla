@@ -169,9 +169,12 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
         <Canvas
             scene={scene}
             dpr={[1, 2]}
-            onPointerMissed={() => {
-                appState.target = null
-                appState.orbitEnabled = true
+            onPointerMissed={(e) => {
+                const SELECT_BUTTON = 0
+                if (e.button == SELECT_BUTTON) {
+                    appState.target = null
+                    appState.orbitEnabled = true
+                }
             }}
             camera={{
                 position: [5.5, 2.5, 12.0],
