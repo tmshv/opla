@@ -110,7 +110,7 @@ export const Dimension: React.FC<DimensionProps> = ({ start, end, ext, label, vi
                 position={add(mul(n, -lenHalf), mul(ext, e))}
                 rotation={[-Math.PI / 2, 0, Math.PI / 4]}
             >
-                <planeGeometry args={[0.02, 0.2]} />
+                <planeGeometry args={[0.01, tick * 2]} />
                 <meshBasicMaterial color={0} />
             </mesh>
             <mesh
