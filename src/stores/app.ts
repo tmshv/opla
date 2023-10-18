@@ -19,5 +19,5 @@ export default proxy<AppState>({
     tool: Tool.SELECT,
     target: null,
     orbitEnabled: true,
-    targetSize: [2, 2, 2]
+    targetSize: [2, 2, 2],
 })
