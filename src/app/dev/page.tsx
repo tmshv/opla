@@ -77,6 +77,7 @@ const Page = () => {
             <Leva />
 
             <div className="absolute left-2 bottom-2 flex justify-center">
+            <div className="absolute left-2 bottom-2 flex justify-center text-xs">
                 <OplaStat />
             </div>
 
