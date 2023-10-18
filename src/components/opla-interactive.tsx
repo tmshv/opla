@@ -1,10 +1,7 @@
-"use client"
-
 import appState, { Tool } from "@/stores/app"
 import { OplaBox, OplaId, state } from "@/stores/opla"
 import { useCursor } from "@react-three/drei"
 import { MeshProps } from "@react-three/fiber"
-import { useControls } from "leva"
 import { useState } from "react"
 import { useSnapshot } from "valtio"
 
@@ -18,11 +15,8 @@ type BoxProps = MeshProps & {
 }
 
 const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, opacity, ...props }) => {
-    const { showDebug } = useControls({ showDebug: false })
     const [hovered, setHovered] = useState(false)
     useCursor(hovered)
-
-    const a = showDebug ? 0.2 : 0
 
     return (
         <mesh {...props}
@@ -35,7 +29,7 @@ const Box: React.FC<BoxProps> = ({ width, height, depth, visible, color, opacity
             <meshStandardMaterial
                 color={color}
                 transparent
-                opacity={visible ? opacity : a}
+                opacity={visible ? opacity : 0}
             />
         </mesh>
     )

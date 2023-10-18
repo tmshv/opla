@@ -1,28 +1,17 @@
-import { useControls } from "leva"
 import type { ColorRepresentation } from "three"
 
 export type WallsProps = {
-    showWalls: boolean
-    showGrid: boolean
+    walls: boolean
+    grid: boolean
     color: ColorRepresentation
     gridColor: ColorRepresentation
 }
 
-export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid, color, gridColor }) => {
+export const Walls: React.FC<WallsProps> = ({ walls, grid, color, gridColor }) => {
     const S = 100
     const S2 = S / 2
-    const { metalness, roughness } = useControls({
-        metalness: {
-            min: 0,
-            max: 1,
-            value: 0.15,
-        },
-        roughness: {
-            min: 0,
-            max: 1,
-            value: 0.9,
-        },
-    })
+    const metalness = 0.15
+    const roughness = 0.9
     const shift = 0.1
 
     return (
@@ -30,7 +19,7 @@ export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid, color, gridCo
             <group
                 name="walls"
                 position={[-0.5 - shift, -0.5 - shift, -0.5 - shift]}
-                visible={showWalls}
+                visible={walls}
             >
                 {/* normal to Y */}
                 <mesh
@@ -76,7 +65,7 @@ export const Walls: React.FC<WallsProps> = ({ showWalls, showGrid, color, gridCo
             <group
                 name="walls-grid"
                 position={[-0.5, -0.5, -0.5]}
-                visible={showGrid}
+                visible={grid}
             >
                 {/* normal to Y */}
                 <gridHelper

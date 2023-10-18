@@ -1,7 +1,6 @@
 import { Box3, Line3, Vector3 } from "three"
-import { useSnapshot } from "valtio"
 import { pairs } from "@/lib/array"
-import { OplaBox, OplaGroup, OplaId, OplaObjectCollection, state } from "@/stores/opla"
+import { OplaBox, OplaGroup, OplaId, OplaModelData, OplaObjectCollection } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 import { flatOplaGroup, oplaItemToBox3 } from "@/lib/opla-geom"
@@ -136,8 +135,7 @@ function* intersectionsWithArea(boxes: Box3[]) {
     }
 }
 
-function useFlat(): Box3[] {
-    const { scene, items } = useSnapshot(state)
+function useFlat({ scene, items }: OplaModelData): Box3[] {
     const boxes = scene
         .flatMap((id: OplaId) => {
             const obj = items[id]
@@ -163,9 +161,8 @@ function useFlat(): Box3[] {
     return boxes
 }
 
-export function useOpla(): [Vector3[], Line3[], Box3[]] {
-    const boxes = useFlat()
-
+export function useOpla(model: OplaModelData): [Vector3[], Line3[], Box3[]] {
+    const boxes = useFlat(model)
     const nodes: Vector3[] = []
     const edgesToSplit: Line3[] = []
     const overlaps = []

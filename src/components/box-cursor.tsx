@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { MeshProps, useFrame } from "@react-three/fiber"
-import { Wireframe } from "@react-three/drei"
+// import { Wireframe } from "@react-three/drei"
 import { Scene, Box3, Vector3, Raycaster, Intersection } from "three"
 
 function getIntersectionPlane(raycaster: Raycaster, scene: Scene): Intersection | null {
@@ -96,7 +96,7 @@ export const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) =
             <boxGeometry
                 args={size}
             />
-            <Wireframe
+            {/* <Wireframe
                 stroke={"black"}
                 backfaceStroke={"black"}
                 simplify
@@ -106,8 +106,7 @@ export const BoxCursor: React.FC<BoxCursorProps> = ({ size, color, ...props }) =
                 fill={"#FE4C04"}
                 fillMix={1}
                 fillOpacity={0.1}
-
-            />
+            /> */}
             <meshStandardMaterial />
         </mesh>
     )

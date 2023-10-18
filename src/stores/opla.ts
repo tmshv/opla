@@ -23,11 +23,13 @@ export type OplaObject =
 
 export type OplaObjectCollection = Record<OplaId, OplaObject>
 
-export type State = {
+export type OplaModelData = {
     version: string
     items: OplaObjectCollection
     scene: OplaId[]
 }
+
+export type State = OplaModelData
 
 export let state = proxy<State>({
     version: "1",

@@ -3,7 +3,7 @@
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"
-import { OplaBox, OplaId, V3, state } from "@/stores/opla"
+import { OplaBox, OplaId, OplaModelData, V3, state } from "@/stores/opla"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Canvas, useThree } from "@react-three/fiber"
 import { folder, useControls } from "leva"
@@ -11,7 +11,7 @@ import { Box3, MOUSE, Object3D, Scene, TOUCH, Vector3 } from "three"
 import { useSnapshot } from "valtio"
 import { BoxCursor } from "./box-cursor"
 import { OplaInteractive } from "./opla-interactive"
-import { OplaWires } from "./opla-wires"
+import { OplaModel } from "./opla-model"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { Grid } from "./grid"
@@ -77,10 +77,15 @@ type OplaSceneProps = {
 
 const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
+    const model = useSnapshot(state)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
     const touch = !target || tool !== Tool.SELECT
-    const { showDimensions } = useControls({
-        showDimensions: true,
+    const { dimensions, nodeColor, edgeColor } = useControls({
+        dimensions: true,
+        // nodeColor: "#e58a27",
+        // edgeColor: "#4b4949",
+        nodeColor: "#454545",
+        edgeColor: "#9d877c",
     })
 
     return (
@@ -91,6 +96,17 @@ const Main: React.FC<OplaSceneProps> = () => {
                 onClick={boxId => {
                     if (tool === Tool.SELECT) {
                         appState.target = boxId
+
+                        const item = state.items[boxId]
+                        switch (item.type) {
+                            case "box": {
+                                appState.targetSize = [...item.size]
+                                break
+                            }
+                            default: {
+
+                            }
+                        }
                     } else {
                         appState.target = null
                     }
@@ -99,14 +115,20 @@ const Main: React.FC<OplaSceneProps> = () => {
 
             <OplaDims
                 name={"opla-dimensions"}
-                visible={showDimensions}
+                visible={dimensions}
             />
 
-            <OplaWires
-                name="opla-model"
-                // scale={5} // first variant
-                scale={5 * (4 / 3)} // 150mm variant
-            />
+            {!state ? null : (
+                <OplaModel
+                    model={model as OplaModelData}
+                    name="opla-model"
+                    // scale={5} // first variant
+                    scale={5 * (4 / 3)} // 150mm variant
+                    nodeColor={nodeColor}
+                    edgeColor={edgeColor}
+                />
+            )}
+
             <OrbitControls
                 enabled={orbitEnabled}
                 makeDefault
@@ -147,23 +169,9 @@ export type OplaProps = {
 
 const Opla: React.FC<OplaProps> = ({ scene }) => {
     const dark = useDarkTheme()
-    const { tool } = useSnapshot(appState)
-    const { showWalls, wallsColor, gridColor, cursorWidth, cursorHeight, cursorDepth } = useControls({
-        showWalls: true,
-        cursor: folder({
-            cursorWidth: {
-                min: 2, max: 5, step: 1, value: 2,
-            },
-            cursorHeight: {
-                min: 2, max: 5, step: 1, value: 2,
-            },
-            cursorDepth: {
-                min: 2, max: 5, step: 1, value: 2,
-            },
-        }),
-        wallsColor: dark ? "#131517" : "#d3dbe2",
-        gridColor: dark ? "#5d6265" : "#979ea3",
-    })
+    const { tool, targetSize } = useSnapshot(appState)
+    const wallsColor = dark ? "#131517" : "#d3dbe2"
+    const gridColor = dark ? "#5d6265" : "#979ea3"
 
     return (
         <Canvas
@@ -196,7 +204,7 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
             {tool !== Tool.ADD ? null : (
                 <BoxCursor
                     color="0x000000"
-                    size={[cursorWidth, cursorHeight, cursorDepth]}
+                    size={targetSize as V3}
                     position={[0, 0, 0]}
                     onPointerDown={() => { }}
                     onPointerUp={() => { }}
@@ -205,7 +213,7 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
 
                         const id = `${Date.now()}`
                         const position = obj.position.toArray() as V3
-                        const size = [cursorWidth, cursorHeight, cursorDepth] as V3
+                        const size = targetSize as V3
 
                         // add new box mutation
                         state.items[id] = {
@@ -219,9 +227,7 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                 />
             )}
 
-            <Walls
-                showGrid={true}
-                showWalls={showWalls}
+            <Walls grid walls
                 color={wallsColor}
                 gridColor={gridColor}
             />

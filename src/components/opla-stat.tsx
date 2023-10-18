@@ -1,8 +1,11 @@
 import { useOpla } from "@/hooks/use-opla"
 import { groupBy } from "@/lib/array"
+import { OplaModelData, state } from "@/stores/opla"
+import { useSnapshot } from "valtio"
 
 export const OplaStat = () => {
-    const [nodes, edges] = useOpla()
+    const model = useSnapshot(state)
+    const [nodes, edges] = useOpla(model as OplaModelData)
 
     const e = groupBy(edges, edge => edge.distance())
     const mult = 150

@@ -8,8 +8,9 @@ import * as THREE from "three"
 import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 
 import appState, { Tool } from "@/stores/app"
-import { state } from "@/stores/opla"
+import { V3, state } from "@/stores/opla"
 import { useSnapshot } from "valtio"
+import { subscribeKey } from "valtio/utils"
 import { Toolbar } from "@/ui/toolbar"
 import { useCallback, useMemo } from "react"
 
@@ -18,14 +19,35 @@ import { downloadBlob } from "@/lib/download"
 import { OplaStat } from "@/components/opla-stat"
 import { join } from "@/core/join"
 import { explode } from "@/core/explode"
+import { OplaBrush } from "@/components/opla-brush"
+import { SizeSelect } from "@/ui/size-select"
+
+subscribeKey(appState, "targetSize", () => {
+    console.log("target size has changed", appState.targetSize)
+})
 
 const Page = () => {
     const threeScene = useMemo(() => {
         return new THREE.Scene()
     }, [])
 
-    const { tool, target } = useSnapshot(appState)
-    const { scene } = useSnapshot(state)
+    const { tool, target, targetSize } = useSnapshot(appState)
+    const { scene, items } = useSnapshot(state)
+
+    const brushSize = useMemo(() => {
+        if (!target) {
+            return null
+        }
+        const item = items[target]
+        switch (item.type) {
+            case "box": {
+                return item.size as V3
+            }
+            default: {
+                return null
+            }
+        }
+    }, [items, target])
 
     const onToolbarChange = useCallback<ToolbarOnChange>(async value => {
         switch (value) {
@@ -71,12 +93,63 @@ const Page = () => {
         }
     }, [target, scene, threeScene])
 
+    let brush = brushSize
+    if (tool === Tool.ADD) {
+        brush = targetSize as V3
+    }
+
     return (
         <>
             <Opla scene={threeScene} />
             <Leva />
 
-            <div className="absolute left-2 bottom-2 flex justify-center">
+            {!brush ? null : (
+                <div className="absolute left-2 top-2">
+                    <div className="rounded-md mb-1 overflow-hidden" style={{
+                        width: 150,
+                        height: 150,
+                    }}>
+                        <OplaBrush
+                            size={brush}
+                        />
+                    </div>
+
+                    <div className="flex gap-2 items-center text-xs mb-1">
+                        <span className="w-2">X:</span>
+                        <SizeSelect
+                            value={brush[0] * 150}
+                            variants={[300, 450, 600, 750]}
+                            onChange={(value) => {
+                                appState.targetSize[0] = value / 150
+                            }}
+                            units="mm"
+                        />
+                    </div>
+                    <div className="flex gap-2 items-center text-xs mb-1">
+                        <span className="w-2">Y:</span>
+                        <SizeSelect
+                            value={brush[1] * 150}
+                            variants={[300, 450, 600, 750]}
+                            onChange={(value) => {
+                                appState.targetSize[1] = value / 150
+                            }}
+                            units="mm"
+                        />
+                    </div>
+                    <div className="flex gap-2 items-center text-xs mb-1">
+                        <span className="w-2">Z:</span>
+                        <SizeSelect
+                            value={brush[2] * 150}
+                            variants={[300, 450, 600, 750]}
+                            onChange={(value) => {
+                                appState.targetSize[2] = value / 150
+                            }}
+                            units="mm"
+                        />
+                    </div>
+                </div>
+            )}
+
             <div className="absolute left-2 bottom-2 flex justify-center text-xs">
                 <OplaStat />
             </div>
