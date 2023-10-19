@@ -56,4 +56,3 @@ export function hasIntersection(boxes: Box3[], skipItemId: OplaId, scene: OplaId
 
     return false
 }
-

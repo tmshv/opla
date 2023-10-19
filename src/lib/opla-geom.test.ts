@@ -27,4 +27,3 @@ describe("sizeToBox3", () => {
         expect(sizeToBox3(item.size)).toEqual(result)
     })
 })
-
