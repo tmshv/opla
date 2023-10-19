@@ -1,7 +1,7 @@
 "use client"
 
 import Opla from "@/components/opla"
-import { MousePointer, Plus, Trash, FolderPlus, FolderMinus, Share } from "react-feather"
+import { MousePointer, Plus, Trash, FolderPlus, FolderMinus, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
 import * as THREE from "three"
 
@@ -32,7 +32,7 @@ const Page = () => {
     }, [])
 
     const { tool, target, targetSize } = useSnapshot(appState)
-    const { scene, items } = useSnapshot(state)
+    const { value: { scene, items } } = useSnapshot(state)
 
     const brushSize = useMemo(() => {
         if (!target) {
@@ -61,7 +61,7 @@ const Page = () => {
             }
             case Tool.DELETE: {
                 if (target) {
-                    state.scene = scene.filter(x => x !== target)
+                    state.value.scene = scene.filter(x => x !== target)
                     // state.items = {}
                     appState.target = null
                 }
@@ -85,6 +85,14 @@ const Page = () => {
             case "Ungroup": {
                 explode()
                 appState.target = null
+                break
+            }
+            case "Undo": {
+                state.undo()
+                break
+            }
+            case "Redo": {
+                state.redo()
                 break
             }
             default: {
@@ -200,6 +208,20 @@ const Page = () => {
                                 <Share size={15} />
                             ),
                             visible: false,
+                        },
+                        {
+                            label: "Undo",
+                            value: "Undo",
+                            icon: (
+                                <CornerUpLeft size={15} />
+                            ),
+                        },
+                        {
+                            label: "Redo",
+                            value: "Redo",
+                            icon: (
+                                <CornerUpRight size={15} />
+                            ),
                         },
                     ]}
                     onChange={onToolbarChange}

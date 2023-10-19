@@ -4,7 +4,7 @@ import { OplaModelData, state } from "@/stores/opla"
 import { useSnapshot } from "valtio"
 
 export const OplaStat = () => {
-    const model = useSnapshot(state)
+    const { value: model } = useSnapshot(state)
     const [nodes, edges] = useOpla(model as OplaModelData)
 
     const e = groupBy(edges, edge => edge.distance())

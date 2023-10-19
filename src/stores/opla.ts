@@ -1,4 +1,4 @@
-import { proxy } from "valtio"
+import { proxyWithHistory } from "valtio/utils"
 
 export type V3 = [number, number, number]
 export type OplaId = string
@@ -31,7 +31,7 @@ export type OplaModelData = {
 
 export type State = OplaModelData
 
-export let state = proxy<State>({
+export let state = proxyWithHistory<State>({
     version: "1",
     scene: [
         "2x2x2-0",

@@ -10,7 +10,7 @@ export type OplaDimsProps = {
 }
 
 export const OplaDims: React.FC<OplaDimsProps> = ({ name, visible }) => {
-    const { scene, items } = useSnapshot(state)
+    const { value: { scene, items } } = useSnapshot(state)
 
     return (
         <group name={name} visible={visible}>

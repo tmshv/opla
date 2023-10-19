@@ -44,7 +44,7 @@ export type BoxGroupProps = {
 }
 
 export const BoxGroup: React.FC<BoxGroupProps> = ({ onClick, id, children, name, highlightColor }) => {
-    const { items } = useSnapshot(state)
+    const { value: { items } } = useSnapshot(state)
     const { target, tool } = useSnapshot(appState)
     const obj = items[id]
     // const ids = items[id].ch
@@ -105,7 +105,7 @@ export type OplaInteractiveProps = {
 }
 
 export const OplaInteractive: React.FC<OplaInteractiveProps> = ({ name, onClick, highlightColor }) => {
-    const { scene, items } = useSnapshot(state)
+    const { value: { scene, items } } = useSnapshot(state)
     const { target, tool } = useSnapshot(appState)
 
     return (
