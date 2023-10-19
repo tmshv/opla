@@ -2,8 +2,10 @@
     "name": "opla",
     "version": "1.0.0",
     "description": "https://acidome.ru https://www.gridsystem.dk https://www.usm.com",
-    "main": "index.js",
+    "private": true,
+    "type": "module",
     "dependencies": {
+        "@next/bundle-analyzer": "^13.5.6",
         "@nextui-org/react": "^2.1.7",
         "@react-three/drei": "^9.83.0",
         "@react-three/fiber": "^8.14.0",
@@ -43,6 +45,7 @@
         "build": "next build",
         "lint": "next lint",
         "format": "npm run lint -- --fix",
+        "analyze": "ANALYZE=true npm run build",
         "test": "jest"
     },
     "keywords": [],
