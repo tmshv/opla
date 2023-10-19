@@ -15,7 +15,6 @@ import { OplaModel } from "./opla-model"
 import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { Grid } from "./grid"
-import { useDarkTheme } from "@/hooks/use-dark-theme"
 import { OplaDims } from "./opla-dims"
 
 function snapPosition(pos: number, size: number): number {
@@ -168,10 +167,9 @@ export type OplaProps = {
 }
 
 const Opla: React.FC<OplaProps> = ({ scene }) => {
-    const dark = useDarkTheme()
     const { tool, targetSize } = useSnapshot(appState)
-    const wallsColor = dark ? "#131517" : "#d3dbe2"
-    const gridColor = dark ? "#5d6265" : "#979ea3"
+    const wallsColor = "#d3dbe2"
+    const gridColor = "#979ea3"
 
     return (
         <Canvas
