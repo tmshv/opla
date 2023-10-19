@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from "@react-three/fiber"
 import { OplaModel } from "./opla-model"
-import { OplaModelData, V3 } from "@/stores/opla"
+import type { OplaModelData, V3 } from "@/stores/opla"
 
 function simple(size: V3): OplaModelData {
     return {

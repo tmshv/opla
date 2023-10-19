@@ -1,6 +1,6 @@
-import { V3 } from "@/stores/opla"
 import { lerp } from "@/lib/math"
 import { Text, Line } from "@react-three/drei"
+import type { V3 } from "@/stores/opla"
 
 function lerpV3(a: V3, b: V3, ratio: number): V3 {
     return [
