@@ -9,8 +9,7 @@ import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 
 import appState, { Tool } from "@/stores/app"
 import { V3, state } from "@/stores/opla"
-import { useSnapshot } from "valtio"
-import { subscribeKey } from "valtio/utils"
+import { subscribe, useSnapshot } from "valtio"
 import { Toolbar } from "@/ui/toolbar"
 import { useCallback, useMemo } from "react"
 
@@ -22,8 +21,12 @@ import { explode } from "@/core/explode"
 import { OplaBrush } from "@/components/opla-brush"
 import { SizeSelect } from "@/ui/size-select"
 
-subscribeKey(appState, "targetSize", () => {
-    console.log("target size has changed", appState.targetSize)
+// Reset selection if target id set but actual object is not found
+subscribe(state, () => {
+    const t = appState.target
+    if (t && !state.value.items[t]) {
+        appState.target = null
+    }
 })
 
 const Page = () => {
