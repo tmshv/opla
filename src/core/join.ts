@@ -9,10 +9,12 @@ import { oplaItemToBox3 } from "@/lib/opla-geom"
 export function join() {
     explode()
 
+    const { scene, items } = state.value
+
     // take all single boxes from scene
-    const boxes = state.scene
-        .filter(id => state.items[id].type === "box")
-        .map(id => state.items[id] as OplaBox)
+    const boxes = scene
+        .filter(id => items[id].type === "box")
+        .map(id => items[id] as OplaBox)
 
     const newScene: OplaId[] = []
     const graph = new Graph<OplaId, OplaBox>()
@@ -48,11 +50,11 @@ export function join() {
 
         // find center of children
         const groupBbox = unionBoxes(
-            children.map(id => oplaItemToBox3(state.items[id] as OplaBox))
+            children.map(id => oplaItemToBox3(items[id] as OplaBox))
         )
         const center = groupBbox.getCenter(new Vector3)
         for (const boxId of children) {
-            const box = state.items[boxId] as OplaBox
+            const box = items[boxId] as OplaBox
             const localPosition = new Vector3()
             localPosition.fromArray(box.position)
             localPosition.sub(center)
@@ -60,7 +62,7 @@ export function join() {
         }
 
         const groupId = uuidv4()
-        state.items[groupId] = {
+        state.value.items[groupId] = {
             id: groupId,
             type: "group",
             position: center.toArray(),
@@ -69,5 +71,5 @@ export function join() {
         newScene.push(groupId)
     }
 
-    state.scene = newScene
+    state.value.scene = newScene
 }
