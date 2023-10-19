@@ -1,6 +1,6 @@
 import appState, { Tool } from "@/stores/app"
 import { OplaBox, OplaId, state } from "@/stores/opla"
-import { useCursor } from "@react-three/drei"
+import { useCursor, Bvh } from "@react-three/drei"
 import { MeshProps } from "@react-three/fiber"
 import { useState } from "react"
 import { useSnapshot } from "valtio"
@@ -109,51 +109,53 @@ export const OplaInteractive: React.FC<OplaInteractiveProps> = ({ name, onClick,
     const { target, tool } = useSnapshot(appState)
 
     return (
-        <group name={name}>
-            {scene.map(id => {
-                const obj = items[id]
-                const visible = tool === Tool.SELECT && obj.id === target
-                switch (obj.type) {
-                    case "box": {
-                        const [width, height, depth] = obj.size
-                        return (
-                            <Box
-                                key={id}
-                                name={id}
-                                position={obj.position}
-                                width={width}
-                                height={height}
-                                depth={depth}
-                                visible={visible}
-                                color={highlightColor}
-                                opacity={0.5}
-                                onClick={event => {
-                                    // nearest object to camera will receive first click event
-                                    // stop propagation to prevent click event for other object behind
-                                    event.stopPropagation()
-                                    onClick(event.object.name)
-                                }}
-                            />
-                        )
+        <Bvh firstHitOnly>
+            <group name={name}>
+                {scene.map(id => {
+                    const obj = items[id]
+                    const visible = tool === Tool.SELECT && obj.id === target
+                    switch (obj.type) {
+                        case "box": {
+                            const [width, height, depth] = obj.size
+                            return (
+                                <Box
+                                    key={id}
+                                    name={id}
+                                    position={obj.position}
+                                    width={width}
+                                    height={height}
+                                    depth={depth}
+                                    visible={visible}
+                                    color={highlightColor}
+                                    opacity={0.5}
+                                    onClick={event => {
+                                        // nearest object to camera will receive first click event
+                                        // stop propagation to prevent click event for other object behind
+                                        event.stopPropagation()
+                                        onClick(event.object.name)
+                                    }}
+                                />
+                            )
+                        }
+                        case "group": {
+                            return (
+                                <BoxGroup
+                                    key={id}
+                                    id={id}
+                                    name={id}
+                                    onClick={onClick}
+                                    highlightColor={highlightColor}
+                                >
+                                    {obj.children as OplaId[]}
+                                </BoxGroup>
+                            )
+                        }
+                        default: {
+                            throw new Error("Unreachable")
+                        }
                     }
-                    case "group": {
-                        return (
-                            <BoxGroup
-                                key={id}
-                                id={id}
-                                name={id}
-                                onClick={onClick}
-                                highlightColor={highlightColor}
-                            >
-                                {obj.children as OplaId[]}
-                            </BoxGroup>
-                        )
-                    }
-                    default: {
-                        throw new Error("Unreachable")
-                    }
-                }
-            })}
-        </group>
+                })}
+            </group>
+        </Bvh>
     )
 }
