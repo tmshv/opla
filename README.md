@@ -26,3 +26,15 @@ https://www.creativeapplications.net/nft/primitifs-systematiques-david-umemoto-a
 
 add some screen space reflections 
 https://github.com/0beqz/screen-space-reflections
+
+## Dev
+
+### Backend
+
+Run this command. It will enable automatic migrations according to [this](https://pocketbase.io/docs/go-migrations/) docs.
+
+```
+go run main.go serve
+```
+
+When edit `*.go` files.
