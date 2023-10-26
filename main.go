@@ -5,11 +5,16 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+
+	// include migrations in build
+	_ "github.com/tmshv/opla/migrations"
 )
 
 //go:embed all:dist
@@ -31,6 +36,15 @@ func main() {
 		frontend := getDistFS(false)
 		e.Router.GET("/*", apis.StaticDirectoryHandler(frontend, false))
 		return nil
+	})
+
+	// setup migrations
+	// loosely check if it was executed using "go run"
+	isGoRun := strings.HasPrefix(os.Args[0], os.TempDir())
+	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
+		// enable auto creation of migration files when making collection changes in the Admin UI
+		// (the isGoRun check is to enable it only during development)
+		Automigrate: isGoRun,
 	})
 
 	if err := app.Start(); err != nil {
