@@ -26,4 +26,3 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 }
 
 export default RootLayout
-

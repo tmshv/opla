@@ -8,7 +8,10 @@ const withBundleAnalyzer = analyzer({
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
-    /* config options here */
+    /* static export options */
+    output: "export",
+    skipTrailingSlashRedirect: true,
+    distDir: "dist",
 }
 
 export default withBundleAnalyzer(nextConfig)
