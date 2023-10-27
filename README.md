@@ -33,25 +33,27 @@ Objects in schema version `1` is positioned at `[0.5, 0.5, 0.5]` for *zero*.
 
 Schema:
 ```ts
+type Box = {
+    id: string
+    type: "box"
+    position: [number, number, number]
+    size: [number, number, number]
+}
+type Group = {
+    id: string
+    type: "group"
+    position: [number, number, number]
+    children: string[]
+}
 type OplaModel1 = {
     version: "1"
-    items: Record<string, {
-        id: string
-        type: "box"
-        position: [number, number, number]
-        size: [number, number, number]
-    } | {
-        id: string
-        type: "group"
-        position: [number, number, number]
-        children: string[]
-    }>
+    items: Record<string, Box | Group>
     scene: string[]
 }
 ```
 
 Example:
-```json
+```json5
 {
     version: "1",
     scene: [
