@@ -34,7 +34,7 @@ func main() {
 	// serves frontend files from the dist dir
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		frontend := getDistFS(false)
-		e.Router.GET("/*", apis.StaticDirectoryHandler(frontend, false))
+		e.Router.GET("/*", apis.StaticDirectoryHandler(frontend, true))
 		return nil
 	})
 
