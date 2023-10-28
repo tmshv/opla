@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio"
 
 import {
     Button,
-    NavbarMenuToggle,
+    // NavbarMenuToggle,
     NavbarMenuItem,
     NavbarMenu,
     Navbar,
@@ -196,7 +196,6 @@ export const Navigation: React.FC = () => {
                     <ModalFooter>
                         <Button color="primary" onPress={async () => {
                             const item = await api.createNewOpla()
-                            console.log("new opla", item)
                             navigate(`/${item.id}`)
                             onClose()
                         }}>
