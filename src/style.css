@@ -13,7 +13,7 @@ body {
     overflow: hidden;
 }
 
-#__next {
+#root {
     height: 100%;
 }
 

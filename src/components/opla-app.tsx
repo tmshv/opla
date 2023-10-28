@@ -1,5 +1,3 @@
-"use client"
-
 import Opla from "@/components/opla"
 import { MousePointer, Plus, Trash, FolderPlus, FolderMinus, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
@@ -29,7 +27,9 @@ subscribe(state, () => {
     }
 })
 
-const Page = () => {
+export type OplaAppProps = {}
+
+export const OplaApp = () => {
     const threeScene = useMemo(() => {
         return new THREE.Scene()
     }, [])
@@ -112,7 +112,7 @@ const Page = () => {
     return (
         <>
             <Opla scene={threeScene} />
-            <Leva />
+            <Leva hidden />
 
             {!brush ? null : (
                 <div className="absolute left-2 top-2">
@@ -233,5 +233,3 @@ const Page = () => {
         </>
     )
 }
-
-export default Page
