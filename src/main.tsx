@@ -9,7 +9,7 @@ import {
 import "./style.css"
 import { Providers } from "@/components/providers"
 import { Navigation } from "@/components/navigation"
-import state from "@/stores/opla"
+import state, { reset } from "@/stores/opla"
 import app from "@/stores/app"
 
 import React from "react";
@@ -69,6 +69,13 @@ const SyncOplaCover = () => {
     )
 }
 
+const Root = () => {
+    useEffect(() => {
+        reset()
+    }, [])
+
+    return null
+}
 
 const router = createBrowserRouter([
     {
@@ -79,6 +86,7 @@ const router = createBrowserRouter([
                 <div className="absolute top-0 left-0 w-full">
                     <Navigation />
                 </div>
+                <Root />
             </>
         ),
     },

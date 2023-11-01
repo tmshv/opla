@@ -43,4 +43,15 @@ let state = proxyWithHistory<State>({
     }
 })
 
+export function reset() {
+    state.value = {
+        name: "New",
+        model: {
+            version: "1",
+            scene: [],
+            items: {},
+        }
+    }
+}
+
 export default state

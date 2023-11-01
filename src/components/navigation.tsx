@@ -151,6 +151,7 @@ export const Navigation: React.FC = () => {
                                         }
                                         case "logout": {
                                             api.logout()
+                                            navigate("/")
                                             break
                                         }
                                         default: {
