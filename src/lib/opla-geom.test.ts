@@ -1,5 +1,5 @@
 import { Box3, Vector3 } from "three"
-import { OplaBox } from "@/stores/opla"
+import type { OplaBox } from "@/stores/opla"
 import { oplaItemToBox3, sizeToBox3 } from "./opla-geom"
 
 describe("oplaItemToBox3", () => {

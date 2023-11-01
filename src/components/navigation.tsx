@@ -1,4 +1,5 @@
-import state from "@/stores/user"
+import state from "@/stores/opla"
+import userState from "@/stores/user"
 import { useSnapshot } from "valtio"
 
 import {
@@ -22,12 +23,14 @@ import {
     ModalHeader,
     ModalBody,
     ModalFooter,
+    Spinner,
 } from "@nextui-org/react"
 import { SignupModal } from "./signup-modal"
 import api from "@/api"
 import { LoginModal } from "./login-modal"
 import { OplasList } from "./oplas-list"
 import { useNavigate } from "react-router-dom"
+import useSyncing from "@/hooks/use-syncing"
 
 const menuItems = [
     "Profile",
@@ -44,7 +47,9 @@ const menuItems = [
 
 export const Navigation: React.FC = () => {
     const navigate = useNavigate()
-    const user = useSnapshot(state)
+    const { value: { name } } = useSnapshot(state)
+    const synced = useSyncing()
+    const user = useSnapshot(userState)
     const hideMenu = true
     const isMenuOpen = false
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure()
@@ -59,6 +64,10 @@ export const Navigation: React.FC = () => {
                 /> */}
                     <NavbarBrand>
                         <p className="font-bold text-inherit">OPLA</p>
+                        <p className="text-inherit px-2">{name}</p>
+                        {!synced ? null : (
+                            <Spinner color="white" size="sm" />
+                        )}
                     </NavbarBrand>
                 </NavbarContent>
 

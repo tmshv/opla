@@ -1,6 +1,6 @@
 import PocketBase from "pocketbase"
 import state from "@/stores/user"
-import { OplaModelData } from "./stores/opla"
+import type { OplaModelData } from "./stores/opla"
 
 function createApi() {
     const pb = new PocketBase("http://127.0.0.1:8090")
@@ -43,6 +43,13 @@ function createApi() {
         },
         logout: async () => {
             pb.authStore.clear()
+        },
+        getOplaName: async (oplaId: string) => {
+            // TODO check 404
+            const res = await pb.collection("oplas").getOne(oplaId, {
+                fields: "id,name",
+            })
+            return res.name
         },
         getModelDefinition: async (oplaId: string) => {
             // TODO check 404

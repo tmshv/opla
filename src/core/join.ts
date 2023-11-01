@@ -1,6 +1,7 @@
 import { Vector3 } from "three"
 import { unionBoxes } from "@/lib/t"
-import { OplaBox, OplaId, state } from "@/stores/opla"
+import type { OplaBox, OplaId } from "@/stores/opla"
+import state from "@/stores/opla"
 import { Graph } from "@/lib/graph"
 import { v4 as uuidv4 } from "uuid"
 import { explode } from "./explode"
@@ -9,7 +10,7 @@ import { oplaItemToBox3 } from "@/lib/opla-geom"
 export function join() {
     explode()
 
-    const { scene, items } = state.value
+    const { scene, items } = state.value.model
 
     // take all single boxes from scene
     const boxes = scene
@@ -62,7 +63,7 @@ export function join() {
         }
 
         const groupId = uuidv4()
-        state.value.items[groupId] = {
+        state.value.model.items[groupId] = {
             id: groupId,
             type: "group",
             position: center.toArray(),
@@ -71,5 +72,5 @@ export function join() {
         newScene.push(groupId)
     }
 
-    state.value.scene = newScene
+    state.value.model.scene = newScene
 }

@@ -1,6 +1,6 @@
 import { Box3, Line3, Vector3 } from "three"
 import { pairs } from "@/lib/array"
-import { OplaBox, OplaGroup, OplaId, OplaModelData, OplaObjectCollection } from "@/stores/opla"
+import type { OplaBox, OplaGroup, OplaId, OplaModelData, OplaObjectCollection } from "@/stores/opla"
 import { boxHasArea } from "@/lib/t"
 import { boxToLines, boxToPlanes, boxToVerticies, isLinesOverlapping, uniqueVectors, vectorToAxes } from "@/lib/geom"
 import { flatOplaGroup, oplaItemToBox3 } from "@/lib/opla-geom"

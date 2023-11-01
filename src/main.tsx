@@ -9,7 +9,8 @@ import {
 import "./style.css"
 import { Providers } from "@/components/providers"
 import { Navigation } from "@/components/navigation"
-import { state } from "@/stores/opla"
+import state from "@/stores/opla"
+import app from "@/stores/app"
 
 import React from "react";
 import api from "./api"
@@ -21,8 +22,10 @@ const SyncOplaModel = () => {
 
     useEffect(() => {
         const fn = async (oplaId: string) => {
-            const def = await api.getModelDefinition(oplaId)
-            state.value = def
+            const name = await api.getOplaName(oplaId)
+            const model = await api.getModelDefinition(oplaId)
+            state.value.name = name
+            state.value.model = model
         }
         if (oplaId) {
             fn(oplaId)
@@ -31,7 +34,9 @@ const SyncOplaModel = () => {
 
     useEffect(() => {
         const stop = subscribe(state, async () => {
-            await api.updateModelDefinition(oplaId!, state.value)
+            app.synced = true
+            await api.updateModelDefinition(oplaId!, state.value.model)
+            app.synced = false
         })
 
         // stop sync if it is new model
@@ -53,15 +58,12 @@ const SyncOplaCover = () => {
 
     return (
         <OplaPreview onUpdate={async image => {
-            var blobBin = atob(image.split(',')[1])
-            var array = [];
+            const blobBin = atob(image.split(',')[1])
+            const array = [];
             for (var i = 0; i < blobBin.length; i++) {
                 array.push(blobBin.charCodeAt(i));
             }
-            var file = new Blob([new Uint8Array(array)], { type: 'image/png' });
-
-            {/* var formdata = new FormData(); */ }
-            {/* formdata.append("myNewFileName", file); */ }
+            const file = new Blob([new Uint8Array(array)], { type: 'image/png' });
             await api.updateCover(oplaId!, file)
         }} />
     )

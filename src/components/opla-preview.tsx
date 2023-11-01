@@ -1,6 +1,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OplaModel } from "./opla-model"
-import { state, OplaModelData } from "@/stores/opla"
+import type { OplaModelData } from "@/stores/opla"
+import state from "@/stores/opla"
 import { useSnapshot } from "valtio"
 import { useDeferredValue, useEffect } from "react"
 import { sleep } from "@/lib/sleep"
@@ -24,34 +25,11 @@ export type SaveCoverProps = {
 }
 
 const SaveCover: React.FC<SaveCoverProps> = ({ onUpdate }) => {
-    const { value } = useSnapshot(state)
-    const deffered = useDeferredValue(value)
+    const { value: { model } } = useSnapshot(state)
+    const deffered = useDeferredValue(model)
     const { gl } = useThree()
 
     useEffect(() => {
-        // console.log("model has changed", gl.domElement) // will show me the `<canvas>` dom element.
-
-        // let sleeping = false
-
-        // const fn = async () => {
-        //     sleeping = true
-        //     sleep(100)
-        //     sleeping = false
-
-        //     const image = gl.domElement.toDataURL("image/png")
-        //     // var a = document.createElement('a');
-        //     // a.href = image
-        //     // a.download = 'canvas.png'
-        //     // a.click()
-
-        //     // api.updateCover
-        // }
-
-        // const run = fn()
-
-        // return () => {
-        //     // run.
-        // }
         const image = gl.domElement.toDataURL("image/png")
         onUpdate(image)
     }, [deffered])
@@ -65,7 +43,7 @@ export type OplaPreviewProps = {
 }
 
 export const OplaPreview: React.FC<OplaPreviewProps> = ({ onUpdate }) => {
-    const model = useSnapshot(state)
+    const { value: { model } } = useSnapshot(state)
     return (
         <Canvas
             dpr={[1, 2]}
@@ -86,7 +64,7 @@ export const OplaPreview: React.FC<OplaPreviewProps> = ({ onUpdate }) => {
 
             <group scale={1}>
                 <OplaModel
-                    model={model.value as OplaModelData}
+                    model={model as OplaModelData}
                     name={"opla-preview"}
                     scale={5 * (4 / 3)} // 150mm variant
                 />

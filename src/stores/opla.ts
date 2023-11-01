@@ -29,10 +29,18 @@ export type OplaModelData = {
     scene: OplaId[]
 }
 
-export type State = OplaModelData
+export type State = {
+    name: string
+    model: OplaModelData
+}
 
-export let state = proxyWithHistory<State>({
-    version: "1",
-    scene: [],
-    items: {},
+let state = proxyWithHistory<State>({
+    name: "",
+    model: {
+        version: "1",
+        scene: [],
+        items: {},
+    }
 })
+
+export default state

@@ -6,12 +6,13 @@ import * as THREE from "three"
 import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 
 import appState, { Tool } from "@/stores/app"
-import { V3, state } from "@/stores/opla"
+import state from "@/stores/opla"
 import { subscribe, useSnapshot } from "valtio"
 import { Toolbar } from "@/ui/toolbar"
 import { useCallback, useMemo } from "react"
 
 import type { ToolbarOnChange } from "@/ui/toolbar"
+import type { V3 } from "@/stores/opla"
 import { downloadBlob } from "@/lib/download"
 import { OplaStat } from "@/components/opla-stat"
 import { join } from "@/core/join"
@@ -22,7 +23,7 @@ import { SizeSelect } from "@/ui/size-select"
 // Reset selection if target id set but actual object is not found
 subscribe(state, () => {
     const t = appState.target
-    if (t && !state.value.items[t]) {
+    if (t && !state.value.model.items[t]) {
         appState.target = null
     }
 })
@@ -35,7 +36,7 @@ export const OplaApp = () => {
     }, [])
 
     const { tool, target, targetSize } = useSnapshot(appState)
-    const { value: { scene, items } } = useSnapshot(state)
+    const { value: { model: { scene, items } } } = useSnapshot(state)
 
     const brushSize = useMemo(() => {
         if (!target) {
@@ -64,8 +65,7 @@ export const OplaApp = () => {
             }
             case Tool.DELETE: {
                 if (target) {
-                    state.value.scene = scene.filter(x => x !== target)
-                    // state.items = {}
+                    state.value.model.scene = scene.filter(x => x !== target)
                     appState.target = null
                 }
                 break
@@ -115,7 +115,7 @@ export const OplaApp = () => {
             <Leva hidden />
 
             {!brush ? null : (
-                <div className="absolute left-2 top-2">
+                <div className="absolute left-4 top-16">
                     <div className="rounded-md mb-1 overflow-hidden" style={{
                         width: 150,
                         height: 150,

@@ -3,7 +3,8 @@
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"
-import { OplaBox, OplaId, OplaModelData, V3, state } from "@/stores/opla"
+import type { OplaBox, OplaId, OplaModelData, V3 } from "@/stores/opla"
+import state from "@/stores/opla"
 import viewport from "@/stores/viewport"
 import { Environment, OrbitControls } from "@react-three/drei"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
@@ -35,7 +36,7 @@ function isBoxOutOfBounds(box: Box3): boolean {
 }
 
 const snap: TransformSnap = t => {
-    const { scene, items } = state.value
+    const { scene, items } = state.value.model
     const snapObj = t.object as Object3D
     const objId = snapObj.name as OplaId
     const oplaObj = items[objId] // TODO: not sure it is right way to access object
@@ -78,7 +79,7 @@ type OplaSceneProps = {
 
 const Main: React.FC<OplaSceneProps> = () => {
     const scene = useThree(state => state.scene)
-    const { value } = useSnapshot(state)
+    const { value: { model } } = useSnapshot(state)
     const { orbitEnabled, target, tool } = useSnapshot(appState)
     const touch = !target || tool !== Tool.SELECT
     const { dimensions, nodeColor, edgeColor } = useControls({
@@ -103,7 +104,7 @@ const Main: React.FC<OplaSceneProps> = () => {
                     if (tool === Tool.SELECT) {
                         appState.target = boxId
 
-                        const item = state.value.items[boxId]
+                        const item = state.value.model.items[boxId]
                         switch (item.type) {
                             case "box": {
                                 appState.targetSize = [...item.size]
@@ -124,9 +125,9 @@ const Main: React.FC<OplaSceneProps> = () => {
                 visible={dimensions}
             />
 
-            {!state ? null : (
+            {!model ? null : (
                 <OplaModel
-                    model={value as OplaModelData}
+                    model={model as OplaModelData}
                     name="opla-model"
                     // scale={5} // first variant
                     scale={5 * (4 / 3)} // 150mm variant
@@ -161,7 +162,7 @@ const Main: React.FC<OplaSceneProps> = () => {
                         // Transforming opla definition from three model are here
                         const obj = t.object!
                         const boxId = obj.name as OplaId
-                        state.value.items[boxId].position = obj.position.toArray()
+                        state.value.model.items[boxId].position = obj.position.toArray()
                     }}
                 />
             )}
@@ -221,13 +222,13 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                         const size = targetSize as V3
 
                         // add new box mutation
-                        state.value.items[id] = {
+                        state.value.model.items[id] = {
                             id,
                             type: "box",
                             position,
                             size,
                         }
-                        state.value.scene.push(id)
+                        state.value.model.scene.push(id)
                     }}
                 />
             )}
