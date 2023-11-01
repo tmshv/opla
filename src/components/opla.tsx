@@ -1,5 +1,3 @@
-"use client"
-
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"

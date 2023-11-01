@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { MeshProps, useFrame } from "@react-three/fiber"
 // import { Wireframe } from "@react-three/drei"
