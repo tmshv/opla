@@ -1,13 +1,15 @@
 import { NextUIProvider } from "@nextui-org/react"
 
-export type ProvidersProps = {
+export type ThemeProps = {
     children: React.ReactNode
 }
 
-export const Providers: React.FC<ProvidersProps> = ({ children }) => {
+const Theme: React.FC<ThemeProps> = ({ children }) => {
     return (
         <NextUIProvider>
             {children}
         </NextUIProvider>
     )
 }
+
+export default Theme

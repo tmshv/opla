@@ -5,7 +5,7 @@ import {
     redirect,
     RouterProvider,
 } from "react-router-dom"
-import { Providers } from "@/components/providers"
+import Theme from "@/ui/theme"
 import user from "@/stores/user"
 import { setOpla } from "@/stores/opla"
 import api from "./api"
@@ -61,8 +61,8 @@ const router = createBrowserRouter([
 const container = document.getElementById("root")!
 createRoot(container).render(
     <StrictMode>
-        <Providers>
+        <Theme>
             <RouterProvider router={router} />
-        </Providers>
+        </Theme>
     </StrictMode>
 )
