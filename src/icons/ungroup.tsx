@@ -1,11 +1,11 @@
 import { forwardRef } from "react"
 
 export type UngroupProps = {
-    color: string
-    size: string | number
+    color?: string
+    size?: string | number
 }
 
-const Ungroup: React.FC<UngroupProps> = forwardRef(({ color = "currentColor", size = 24, ...rest }, ref) => {
+const Ungroup: React.FC<UngroupProps> = forwardRef<SVGSVGElement, UngroupProps>(({ color = "currentColor", size = 24, ...rest }, ref) => {
     return (
         <svg
             ref={ref}
