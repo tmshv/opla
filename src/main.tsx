@@ -8,7 +8,7 @@ import {
 import Theme from "@/ui/theme"
 import user from "@/stores/user"
 import { setOpla } from "@/stores/opla"
-import api from "./api"
+import api from "@/api"
 import PageDashboard from "@/components/page-dashboard"
 import PageJoin from "@/components/page-join"
 import PageModel from "@/components/page-model"
