@@ -33,7 +33,6 @@ export const SignupModal = () => {
     } = useForm<Inputs>()
 
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
-        console.log("submitting", data)
         try {
             const user = await api.createUser(data.email, data.password, data.passwordConfirmation)
             console.log(user)
