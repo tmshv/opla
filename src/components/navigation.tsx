@@ -187,11 +187,21 @@ export const Navigation: React.FC = () => {
                 placement="auto"
                 //placement="top-center"
                 backdrop="blur"
+                size={"5xl"}
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1">Models</ModalHeader>
                     <ModalBody>
-                        <OplasList />
+                        <OplasList
+                            onPress={id => {
+                                navigate(`/${id}`)
+                                onClose()
+                            }}
+                            onDelete={async id => {
+                                await api.deleteOpla(id)
+                                onClose()
+                            }}
+                        />
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onPress={async () => {

@@ -14,6 +14,7 @@ import { state } from "@/stores/opla"
 import React from "react";
 import api from "./api"
 import { subscribe } from "valtio"
+import { OplaPreview } from "./components/opla-preview"
 
 const SyncOplaModel = () => {
     const { oplaId } = useParams()
@@ -47,6 +48,26 @@ const SyncOplaModel = () => {
     return null
 }
 
+const SyncOplaCover = () => {
+    const { oplaId } = useParams()
+
+    return (
+        <OplaPreview onUpdate={async image => {
+            var blobBin = atob(image.split(',')[1])
+            var array = [];
+            for (var i = 0; i < blobBin.length; i++) {
+                array.push(blobBin.charCodeAt(i));
+            }
+            var file = new Blob([new Uint8Array(array)], { type: 'image/png' });
+
+            {/* var formdata = new FormData(); */ }
+            {/* formdata.append("myNewFileName", file); */ }
+            await api.updateCover(oplaId!, file)
+        }} />
+    )
+}
+
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -68,6 +89,7 @@ const router = createBrowserRouter([
                     <Navigation />
                 </div>
                 <SyncOplaModel />
+                <SyncOplaCover />
             </>
         ),
     },

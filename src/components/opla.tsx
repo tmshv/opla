@@ -4,8 +4,9 @@ import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"
 import { OplaBox, OplaId, OplaModelData, V3, state } from "@/stores/opla"
+import viewport from "@/stores/viewport"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Canvas, useThree } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useControls } from "leva"
 import { Box3, MOUSE, Object3D, Scene, TOUCH, Vector3 } from "three"
 import { useSnapshot } from "valtio"
@@ -86,6 +87,11 @@ const Main: React.FC<OplaSceneProps> = () => {
         // edgeColor: "#4b4949",
         nodeColor: "#454545",
         edgeColor: "#9d877c",
+    })
+
+    useFrame(({ camera }) => {
+        viewport.cameraPosition.copy(camera.position)
+        camera.getWorldDirection(viewport.cameraDirection)
     })
 
     return (

@@ -56,10 +56,20 @@ function createApi() {
             })
             return myOpla.definition
         },
+        deleteOpla: async (oplaId: string) => {
+            const upd = await pb.collection("oplas").delete(oplaId)
+            console.log("del", upd)
+        },
+        updateCover: async (oplaId: string, image: Blob) => {
+            const formData = new FormData()
+            formData.append("cover", image)
+            await pb.collection("oplas").update(oplaId, formData)
+            return true
+        },
         createNewOpla: async () => {
             const userId = pb.authStore.model!.id
             const myOpla = await pb.collection("oplas").create({
-                name: `${Date.now()}`,
+                name: `OPLA-${Date.now()}`,
                 definition: {
                     version: "1",
                     items: {},
@@ -67,14 +77,24 @@ function createApi() {
                 },
                 owner: userId,
             })
-            return myOpla.definition
+            return myOpla
         },
         getOplas: async () => {
+            const cov = (modelId: string, filename: string) => `${pb.baseUrl}/api/files/oplas/${modelId}/${filename}`
+
             // TODO check 404
             const oplas = await pb.collection("oplas").getList(1, 10, {
-                fields: "id,name",
+                fields: "id,name,cover",
             })
-            return oplas
+
+            return {
+                ...oplas,
+                items: oplas.items.map(({ id, name, cover }) => ({
+                    id,
+                    name,
+                    cover: cov(id, cover),
+                }))
+            }
         },
     }
 }
