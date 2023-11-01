@@ -8,7 +8,7 @@ import {
     useDisclosure,
     Input,
 } from "@nextui-org/react"
-import { Form, SubmitHandler, useForm } from "react-hook-form"
+import { SubmitHandler, useForm } from "react-hook-form"
 import { Mail, Lock } from "react-feather"
 import { emailPattern } from "@/lib/email"
 import state from "@/stores/user"
@@ -28,7 +28,6 @@ export const SignupModal = () => {
         register,
         handleSubmit,
         watch,
-        control,
         formState: { errors },
         setError,
     } = useForm<Inputs>()
@@ -70,7 +69,7 @@ export const SignupModal = () => {
                 backdrop="blur"
             >
                 <ModalContent>
-                    <Form onSubmit={handleSubmit(onSubmit)} control={control}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         <ModalHeader className="flex flex-col gap-1">Sign Up</ModalHeader>
                         <ModalBody>
                             <Input
@@ -144,7 +143,7 @@ export const SignupModal = () => {
                                 Submit
                             </Button>
                         </ModalFooter>
-                    </Form>
+                    </form>
                 </ModalContent>
             </Modal>
         </>
