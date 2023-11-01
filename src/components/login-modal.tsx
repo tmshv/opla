@@ -20,7 +20,10 @@ type Inputs = {
     password: string
 }
 
-export const LoginModal = () => {
+export type LoginModalProps = {
+}
+
+export const LoginModal: React.FC<LoginModalProps> = () => {
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure()
 
     const {
@@ -33,7 +36,6 @@ export const LoginModal = () => {
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
         try {
             await api.login(data.email, data.password)
-            redirect("/")
             onClose()
         } catch (error) {
             const e = error as ClientResponseError
