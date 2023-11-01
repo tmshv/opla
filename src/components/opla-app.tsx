@@ -1,5 +1,5 @@
 import Opla from "@/components/opla"
-import { MousePointer, Plus, Trash, FolderPlus, FolderMinus, Share, CornerUpLeft, CornerUpRight } from "react-feather"
+import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
 import * as THREE from "three"
 
@@ -19,6 +19,9 @@ import { join } from "@/core/join"
 import { explode } from "@/core/explode"
 import { OplaBrush } from "@/components/opla-brush"
 import { SizeSelect } from "@/ui/size-select"
+
+import Group from "@/icons/group"
+import Ungroup from "@/icons/ungroup"
 
 // Reset selection if target id set but actual object is not found
 subscribe(state, () => {
@@ -194,14 +197,14 @@ export const OplaApp = () => {
                             label: "Group",
                             value: "Group",
                             icon: (
-                                <FolderPlus size={15} />
+                                <Group size={15} />
                             ),
                         },
                         {
                             label: "Ungroup",
                             value: "Ungroup",
                             icon: (
-                                <FolderMinus size={15} />
+                                <Ungroup size={15} />
                             ),
                         },
                         {
