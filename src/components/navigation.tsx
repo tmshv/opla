@@ -1,7 +1,7 @@
 import state from "@/stores/opla"
 import userState from "@/stores/user"
 import { useSnapshot } from "valtio"
-
+import SyncSpinner from "./sync-spinner"
 import {
     // NavbarMenuToggle,
     NavbarMenuItem,
@@ -16,11 +16,9 @@ import {
     Dropdown,
     DropdownMenu,
     Avatar,
-    Spinner,
 } from "@nextui-org/react"
 import api from "@/api"
 import { useNavigate } from "react-router-dom"
-import useSyncing from "@/hooks/use-syncing"
 
 const menuItems = [
     "Profile",
@@ -37,8 +35,7 @@ const menuItems = [
 
 export const Navigation: React.FC = () => {
     const navigate = useNavigate()
-    const { value: { name } } = useSnapshot(state)
-    const synced = useSyncing()
+    const { name } = useSnapshot(state.value)
     const user = useSnapshot(userState)
     const hideMenu = true
     const isMenuOpen = false
@@ -56,9 +53,7 @@ export const Navigation: React.FC = () => {
                             <p className="font-bold text-inherit">OPLA</p>
                         </Link>
                         <p className="text-inherit px-2">{name}</p>
-                        {synced ? null : (
-                            <Spinner color="white" size="sm" />
-                        )}
+                        <SyncSpinner />
                     </NavbarBrand>
                 </NavbarContent>
 

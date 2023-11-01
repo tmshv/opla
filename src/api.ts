@@ -1,5 +1,5 @@
 import PocketBase from "pocketbase"
-import state from "@/stores/user"
+import user from "@/stores/user"
 import type { OplaModelData } from "./stores/opla"
 
 export type OplaItem = {
@@ -15,21 +15,21 @@ function createApi() {
 
     // Set user stage if it already logged in
     if (pb.authStore.isValid) {
-        state.auth = true
-        state.email = pb.authStore.model!.email
-        state.avatar = ava(pb.authStore.model!.id, pb.authStore.model!.avatar)
+        user.auth = true
+        user.email = pb.authStore.model!.email
+        user.avatar = ava(pb.authStore.model!.id, pb.authStore.model!.avatar)
     }
 
     // Update user stage on login/logout
     pb.authStore.onChange((_, model) => {
         if (!model) {
-            state.auth = false
-            state.email = ""
-            state.avatar = ""
+            user.auth = false
+            user.email = ""
+            user.avatar = ""
         } else {
-            state.auth = true
-            state.email = model.email
-            state.avatar = ava(model.id, model.avatar)
+            user.auth = true
+            user.email = model.email
+            user.avatar = ava(model.id, model.avatar)
         }
     })
 
@@ -51,17 +51,12 @@ function createApi() {
         logout: async () => {
             pb.authStore.clear()
         },
-        getOplaName: async (oplaId: string) => {
+        getOpla: async (oplaId: string) => {
             // TODO check 404
             const res = await pb.collection("oplas").getOne(oplaId, {
-                fields: "id,name",
+                fields: "id,name,definition",
             })
-            return res.name
-        },
-        getModelDefinition: async (oplaId: string) => {
-            // TODO check 404
-            const myOpla = await pb.collection("oplas").getOne(oplaId)
-            return myOpla.definition
+            return res
         },
         updateModelDefinition: async (oplaId: string, definition: OplaModelData) => {
             // TODO check 404

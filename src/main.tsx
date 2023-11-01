@@ -50,10 +50,8 @@ const router = createBrowserRouter([
             if (!oplaId) {
                 throw redirect("/")
             }
-            const name = await api.getOplaName(oplaId)
-            const model = await api.getModelDefinition(oplaId)
-
-            setOpla(oplaId, name, model)
+            const { id, name, definition: model } = await api.getOpla(oplaId)
+            setOpla(id, name, model)
 
             return true
         }

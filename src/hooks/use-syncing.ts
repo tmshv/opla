@@ -1,7 +1,7 @@
 import { useSnapshot } from "valtio"
-import state from "@/stores/app"
+import app from "@/stores/app"
 
 export default function useSyncing() {
-    const { synced } = useSnapshot(state)
+    const { synced } = useSnapshot(app)
     return synced
 }
