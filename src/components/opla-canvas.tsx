@@ -168,11 +168,11 @@ const Main: React.FC<OplaSceneProps> = () => {
     )
 }
 
-export type OplaProps = {
+export type OplaCanvasProps = {
     scene: Scene
 }
 
-const Opla: React.FC<OplaProps> = ({ scene }) => {
+const OplaCanvas: React.FC<OplaCanvasProps> = ({ scene }) => {
     const { tool, targetSize } = useSnapshot(appState)
     const wallsColor = "#d3dbe2"
     const gridColor = "#979ea3"
@@ -241,9 +241,8 @@ const Opla: React.FC<OplaProps> = ({ scene }) => {
                 lineWidth={0.03}
                 height={0.25}
             />
-
         </Canvas>
     )
 }
 
-export default Opla
+export default OplaCanvas

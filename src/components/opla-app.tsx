@@ -1,4 +1,4 @@
-import Opla from "@/components/opla"
+import OplaCanvas from "@/components/opla-canvas"
 import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
 import * as THREE from "three"
@@ -114,7 +114,7 @@ export const OplaApp = () => {
 
     return (
         <>
-            <Opla scene={threeScene} />
+            <OplaCanvas scene={threeScene} />
             <Leva hidden />
 
             {!brush ? null : (
