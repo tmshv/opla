@@ -9,8 +9,7 @@ export type OplaItem = {
     href: string
 }
 
-function createApi() {
-    const pb = new PocketBase("http://127.0.0.1:8090")
+export function createApi(pb: PocketBase) {
     const ava = (modelId: string, filename: string) => `${pb.baseUrl}/api/files/users/${modelId}/${filename}`
 
     // Set user stage if it already logged in
@@ -106,4 +105,4 @@ function createApi() {
     }
 }
 
-export default createApi()
+export default createApi(new PocketBase("http://127.0.0.1:8090"))
