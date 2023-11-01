@@ -13,6 +13,7 @@ import { Mail, Lock } from "react-feather"
 import { emailPattern } from "@/lib/email"
 import api from "@/api"
 import { ClientResponseError } from "pocketbase"
+import { redirect } from "react-router-dom"
 
 type Inputs = {
     email: string
@@ -32,6 +33,7 @@ export const LoginModal = () => {
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
         try {
             await api.login(data.email, data.password)
+            redirect("/")
             onClose()
         } catch (error) {
             const e = error as ClientResponseError

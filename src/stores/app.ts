@@ -17,7 +17,7 @@ export type AppState = {
 }
 
 export default proxy<AppState>({
-    synced: false,
+    synced: true,
     tool: Tool.SELECT,
     target: null,
     orbitEnabled: true,

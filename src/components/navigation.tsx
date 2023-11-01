@@ -3,7 +3,6 @@ import userState from "@/stores/user"
 import { useSnapshot } from "valtio"
 
 import {
-    Button,
     // NavbarMenuToggle,
     NavbarMenuItem,
     NavbarMenu,
@@ -17,18 +16,11 @@ import {
     Dropdown,
     DropdownMenu,
     Avatar,
-    useDisclosure,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
     Spinner,
 } from "@nextui-org/react"
 import { SignupModal } from "./signup-modal"
 import api from "@/api"
 import { LoginModal } from "./login-modal"
-import { OplasList } from "./oplas-list"
 import { useNavigate } from "react-router-dom"
 import useSyncing from "@/hooks/use-syncing"
 
@@ -52,7 +44,6 @@ export const Navigation: React.FC = () => {
     const user = useSnapshot(userState)
     const hideMenu = true
     const isMenuOpen = false
-    const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure()
 
     return (
         <>
@@ -63,9 +54,11 @@ export const Navigation: React.FC = () => {
                     className="sm:hidden"
                 /> */}
                     <NavbarBrand>
-                        <p className="font-bold text-inherit">OPLA</p>
+                        <Link href="/" color="foreground">
+                            <p className="font-bold text-inherit">OPLA</p>
+                        </Link>
                         <p className="text-inherit px-2">{name}</p>
-                        {!synced ? null : (
+                        {synced ? null : (
                             <Spinner color="white" size="sm" />
                         )}
                     </NavbarBrand>
@@ -146,7 +139,8 @@ export const Navigation: React.FC = () => {
                                 onAction={key => {
                                     switch (key) {
                                         case "oplas": {
-                                            onOpen()
+                                            {/* onOpen() */ }
+                                            navigate("/")
                                             break
                                         }
                                         case "logout": {
@@ -191,39 +185,6 @@ export const Navigation: React.FC = () => {
                     ))}
                 </NavbarMenu>
             </Navbar>
-            <Modal
-                isOpen={isOpen}
-                onOpenChange={onOpenChange}
-                placement="auto"
-                //placement="top-center"
-                backdrop="blur"
-                size={"5xl"}
-            >
-                <ModalContent>
-                    <ModalHeader className="flex flex-col gap-1">Models</ModalHeader>
-                    <ModalBody>
-                        <OplasList
-                            onPress={id => {
-                                navigate(`/${id}`)
-                                onClose()
-                            }}
-                            onDelete={async id => {
-                                await api.deleteOpla(id)
-                                onClose()
-                            }}
-                        />
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="primary" onPress={async () => {
-                            const item = await api.createNewOpla()
-                            navigate(`/${item.id}`)
-                            onClose()
-                        }}>
-                            New
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
         </>
     )
 }

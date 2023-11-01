@@ -1,107 +1,62 @@
-import { StrictMode, useEffect } from "react"
+import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import { OplaApp } from "@/components/opla-app"
 import {
     createBrowserRouter,
+    redirect,
     RouterProvider,
-    useParams,
 } from "react-router-dom"
-import "./style.css"
 import { Providers } from "@/components/providers"
-import { Navigation } from "@/components/navigation"
-import state, { reset } from "@/stores/opla"
-import app from "@/stores/app"
-
-import React from "react";
+import user from "@/stores/user"
+import { setOpla } from "@/stores/opla"
 import api from "./api"
-import { subscribe } from "valtio"
-import { OplaPreview } from "./components/opla-preview"
+import PageDashboard from "@/components/page-dashboard"
+import PageJoin from "@/components/page-join"
+import PageModel from "@/components/page-model"
 
-const SyncOplaModel = () => {
-    const { oplaId } = useParams()
-
-    useEffect(() => {
-        const fn = async (oplaId: string) => {
-            const name = await api.getOplaName(oplaId)
-            const model = await api.getModelDefinition(oplaId)
-            state.value.name = name
-            state.value.model = model
-        }
-        if (oplaId) {
-            fn(oplaId)
-        }
-    }, [oplaId])
-
-    useEffect(() => {
-        const stop = subscribe(state, async () => {
-            app.synced = true
-            await api.updateModelDefinition(oplaId!, state.value.model)
-            app.synced = false
-        })
-
-        // stop sync if it is new model
-        // TODO ???
-        if (!oplaId) {
-            stop()
-        }
-
-        return () => {
-            stop()
-        }
-    }, [oplaId])
-
-    return null
-}
-
-const SyncOplaCover = () => {
-    const { oplaId } = useParams()
-
-    return (
-        <OplaPreview onUpdate={async image => {
-            const blobBin = atob(image.split(',')[1])
-            const array = [];
-            for (var i = 0; i < blobBin.length; i++) {
-                array.push(blobBin.charCodeAt(i));
-            }
-            const file = new Blob([new Uint8Array(array)], { type: 'image/png' });
-            await api.updateCover(oplaId!, file)
-        }} />
-    )
-}
-
-const Root = () => {
-    useEffect(() => {
-        reset()
-    }, [])
-
-    return null
-}
+import "./style.css"
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: (
-            <>
-                <OplaApp />
-                <div className="absolute top-0 left-0 w-full">
-                    <Navigation />
-                </div>
-                <Root />
-            </>
+            <PageDashboard />
+        ),
+        loader: async () => {
+            if (!user.auth) {
+                // if you know you can't render the route, you can
+                // throw a redirect to stop executing code here,
+                // sending the user to a new route
+                throw redirect("/join")
+            }
+
+            // Fetch user models
+            const res = await api.getOplas()
+            return res
+        }
+    },
+    {
+        path: "/join",
+        element: (
+            <PageJoin />
         ),
     },
     {
         path: "/:oplaId",
         element: (
-            <>
-                <OplaApp />
-                <div className="absolute top-0 left-0 w-full">
-                    <Navigation />
-                </div>
-                <SyncOplaModel />
-                <SyncOplaCover />
-            </>
+            <PageModel />
         ),
+        loader: async ({ params }) => {
+            const { oplaId } = params
+            if (!oplaId) {
+                throw redirect("/")
+            }
+            const name = await api.getOplaName(oplaId)
+            const model = await api.getModelDefinition(oplaId)
+
+            setOpla(oplaId, name, model)
+
+            return true
+        }
     },
 ]);
 

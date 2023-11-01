@@ -30,11 +30,13 @@ export type OplaModelData = {
 }
 
 export type State = {
+    id: string
     name: string
     model: OplaModelData
 }
 
 let state = proxyWithHistory<State>({
+    id: "",
     name: "",
     model: {
         version: "1",
@@ -45,7 +47,8 @@ let state = proxyWithHistory<State>({
 
 export function reset() {
     state.value = {
-        name: "New",
+        id: "",
+        name: "",
         model: {
             version: "1",
             scene: [],
@@ -53,5 +56,12 @@ export function reset() {
         }
     }
 }
+
+export function setOpla(id: string, name: string, model: OplaModelData) {
+    state.value.id = id
+    state.value.name = name
+    state.value.model = model
+}
+
 
 export default state

@@ -2,6 +2,13 @@ import PocketBase from "pocketbase"
 import state from "@/stores/user"
 import type { OplaModelData } from "./stores/opla"
 
+export type OplaItem = {
+    id: string
+    name: string
+    cover: string
+    href: string
+}
+
 function createApi() {
     const pb = new PocketBase("http://127.0.0.1:8090")
     const ava = (modelId: string, filename: string) => `${pb.baseUrl}/api/files/users/${modelId}/${filename}`
@@ -73,10 +80,10 @@ function createApi() {
             await pb.collection("oplas").update(oplaId, formData)
             return true
         },
-        createNewOpla: async () => {
+        createNewOpla: async (name: string) => {
             const userId = pb.authStore.model!.id
             const myOpla = await pb.collection("oplas").create({
-                name: `OPLA-${Date.now()}`,
+                name,
                 definition: {
                     version: "1",
                     items: {},
@@ -94,14 +101,12 @@ function createApi() {
                 fields: "id,name,cover",
             })
 
-            return {
-                ...oplas,
-                items: oplas.items.map(({ id, name, cover }) => ({
-                    id,
-                    name,
-                    cover: cov(id, cover),
-                }))
-            }
+            return oplas.items.map(({ id, name, cover }) => ({
+                id,
+                name,
+                cover: cov(id, cover),
+                href: `/${id}`,
+            })) as OplaItem[]
         },
     }
 }
