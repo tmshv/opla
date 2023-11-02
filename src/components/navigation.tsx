@@ -19,6 +19,7 @@ import {
 } from "@nextui-org/react"
 import api from "@/api"
 import { useNavigate } from "react-router-dom"
+import NewModelButton from "./new-model-button"
 
 const menuItems = [
     "Profile",
@@ -33,7 +34,12 @@ const menuItems = [
     "Log Out",
 ]
 
-export const Navigation: React.FC = () => {
+export type NavigationProps = {
+    blur?: boolean
+    showNewModelButton?: boolean
+}
+
+export const Navigation: React.FC<NavigationProps> = ({ blur = false, showNewModelButton = false }) => {
     const navigate = useNavigate()
     const { name } = useSnapshot(state.value)
     const user = useSnapshot(userState)
@@ -42,7 +48,7 @@ export const Navigation: React.FC = () => {
 
     return (
         <>
-            <Navbar position="static" className="bg-transparent justify-between" maxWidth="full" isBlurred={false}>
+            <Navbar position="sticky" className={`bg-transparent justify-between ${blur ? "backdrop-blur-md" : ""}`} maxWidth="full" isBlurred={false}>
                 <NavbarContent>
                     {/* <NavbarMenuToggle
                     aria-label={isMenuOpen ? "Close menu" : "Open menu"}
@@ -104,6 +110,10 @@ export const Navigation: React.FC = () => {
                 )}
 
                 <NavbarContent as="div" justify="end">
+                    {!showNewModelButton ? null : (
+                        <NewModelButton />
+                    )}
+
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
                             <Avatar

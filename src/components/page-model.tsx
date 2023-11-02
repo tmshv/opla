@@ -28,13 +28,18 @@ const PageModel = () => {
     }, [])
 
     return (
-        <>
+        <div className="overflow-hidden w-full h-full">
             <OplaApp />
-            <SyncOplaCover />
+            <div className="opacity-0" style={{
+                width: 500,
+                height: 500,
+            }}>
+                <SyncOplaCover />
+            </div>
             <div className="absolute top-0 left-0 w-full">
                 <Navigation />
             </div>
-        </>
+        </div>
     )
 }
 

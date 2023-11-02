@@ -5,6 +5,7 @@ import { reset } from "@/stores/opla"
 import api, { OplaItem } from "@/api"
 import { OplasList } from "@/components/oplas-list"
 import { Button } from "@nextui-org/react"
+import NewModelButton from "./new-model-button"
 
 const PageDashboard: React.FC = () => {
     const data = useLoaderData() as OplaItem[]
@@ -17,11 +18,9 @@ const PageDashboard: React.FC = () => {
     }, [])
 
     return (
-        <>
-            <div className="absolute top-0 left-0 w-full">
-                <Navigation />
-            </div>
-            <div className="relative top-20 w-full px-8 flex flex-col items-start gap-4">
+        <div className="w-full flex flex-col items-start gap-2">
+            <Navigation blur showNewModelButton />
+            <div className="px-8 mb-8 flex flex-col items-start gap-4">
                 <OplasList
                     items={data}
                     onDelete={async id => {
@@ -29,15 +28,9 @@ const PageDashboard: React.FC = () => {
                         navigate(".", { replace: true })
                     }}
                 />
-                <Button color="primary" onPress={async () => {
-                    const item = await api.createNewOpla("Untitled")
-                    navigate(`/${item.id}`)
-                }}>
-                    New
-                </Button>
-
+                <NewModelButton />
             </div>
-        </>
+        </div>
     )
 }
 

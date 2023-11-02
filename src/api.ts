@@ -74,9 +74,9 @@ export function createApi(pb: PocketBase) {
             await pb.collection("oplas").update(oplaId, formData)
             return true
         },
-        createNewOpla: async (name: string) => {
+        newOpla: async (name: string) => {
             const userId = pb.authStore.model!.id
-            const myOpla = await pb.collection("oplas").create({
+            const res = await pb.collection("oplas").create({
                 name,
                 definition: {
                     version: "1",
@@ -85,13 +85,13 @@ export function createApi(pb: PocketBase) {
                 },
                 owner: userId,
             })
-            return myOpla
+            return `/${res.id}`
         },
         getOplas: async () => {
             const cov = (modelId: string, filename: string) => `${pb.baseUrl}/api/files/oplas/${modelId}/${filename}`
 
             // TODO check 404
-            const oplas = await pb.collection("oplas").getList(1, 10, {
+            const oplas = await pb.collection("oplas").getList(1, 100, {
                 fields: "id,name,cover",
             })
 
@@ -101,6 +101,13 @@ export function createApi(pb: PocketBase) {
                 cover: cov(id, cover),
                 href: `/${id}`,
             })) as OplaItem[]
+        },
+        countOplas: async () => {
+            // TODO check 404
+            const res = await pb.collection("oplas").getList(1, 1000, {
+                fields: "id",
+            })
+            return res.totalItems
         },
     }
 }
