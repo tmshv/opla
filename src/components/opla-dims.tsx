@@ -1,4 +1,5 @@
-import { OplaBox, OplaObject, V3, state } from "@/stores/opla"
+import type { OplaBox, OplaObject, V3 } from "@/stores/opla"
+import state from "@/stores/opla"
 import { useSnapshot } from "valtio"
 import { Dimension } from "./dimension"
 import { oplaItemToBox3 } from "@/lib/opla-geom"
@@ -6,7 +7,7 @@ import { Vector3 } from "three"
 import { Fragment } from "react"
 
 function getBounds(obj: OplaObject): V3 {
-    const { value: { items } } = state
+    const { value: { model: { items } } } = state
     switch (obj.type) {
         case "box": {
             const [width, height, depth] = obj.size
@@ -38,7 +39,7 @@ export const OplaDims: React.FC<OplaDimsProps> = ({ name, visible }) => {
     // TODO move this to props
     const m = 150
     const units = "mm"
-    const { value: { scene, items } } = useSnapshot(state)
+    const { value: { model: { scene, items } } } = useSnapshot(state)
 
     return (
         <group name={name} visible={visible}>

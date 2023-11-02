@@ -9,13 +9,15 @@ export const Tool = {
 }
 
 export type AppState = {
-    tool: string,
+    synced: boolean
+    tool: string
     orbitEnabled: boolean
     target: string | null
     targetSize: V3
 }
 
 export default proxy<AppState>({
+    synced: true,
     tool: Tool.SELECT,
     target: null,
     orbitEnabled: true,

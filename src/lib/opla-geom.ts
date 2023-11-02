@@ -1,4 +1,4 @@
-import { OplaBox, OplaGroup, OplaId, OplaObjectCollection, V3 } from "@/stores/opla"
+import type { OplaBox, OplaGroup, OplaId, OplaObjectCollection, V3 } from "@/stores/opla"
 import { Vector3, Box3 } from "three"
 import { boxInclusiveIntersect } from "./t"
 

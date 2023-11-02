@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useGLTF, Edges } from "@react-three/drei"
 import { ColorRepresentation, FrontSide, Group, Line3, Mesh, MeshStandardMaterial, Vector3 } from "three"
 import { useOpla } from "@/hooks/use-opla"
-import { OplaModelData } from "@/stores/opla"
+import type { OplaModelData } from "@/stores/opla"
 
 const NODE = "node_25mm"
 const edgeNames = new Map([

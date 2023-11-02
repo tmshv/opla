@@ -1,7 +1,8 @@
-import { OplaGroup, state } from "@/stores/opla"
+import type { OplaGroup } from "@/stores/opla"
+import state from "@/stores/opla"
 
 export function explode() {
-    const val = state.value
+    const val = state.value.model
     const groupIds = val.scene.filter(id => {
         const obj = val.items[id]
         return obj.type === "group"
