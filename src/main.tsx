@@ -14,6 +14,7 @@ import PageJoin from "@/components/page-join"
 import PageModel from "@/components/page-model"
 
 import "./style.css"
+import PageDev from "./components/page-dev"
 
 const router = createBrowserRouter([
     {
@@ -38,6 +39,12 @@ const router = createBrowserRouter([
         path: "/join",
         element: (
             <PageJoin />
+        ),
+    },
+    {
+        path: "/dev",
+        element: (
+            <PageDev />
         ),
     },
     {
