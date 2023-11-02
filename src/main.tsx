@@ -12,9 +12,9 @@ import api from "@/api"
 import PageDashboard from "@/components/page-dashboard"
 import PageJoin from "@/components/page-join"
 import PageModel from "@/components/page-model"
+import PageDev from "./components/page-dev"
 
 import "./style.css"
-import PageDev from "./components/page-dev"
 
 const router = createBrowserRouter([
     {
