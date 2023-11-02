@@ -34,12 +34,8 @@ export const SignupModal = () => {
 
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
         try {
-            const user = await api.createUser(data.email, data.password, data.passwordConfirmation)
-            console.log(user)
-
-            state.auth = true
-            state.email = user.email
-
+            await api.newUser(data.email, data.password, data.passwordConfirmation)
+            await api.login(data.email, data.password)
             onClose()
         } catch (error) {
             const e = error as ClientResponseError

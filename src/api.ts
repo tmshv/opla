@@ -33,7 +33,7 @@ export function createApi(pb: PocketBase) {
     })
 
     return {
-        createUser: async (email: string, password: string, passwordConfirm: string) => {
+        newUser: async (email: string, password: string, passwordConfirm: string) => {
             const userData = await pb.collection("users").create({
                 email,
                 // username: "username", // maybe omit this
