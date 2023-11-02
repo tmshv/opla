@@ -93,6 +93,7 @@ export function createApi(pb: PocketBase) {
             // TODO check 404
             const oplas = await pb.collection("oplas").getList(1, 100, {
                 fields: "id,name,cover",
+                sort: "-updated",
             })
 
             return oplas.items.map(({ id, name, cover }) => ({
