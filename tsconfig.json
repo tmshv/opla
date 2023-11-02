@@ -24,6 +24,10 @@
         "isolatedModules": true,
         "incremental": true,
         "jsx": "preserve",
+        "types": [
+            "vite/client",
+            "jest"
+        ],
         "plugins": [
             {
                 "name": "next"
