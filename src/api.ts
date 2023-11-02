@@ -105,4 +105,4 @@ export function createApi(pb: PocketBase) {
     }
 }
 
-export default createApi(new PocketBase("http://127.0.0.1:8090"))
+export default createApi(new PocketBase(import.meta.env.VITE_OPLA_API_BASE_URL))
