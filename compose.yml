@@ -1,0 +1,10 @@
+services:
+  app:
+    container_name: opla
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/srv/pb_data
+    ports:
+      - 8080:8080
