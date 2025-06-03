@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { OplaApp } from "@/components/opla-app"
-import { useParams } from "react-router-dom"
+import { useParams } from "react-router"
 import { Navigation } from "@/components/navigation"
 import api from "@/api"
 import { OplaPreview } from "@/components/opla-preview"

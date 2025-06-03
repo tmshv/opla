@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useLoaderData, useNavigate } from "react-router-dom"
+import { useLoaderData, useNavigate } from "react-router"
 import { Navigation } from "@/components/navigation"
 import { reset } from "@/stores/opla"
 import api, { OplaItem } from "@/api"

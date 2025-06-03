@@ -1,6 +1,6 @@
 import { Card, CardFooter, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/react"
 import { MoreVertical } from "react-feather"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 
 type ListItemOnPress = (id: string) => void
 
