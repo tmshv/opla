@@ -1,4 +1,4 @@
-import { proxyWithHistory } from "valtio/utils"
+import { proxyWithHistory } from "valtio-history"
 
 export type V3 = [number, number, number]
 export type OplaId = string
