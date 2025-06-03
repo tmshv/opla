@@ -21,7 +21,7 @@
         "tailwindcss": "^3.3.1",
         "three": "^0.177.0",
         "uuid": "^11.1.0",
-        "valtio": "^1.11.2"
+        "valtio": "^1.13.0"
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",
