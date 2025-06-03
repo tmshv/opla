@@ -78,8 +78,11 @@ export const OplaApp = () => {
                 const opla = threeScene
                 // const opla = threeScene.getObjectByName("opla")
                 if (opla) {
-                    const blob = await e.parse(opla)
-                    await downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
+                    e.parse(opla, (blob) => {
+                        downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
+                    }, (error) => {
+                        console.error(error)
+                    })
                 }
                 break
             }
