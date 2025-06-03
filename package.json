@@ -9,7 +9,6 @@
         "@react-three/drei": "^9.83.0",
         "@react-three/fiber": "^8.14.0",
         "autoprefixer": "^10.4.2",
-        "framer-motion": "^10.16.1",
         "leva": "^0.10.0",
         "pocketbase": "^0.19.0",
         "postcss": "^8.5.0",
