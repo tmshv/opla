@@ -16,7 +16,7 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-feather": "^2.0.10",
-        "react-hook-form": "^7.47.0",
+        "react-hook-form": "^7.57.0",
         "react-router-dom": "^6.17.0",
         "react-use": "^17.6.0",
         "rxjs": "^6.6.3",
