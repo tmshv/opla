@@ -19,7 +19,7 @@
         "react-router-dom": "^6.17.0",
         "react-use": "^17.6.0",
         "tailwindcss": "^3.3.1",
-        "three": "^0.157.0",
+        "three": "^0.158.0",
         "uuid": "^11.1.0",
         "valtio": "^1.11.2"
     },
