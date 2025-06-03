@@ -4,7 +4,7 @@ import {
     createBrowserRouter,
     redirect,
     RouterProvider,
-} from "react-router-dom"
+} from "react-router"
 import Theme from "@/ui/theme"
 import user from "@/stores/user"
 import { setOpla } from "@/stores/opla"

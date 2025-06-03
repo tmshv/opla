@@ -1,7 +1,7 @@
 import user from "@/stores/user"
 import { LoginModal } from "./login-modal"
 import { SignupModal } from "./signup-modal"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router"
 import { useEffect } from "react"
 import { subscribe } from "valtio"
 

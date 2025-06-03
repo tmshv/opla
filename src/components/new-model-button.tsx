@@ -1,6 +1,6 @@
 import api from "@/api"
 import { Button } from "@nextui-org/react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router"
 
 const NewModelButton = () => {
     const navigate = useNavigate()

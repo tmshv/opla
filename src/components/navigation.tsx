@@ -18,7 +18,7 @@ import {
     Avatar,
 } from "@nextui-org/react"
 import api from "@/api"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router"
 import NewModelButton from "./new-model-button"
 
 const menuItems = [

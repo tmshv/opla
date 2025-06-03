@@ -13,7 +13,6 @@ import { Mail, Lock } from "react-feather"
 import { emailPattern } from "@/lib/email"
 import api from "@/api"
 import { ClientResponseError } from "pocketbase"
-import { redirect } from "react-router-dom"
 
 type Inputs = {
     email: string
