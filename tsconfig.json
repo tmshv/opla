@@ -18,7 +18,7 @@
         "isolatedModules": true,
         "incremental": true,
         "jsx": "preserve",
-        "types": ["vite/client", "jest"],
+        "types": ["vite/client", "vitest/globals"],
         "plugins": [
             {
                 "name": "next"
