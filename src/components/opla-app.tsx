@@ -1,8 +1,8 @@
 import OplaCanvas from "@/components/opla-canvas"
-import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
+import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight, Box } from "react-feather"
 import { Leva } from "leva"
 
-// import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
+import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 
 import appState, { Tool } from "@/stores/app"
@@ -91,19 +91,31 @@ export const OplaApp = () => {
                                 const data = new Uint8Array(buffer)
                                 downloadBlob(data, `${now}-opla-export.gltf`, "application/octet-stream")
                             }, (err) => {
-
+                                console.error(err)
+                            })
+                        }
+                    }
+                }
+                break
+            }
+            case "AR": {
+                if (sceneId) {
+                    const scene = scenes.get(sceneId)
+                    if (scene) {
+                        const usdz = new USDZExporter()
+                        const opla = scene.getObjectByName("opla-model")
+                        if (opla) {
+                            const now = Date.now()
+                            const model = getOplaModel(opla, {
+                                move: true,
+                                scale: 0.15,
                             })
 
-                            // usdz.parse(model, (blob) => {
-                            //     downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
-                            // }, (error) => {
-                            //     console.error(error)
-                            // })
-
-                            // const out = obj.parse(c)
-                            // const encoder = new TextEncoder()
-                            // const blob = encoder.encode(out)
-                            // downloadBlob(blob, "opla-export.obj", "application/octet-stream")
+                            usdz.parse(model, (blob) => {
+                                downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
+                            }, (err) => {
+                                console.error(err)
+                            })
                         }
                     }
                 }
@@ -238,6 +250,13 @@ export const OplaApp = () => {
                             value: Tool.EXPORT,
                             icon: (
                                 <Share size={15} />
+                            ),
+                        },
+                        {
+                            label: "AR",
+                            value: "AR",
+                            icon: (
+                                <Box size={15} />
                             ),
                         },
                         {
