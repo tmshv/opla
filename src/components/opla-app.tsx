@@ -87,7 +87,10 @@ export const OplaApp = () => {
                         const opla = scene.getObjectByName("opla-model")
                         if (opla) {
                             const now = Date.now()
-                            const model = getOplaModel(opla)
+                            const model = getOplaModel(opla, {
+                                move: true,
+                                scale: 0.15,
+                            })
                             gltf.parse(model, async (gltfJson) => {
                                 const jsonString = JSON.stringify(gltfJson);
 
