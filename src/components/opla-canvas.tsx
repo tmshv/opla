@@ -1,6 +1,7 @@
 import { hasIntersection, oplaItemToBox3, sizeToBox3 } from "@/lib/opla-geom"
 import { unionBoxes } from "@/lib/t"
 import appState, { Tool } from "@/stores/app"
+import scenes from "@/scenes"
 import type { OplaBox, OplaId, OplaModelData, V3 } from "@/stores/opla"
 import state from "@/stores/opla"
 import viewport from "@/stores/viewport"
@@ -16,6 +17,7 @@ import { SnapTransformControls, TransformSnap } from "./snap-transform-controls"
 import { Walls } from "./walls"
 import { Grid } from "./grid"
 import { OplaDims } from "./opla-dims"
+import { useEffect } from "react"
 
 function snapPosition(pos: number, size: number): number {
     const cell = Math.floor(pos)
@@ -87,6 +89,14 @@ const Main: React.FC<OplaSceneProps> = () => {
         nodeColor: "#454545",
         edgeColor: "#9d877c",
     })
+
+    useEffect(() => {
+        scenes.set(scene.id, scene)
+        appState.sceneId = scene.id
+        return () => {
+            scenes.delete(scene.id)
+        }
+    }, [scene])
 
     useFrame(({ camera }) => {
         viewport.cameraPosition.copy(camera.position)
