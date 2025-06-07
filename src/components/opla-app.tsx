@@ -3,9 +3,14 @@ import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "r
 import { Leva } from "leva"
 import * as THREE from "three"
 
+import type { Object3D } from "three"
+
 import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
+import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter"
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 
 import appState, { Tool } from "@/stores/app"
+import scenes from "@/scenes"
 import state from "@/stores/opla"
 import { subscribe, useSnapshot } from "valtio"
 import { Toolbar } from "@/ui/toolbar"
@@ -22,6 +27,7 @@ import { SizeSelect } from "@/ui/size-select"
 
 import Group from "@/icons/group"
 import Ungroup from "@/icons/ungroup"
+import { getOplaModel } from "@/lib/export-model"
 
 // Reset selection if target id set but actual object is not found
 subscribe(state, () => {
@@ -37,8 +43,7 @@ export const OplaApp = () => {
     const threeScene = useMemo(() => {
         return new THREE.Scene()
     }, [])
-
-    const { tool, target, targetSize } = useSnapshot(appState)
+    const { tool, target, targetSize, sceneId } = useSnapshot(appState)
     const { value: { model: { scene, items } } } = useSnapshot(state)
 
     const brushSize = useMemo(() => {
@@ -74,15 +79,42 @@ export const OplaApp = () => {
                 break
             }
             case Tool.EXPORT: {
-                const e = new USDZExporter()
-                const opla = threeScene
-                // const opla = threeScene.getObjectByName("opla")
-                if (opla) {
-                    e.parse(opla, (blob) => {
-                        downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
-                    }, (error) => {
-                        console.error(error)
-                    })
+                if (sceneId) {
+                    const scene = scenes.get(sceneId)
+                    if (scene) {
+                        const gltf = new GLTFExporter()
+                        const usdz = new USDZExporter()
+                        const opla = scene.getObjectByName("opla-model")
+                        if (opla) {
+                            const now = Date.now()
+                            const model = getOplaModel(opla)
+                            gltf.parse(model, async (gltfJson) => {
+                                const jsonString = JSON.stringify(gltfJson);
+
+                                // The following doesn't seem to work due to iframe sandboxing.
+                                // But please save the gltf json from the Console to obtain the file.
+                                const blob = new Blob([jsonString], { type: "application/json" });
+
+                                console.log(blob)
+                                const arr = new Uint8Array(await blob.arrayBuffer());
+                                // const arr = new Uint8Array(blob)
+                                downloadBlob(arr, `${now}-opla-export.gltf`, "application/octet-stream")
+                            }, (err) => {
+
+                            })
+
+                            usdz.parse(model, (blob) => {
+                                downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
+                            }, (error) => {
+                                console.error(error)
+                            })
+
+                            // const out = obj.parse(c)
+                            // const encoder = new TextEncoder()
+                            // const blob = encoder.encode(out)
+                            // downloadBlob(blob, "opla-export.obj", "application/octet-stream")
+                        }
+                    }
                 }
                 break
             }
