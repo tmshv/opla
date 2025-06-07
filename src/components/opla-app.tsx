@@ -1,7 +1,6 @@
 import OplaCanvas from "@/components/opla-canvas"
 import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
-import * as THREE from "three"
 
 import type { Object3D } from "three"
 
@@ -40,9 +39,6 @@ subscribe(state, () => {
 export type OplaAppProps = {}
 
 export const OplaApp = () => {
-    const threeScene = useMemo(() => {
-        return new THREE.Scene()
-    }, [])
     const { tool, target, targetSize, sceneId } = useSnapshot(appState)
     const { value: { model: { scene, items } } } = useSnapshot(state)
 
@@ -143,7 +139,7 @@ export const OplaApp = () => {
                 break
             }
         }
-    }, [target, scene, threeScene])
+    }, [target, scene])
 
     let brush = brushSize
     if (tool === Tool.ADD) {
@@ -152,7 +148,7 @@ export const OplaApp = () => {
 
     return (
         <>
-            <OplaCanvas scene={threeScene} />
+            <OplaCanvas />
             <Leva hidden />
 
             {!brush ? null : (

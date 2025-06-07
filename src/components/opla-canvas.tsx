@@ -179,17 +179,15 @@ const Main: React.FC<OplaSceneProps> = () => {
 }
 
 export type OplaCanvasProps = {
-    scene: Scene
 }
 
-const OplaCanvas: React.FC<OplaCanvasProps> = ({ scene }) => {
+const OplaCanvas: React.FC<OplaCanvasProps> = () => {
     const { tool, targetSize } = useSnapshot(appState)
     const wallsColor = "#d3dbe2"
     const gridColor = "#979ea3"
 
     return (
         <Canvas
-            scene={scene}
             dpr={[1, 2]}
             onPointerMissed={(e) => {
                 const SELECT_BUTTON = 0
