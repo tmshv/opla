@@ -14,6 +14,7 @@ export type AppState = {
     orbitEnabled: boolean
     target: string | null
     targetSize: V3
+    sceneId?: number
 }
 
 export default proxy<AppState>({
@@ -22,4 +23,5 @@ export default proxy<AppState>({
     target: null,
     orbitEnabled: true,
     targetSize: [2, 2, 2],
+    sceneId: undefined
 })

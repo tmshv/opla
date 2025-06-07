@@ -1,11 +1,12 @@
 import OplaCanvas from "@/components/opla-canvas"
-import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
+import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight, Box } from "react-feather"
 import { Leva } from "leva"
-import * as THREE from "three"
 
 import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 
 import appState, { Tool } from "@/stores/app"
+import scenes from "@/scenes"
 import state from "@/stores/opla"
 import { subscribe, useSnapshot } from "valtio"
 import { Toolbar } from "@/ui/toolbar"
@@ -22,6 +23,7 @@ import { SizeSelect } from "@/ui/size-select"
 
 import Group from "@/icons/group"
 import Ungroup from "@/icons/ungroup"
+import { getOplaModel } from "@/lib/export-model"
 
 // Reset selection if target id set but actual object is not found
 subscribe(state, () => {
@@ -34,11 +36,7 @@ subscribe(state, () => {
 export type OplaAppProps = {}
 
 export const OplaApp = () => {
-    const threeScene = useMemo(() => {
-        return new THREE.Scene()
-    }, [])
-
-    const { tool, target, targetSize } = useSnapshot(appState)
+    const { tool, target, targetSize, sceneId } = useSnapshot(appState)
     const { value: { model: { scene, items } } } = useSnapshot(state)
 
     const brushSize = useMemo(() => {
@@ -74,15 +72,52 @@ export const OplaApp = () => {
                 break
             }
             case Tool.EXPORT: {
-                const e = new USDZExporter()
-                const opla = threeScene
-                // const opla = threeScene.getObjectByName("opla")
-                if (opla) {
-                    e.parse(opla, (blob) => {
-                        downloadBlob(blob, "opla-export.usdz", "application/octet-stream")
-                    }, (error) => {
-                        console.error(error)
-                    })
+                if (sceneId) {
+                    const scene = scenes.get(sceneId)
+                    if (scene) {
+                        const gltf = new GLTFExporter()
+                        // const usdz = new USDZExporter()
+                        const opla = scene.getObjectByName("opla-model")
+                        if (opla) {
+                            const now = Date.now()
+                            const model = getOplaModel(opla, {
+                                move: true,
+                                scale: 0.15,
+                            })
+                            gltf.parse(model, async (gltfJson) => {
+                                const raw = JSON.stringify(gltfJson)
+                                const blob = new Blob([raw], { type: "application/json" })
+                                const buffer = await blob.arrayBuffer()
+                                const data = new Uint8Array(buffer)
+                                downloadBlob(data, `${now}-opla-export.gltf`, "application/octet-stream")
+                            }, (err) => {
+                                console.error(err)
+                            })
+                        }
+                    }
+                }
+                break
+            }
+            case "AR": {
+                if (sceneId) {
+                    const scene = scenes.get(sceneId)
+                    if (scene) {
+                        const usdz = new USDZExporter()
+                        const opla = scene.getObjectByName("opla-model")
+                        if (opla) {
+                            const now = Date.now()
+                            const model = getOplaModel(opla, {
+                                move: true,
+                                scale: 0.15,
+                            })
+
+                            usdz.parse(model, (blob) => {
+                                downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
+                            }, (err) => {
+                                console.error(err)
+                            })
+                        }
+                    }
                 }
                 break
             }
@@ -108,7 +143,7 @@ export const OplaApp = () => {
                 break
             }
         }
-    }, [target, scene, threeScene])
+    }, [target, scene])
 
     let brush = brushSize
     if (tool === Tool.ADD) {
@@ -117,7 +152,7 @@ export const OplaApp = () => {
 
     return (
         <>
-            <OplaCanvas scene={threeScene} />
+            <OplaCanvas />
             <Leva hidden />
 
             {!brush ? null : (
@@ -216,7 +251,13 @@ export const OplaApp = () => {
                             icon: (
                                 <Share size={15} />
                             ),
-                            visible: false,
+                        },
+                        {
+                            label: "AR",
+                            value: "AR",
+                            icon: (
+                                <Box size={15} />
+                            ),
                         },
                         {
                             label: "Undo",
