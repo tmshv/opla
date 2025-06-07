@@ -248,7 +248,6 @@ export const OplaApp = () => {
                             icon: (
                                 <Share size={15} />
                             ),
-                            visible: false,
                         },
                         {
                             label: "Undo",
