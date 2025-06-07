@@ -2,10 +2,7 @@ import OplaCanvas from "@/components/opla-canvas"
 import { MousePointer, Plus, Trash, Share, CornerUpLeft, CornerUpRight } from "react-feather"
 import { Leva } from "leva"
 
-import type { Object3D } from "three"
-
-import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
-import { OBJExporter } from "three/examples/jsm/exporters/OBJExporter"
+// import { USDZExporter } from "three/examples/jsm/exporters/USDZExporter"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 
 import appState, { Tool } from "@/stores/app"
@@ -79,7 +76,7 @@ export const OplaApp = () => {
                     const scene = scenes.get(sceneId)
                     if (scene) {
                         const gltf = new GLTFExporter()
-                        const usdz = new USDZExporter()
+                        // const usdz = new USDZExporter()
                         const opla = scene.getObjectByName("opla-model")
                         if (opla) {
                             const now = Date.now()
@@ -88,25 +85,20 @@ export const OplaApp = () => {
                                 scale: 0.15,
                             })
                             gltf.parse(model, async (gltfJson) => {
-                                const jsonString = JSON.stringify(gltfJson);
-
-                                // The following doesn't seem to work due to iframe sandboxing.
-                                // But please save the gltf json from the Console to obtain the file.
-                                const blob = new Blob([jsonString], { type: "application/json" });
-
-                                console.log(blob)
-                                const arr = new Uint8Array(await blob.arrayBuffer());
-                                // const arr = new Uint8Array(blob)
-                                downloadBlob(arr, `${now}-opla-export.gltf`, "application/octet-stream")
+                                const raw = JSON.stringify(gltfJson)
+                                const blob = new Blob([raw], { type: "application/json" })
+                                const buffer = await blob.arrayBuffer()
+                                const data = new Uint8Array(buffer)
+                                downloadBlob(data, `${now}-opla-export.gltf`, "application/octet-stream")
                             }, (err) => {
 
                             })
 
-                            usdz.parse(model, (blob) => {
-                                downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
-                            }, (error) => {
-                                console.error(error)
-                            })
+                            // usdz.parse(model, (blob) => {
+                            //     downloadBlob(blob, `${now}-opla-export.usdz`, "application/octet-stream")
+                            // }, (error) => {
+                            //     console.error(error)
+                            // })
 
                             // const out = obj.parse(c)
                             // const encoder = new TextEncoder()
