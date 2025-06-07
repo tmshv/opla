@@ -92,7 +92,7 @@ export const OplaModel: React.FC<OplaModelProps> = ({ model, scale, name, nodeCo
 
     return (
         <Suspense fallback={null}>
-            <group visible name={name}>
+            <group visible name={name} userData={{type: "opla-model"}}>
                 {nodes.map((position, i) => {
                     const asset = (scene.getObjectByName(NODE) as Mesh)
                     if (!asset) {
@@ -106,6 +106,7 @@ export const OplaModel: React.FC<OplaModelProps> = ({ model, scale, name, nodeCo
                             position={position}
                             material={plastic}
                             scale={scale}
+                            userData={{type: "opla-node"}}
                         />
                     )
                 })}
@@ -141,6 +142,7 @@ export const OplaModel: React.FC<OplaModelProps> = ({ model, scale, name, nodeCo
                                 // {/*     // receiveShadow */}
                                 geometry={geometry}
                                 material={plastic}
+                                userData={{type: "opla-label"}}
                             />
                         )
                     }
@@ -151,10 +153,12 @@ export const OplaModel: React.FC<OplaModelProps> = ({ model, scale, name, nodeCo
                             position={position}
                             rotation={rotation}
                             scale={scale}
+                            userData={{type: "opla-edge-group"}}
                         >
                             <mesh
                                 geometry={geometry}
                                 material={mat}
+                                userData={{type: "opla-edge"}}
                             >
                                 <Edges visible={drawEdges} color={0x222222} />
                             </mesh>
